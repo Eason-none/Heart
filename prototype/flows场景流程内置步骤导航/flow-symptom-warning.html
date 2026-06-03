@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 症状预警流程</title>
+<style>
+:root {
+  --bg:#F7F5F1; --card:#F0EDE8; --text:#2C2A26; --sub:#888780;
+  --blue:#185FA5; --blue-light:#E6F1FB;
+  --orange:#BA7517; --orange-light:#FAEEDA;
+  --red:#A32D2D; --red-light:#FCEBEB;
+  --green:#1D9E75; --green-light:#D4F2E7; --green-dark:#085041;
+  --border:#C8C5BE;
+  --r-card:12px; --r-btn:8px; --r-pill:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#E8E4DE;font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif;min-height:100vh;}
+.outer{display:flex;flex-direction:column;align-items:center;padding:16px 16px 40px;gap:12px;}
+.flow-nav{width:390px;background:white;border-radius:12px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.flow-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.badge{padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;background:var(--red-light);color:var(--red);}
+.flow-steps{display:flex;gap:4px;flex-wrap:wrap;}
+.flow-step{font-size:10px;padding:3px 8px;border-radius:8px;border:1.5px solid var(--border);color:var(--sub);cursor:pointer;white-space:nowrap;transition:all .15s;}
+.flow-step.active{background:var(--red);border-color:var(--red);color:white;font-weight:700;}
+.flow-step.done{background:var(--green-light);border-color:var(--green);color:var(--green-dark);}
+.context-bar{width:390px;background:var(--red-light);border-radius:10px;padding:10px 14px;border-left:3px solid var(--red);font-size:13px;color:var(--red);line-height:1.5;}
+.phone{width:390px;min-height:680px;background:var(--bg);border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);display:flex;flex-direction:column;}
+.status-bar{height:44px;background:var(--bg);display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex-shrink:0;}
+.status-time{font-size:15px;font-weight:600;color:var(--text);}
+.status-icons{font-size:12px;color:var(--text);}
+.page-header{height:48px;background:var(--bg);display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid var(--border);}
+.page-title{font-size:18px;font-weight:700;color:var(--text);}
+.scroll-area{flex:1;overflow-y:auto;padding:16px 16px 100px;}
+.panel{display:none;} .panel.active{display:block;}
+.tab-bar{height:68px;background:var(--bg);border-top:1px solid var(--border);display:flex;align-items:flex-start;padding-top:8px;flex-shrink:0;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.tab-icon{font-size:22px;line-height:1;}
+.tab-label{font-size:10px;color:var(--sub);font-weight:500;}
+.tab-item.active .tab-label{color:var(--blue);font-weight:700;}
+.card{background:var(--card);border-radius:var(--r-card);padding:16px;margin-bottom:12px;}
+.section-label{font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:var(--r-pill);}
+.pill-green{background:var(--green-light);color:var(--green-dark);}
+.pill-blue{background:var(--blue-light);color:var(--blue);}
+.btn-full{display:flex;align-items:center;justify-content:center;width:100%;border:none;border-radius:var(--r-btn);font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;margin-bottom:10px;}
+.btn-blue{height:56px;background:var(--blue);color:white;}
+.btn-secondary{height:48px;background:var(--card);color:var(--text);border:1.5px solid var(--border);}
+.btn-red{height:56px;background:var(--red);color:white;}
+.check-opt{min-height:52px;background:var(--bg);border-radius:var(--r-btn);border:1.5px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:8px;transition:all .12s;}
+.check-opt.checked{background:var(--red-light);border-color:var(--red);}
+.check-opt.checked-none{background:var(--green-light);border-color:var(--green);}
+.cbox{width:22px;height:22px;border-radius:5px;border:2px solid var(--border);background:white;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.check-opt.checked .cbox{background:var(--red);border-color:var(--red);}
+.check-opt.checked .cbox::after{content:'';width:4px;height:8px;border-right:2px solid white;border-bottom:2px solid white;transform:rotate(45deg) translate(-1px,-1px);display:block;}
+.check-opt.checked-none .cbox{background:var(--green);border-color:var(--green);}
+.check-opt.checked-none .cbox::after{content:'';width:4px;height:8px;border-right:2px solid white;border-bottom:2px solid white;transform:rotate(45deg) translate(-1px,-1px);display:block;}
+.check-lbl{font-size:16px;color:var(--text);}
+.check-opt.checked .check-lbl{color:var(--red);}
+/* Warning card */
+.warning-card{background:var(--red-light);border-radius:var(--r-card);border-left:4px solid var(--red);padding:18px 16px;margin-bottom:12px;}
+.warning-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.warning-icon{width:32px;height:32px;border-radius:50%;border:2px solid var(--red);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;}
+.warning-title{font-size:19px;font-weight:700;color:var(--red);}
+.warning-body{font-size:15px;color:var(--text);line-height:1.7;}
+/* Locked state */
+.lock-state{background:var(--card);border-radius:var(--r-card);padding:16px;display:flex;align-items:center;gap:12px;margin-bottom:12px;border:1.5px solid var(--border);}
+.lock-icon{font-size:28px;flex-shrink:0;}
+.lock-text{font-size:15px;color:var(--sub);line-height:1.55;}
+/* Recovery check */
+.recovery-card{background:var(--orange-light);border-radius:var(--r-card);border-left:4px solid var(--orange);padding:16px;margin-bottom:12px;}
+.recovery-title{font-size:17px;font-weight:700;color:var(--orange);margin-bottom:12px;}
+.rec-btn-row{display:flex;gap:8px;}
+.btn-recovered{flex:1;height:52px;background:var(--green);color:white;border:none;border-radius:var(--r-btn);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-still-bad{flex:1;height:52px;background:var(--card);color:var(--text);border:1.5px solid var(--border);border-radius:var(--r-btn);font-size:15px;cursor:pointer;font-family:inherit;}
+/* Footer */
+.flow-footer{width:390px;background:white;border-radius:12px;padding:10px 14px;box-shadow:0 1px 4px rgba(0,0,0,.1);display:flex;justify-content:space-between;align-items:center;}
+.flow-footer span{font-size:13px;color:var(--sub);}
+.nav-btn{font-size:14px;font-weight:600;padding:8px 18px;border-radius:var(--r-btn);border:none;cursor:pointer;font-family:inherit;}
+.nav-prev{background:var(--card);color:var(--text);}
+.nav-next{background:var(--red);color:white;}
+.nav-btn:disabled{opacity:.4;cursor:not-allowed;}
+</style>
+</head>
+<body>
+<div class="outer">
+  <div class="flow-nav">
+    <div class="flow-title">⚠️ 症状预警流程 <span class="badge">Branch</span></div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:8px;">岔出点：主线 ⑨ Check-in 症状筛查 → 用户勾选「胸闷」</div>
+    <div class="flow-steps">
+      <div class="flow-step active" id="fs-0" onclick="goToStep(0)">① 症状勾选</div>
+      <div class="flow-step" id="fs-1" onclick="goToStep(1)">② 红色警示卡</div>
+      <div class="flow-step" id="fs-2" onclick="goToStep(2)">③ 当日锁定</div>
+      <div class="flow-step" id="fs-3" onclick="goToStep(3)">④ 次日解锁询问</div>
+      <div class="flow-step" id="fs-4" onclick="goToStep(4)">⑤ 解锁成功</div>
+    </div>
+  </div>
+  <div class="context-bar">
+    <strong>背景：</strong>用户在 Check-in 症状筛查中勾选了「胸闷」。系统立即中断流程，展示警示卡，锁定当日运动，次日询问是否已缓解。
+  </div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <span class="status-icons">●●● WiFi 🔋</span>
+    </div>
+    <div class="scroll-area" id="scrollArea">
+
+      <!-- ① 症状勾选 -->
+      <div class="panel active" id="step-0">
+        <div class="page-header"><span class="page-title">运动</span></div>
+        <div style="margin-top:16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--border);"></div>
+            <span style="font-size:13px;color:var(--sub);">步骤 1 / 2 · 症状确认</span>
+          </div>
+          <div class="card">
+            <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:14px;">运动前，请确认以下情况</div>
+            <div class="check-opt checked" id="sym-chest">
+              <div class="cbox"></div>
+              <span class="check-lbl">胸痛 / 胸闷</span>
+            </div>
+            <div class="check-opt"><div class="cbox"></div><span class="check-lbl">心慌 / 心悸</span></div>
+            <div class="check-opt"><div class="cbox"></div><span class="check-lbl">头晕 / 头痛</span></div>
+            <div class="check-opt"><div class="cbox"></div><span class="check-lbl">呼吸困难</span></div>
+            <div class="check-opt"><div class="cbox"></div><span class="check-lbl">发热 / 感冒</span></div>
+            <div class="check-opt"><div class="cbox"></div><span class="check-lbl">肌肉关节严重疼痛</span></div>
+            <div class="check-opt" style="margin-top:6px;border-style:dashed;"><div class="cbox"></div><span class="check-lbl" style="font-weight:600;color:var(--sub);">以上都没有</span></div>
+            <div style="margin-top:14px;background:var(--red-light);border-radius:var(--r-btn);padding:10px 14px;font-size:13px;color:var(--red);line-height:1.5;">
+              ⚠️ 检测到症状勾选，将弹出安全提示
+            </div>
+            <div style="margin-top:12px;">
+              <button class="btn-full btn-red" onclick="next()" style="margin-bottom:0;">下一步 →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② 红色警示卡 -->
+      <div class="panel" id="step-1">
+        <div class="page-header"><span class="page-title">运动</span></div>
+        <div style="margin-top:16px;">
+          <div class="warning-card">
+            <div class="warning-header">
+              <div class="warning-icon">!</div>
+              <div class="warning-title">今日建议停止运动</div>
+            </div>
+            <div class="warning-body">
+              你选择了<strong>胸闷</strong>症状。<br><br>
+              请立即停止运动并<strong>坐下休息</strong>。如胸闷持续超过 5 分钟，或伴随其他症状（气促、出汗、手臂疼痛），请立即拨打 <strong>120</strong>。<br><br>
+              今日运动功能已锁定。
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <a href="tel:120" style="display:flex;align-items:center;justify-content:center;height:56px;background:var(--red);color:white;border-radius:var(--r-btn);font-size:17px;font-weight:700;text-decoration:none;gap:8px;">
+              📞 紧急情况：拨打 120
+            </a>
+          </div>
+          <button class="btn-full btn-secondary" onclick="next()" style="margin-bottom:24px;">我知道了，今天不运动</button>
+        </div>
+      </div>
+
+      <!-- ③ 当日锁定状态 -->
+      <div class="panel" id="step-2">
+        <div class="page-header"><span class="page-title">运动</span></div>
+        <div style="margin-top:16px;">
+          <div style="display:flex;flex-direction:column;align-items:center;padding:32px 16px;text-align:center;">
+            <div style="font-size:52px;margin-bottom:16px;">🔒</div>
+            <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:10px;">今日运动已暂停</div>
+            <div style="font-size:15px;color:var(--sub);line-height:1.6;margin-bottom:24px;">由于今日症状筛查结果，运动功能已锁定。<br>请充分休息，明天打开 App 时将询问你的恢复情况。</div>
+          </div>
+          <div class="lock-state">
+            <div class="lock-icon">⏰</div>
+            <div class="lock-text">明天打开运动页时，系统将询问<br><strong>昨天的不适是否已缓解</strong></div>
+          </div>
+          <div class="card">
+            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:10px;">症状记录</div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:14px;color:var(--sub);">记录时间</span>
+              <span style="font-size:14px;font-weight:600;color:var(--text);">今日 09:41</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:14px;color:var(--sub);">勾选症状</span>
+              <span style="font-size:14px;font-weight:600;color:var(--red);">胸痛 / 胸闷</span>
+            </div>
+            <div style="padding:10px 0 2px;font-size:13px;color:var(--sub);line-height:1.6;">
+              如症状未缓解或持续加重，请及时就医。就诊后可在「我」页面更新健康状态。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ 次日解锁询问 -->
+      <div class="panel" id="step-3">
+        <div class="page-header"><span class="page-title">运动</span></div>
+        <div style="margin-top:16px;">
+          <div style="background:var(--card);border-radius:var(--r-card);padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--sub);">
+            📅 次日早上，用户打开 App 进入运动页
+          </div>
+          <div class="recovery-card">
+            <div class="recovery-title">昨天的不适感是否已缓解？</div>
+            <div style="font-size:14px;color:var(--orange);margin-bottom:14px;line-height:1.5;">昨天你选择了胸闷症状，今天运动前请先确认身体状况。</div>
+            <div class="rec-btn-row">
+              <button class="btn-recovered" onclick="next()">✓ 已缓解，感觉好多了</button>
+              <button class="btn-still-bad" onclick="showStillBad()">仍有不适感</button>
+            </div>
+          </div>
+          <div id="still-bad-hint" style="display:none;background:var(--red-light);border-radius:var(--r-card);border-left:4px solid var(--red);padding:14px 16px;margin-bottom:12px;">
+            <div style="font-size:15px;font-weight:700;color:var(--red);margin-bottom:6px;">请先就医</div>
+            <div style="font-size:14px;color:var(--text);line-height:1.65;">症状持续未缓解时，建议暂缓运动，优先就医。就诊后可在「我」页面更新评估，系统将据此重新评估是否可以恢复运动。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑤ 解锁成功 -->
+      <div class="panel" id="step-4">
+        <div class="page-header"><span class="page-title">运动</span></div>
+        <div style="margin-top:16px;">
+          <div style="display:flex;flex-direction:column;align-items:center;padding:28px 16px 20px;text-align:center;">
+            <div style="font-size:52px;margin-bottom:14px;">✅</div>
+            <div style="font-size:21px;font-weight:700;color:var(--green-dark);margin-bottom:8px;">感觉好多了！</div>
+            <div style="font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:20px;">运动功能已恢复，今天可以正常进行 Check-in 和训练。</div>
+          </div>
+          <div style="background:var(--green-light);border-radius:var(--r-card);padding:14px 16px;margin-bottom:12px;border-left:4px solid var(--green);">
+            <div style="font-size:15px;font-weight:700;color:var(--green-dark);margin-bottom:4px;">小提示</div>
+            <div style="font-size:14px;color:var(--green-dark);opacity:.85;line-height:1.6;">今天开始运动前，仍建议做充分热身，并在运动中密切注意身体信号。如症状再次出现，请立即停止。</div>
+          </div>
+          <div class="card">
+            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:10px;">今日处方（已恢复）</div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:14px;color:var(--sub);">运动类型</span>
+              <span style="font-size:15px;font-weight:600;color:var(--text);">步行</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:14px;color:var(--sub);">时长</span>
+              <span style="font-size:15px;font-weight:600;color:var(--text);">30 分钟</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;">
+              <span style="font-size:14px;color:var(--sub);">强度</span>
+              <span style="font-size:15px;font-weight:600;color:var(--text);"><span class="pill pill-blue">适中</span></span>
+            </div>
+          </div>
+          <div style="background:var(--blue-light);border:1.5px dashed var(--blue);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">↵ 分支流程结束</div>
+            <div style="font-size:13px;color:var(--blue);line-height:1.55;margin-bottom:10px;">症状缓解后，用户回到主线第⑨步（Check-in 症状）重新执行正常运动流程。</div>
+            <a href="flow-golden-path.html#step-8" style="display:block;text-align:center;background:var(--blue);color:white;border-radius:8px;padding:10px;font-size:14px;font-weight:600;text-decoration:none;">→ 回到主线第⑨步（Check-in 症状）</a>
+          </div>
+          <button class="btn-full btn-blue" style="margin-bottom:24px;" onclick="window.location.href='flow-golden-path.html#step-8'">开始今日 Check-in →</button>
+        </div>
+      </div>
+
+    </div><!-- scroll-area -->
+    <div class="tab-bar">
+      <div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-label">首页</span></div>
+      <div class="tab-item active"><span class="tab-icon">🏃</span><span class="tab-label">运动</span></div>
+      <div class="tab-item"><span class="tab-icon">🥗</span><span class="tab-label">营养</span></div>
+      <div class="tab-item"><span class="tab-icon">🤖</span><span class="tab-label">助手</span></div>
+      <div class="tab-item"><span class="tab-icon">👤</span><span class="tab-label">我</span></div>
+    </div>
+  </div>
+  <div class="flow-footer">
+    <button class="nav-btn nav-prev" id="prevBtn" onclick="prev()" disabled>← 上一步</button>
+    <span id="stepLabel">步骤 1 / 5</span>
+    <button class="nav-btn nav-next" id="nextBtn" onclick="next()">下一步 →</button>
+  </div>
+  <a href="flow-golden-path.html" style="font-size:13px;color:var(--sub);text-decoration:none;">← 返回主线流程</a>
+</div>
+<script>
+const TOTAL = 5;
+let cur = 0;
+function goToStep(n) {
+  cur = Math.max(0, Math.min(TOTAL-1, n));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('step-' + cur).classList.add('active');
+  document.querySelectorAll('.flow-step').forEach((el, i) => {
+    el.classList.remove('active','done');
+    if (i === cur) el.classList.add('active');
+    else if (i < cur) el.classList.add('done');
+  });
+  document.getElementById('stepLabel').textContent = `步骤 ${cur+1} / ${TOTAL}`;
+  document.getElementById('prevBtn').disabled = cur === 0;
+  document.getElementById('nextBtn').disabled = cur === TOTAL-1;
+  document.getElementById('nextBtn').textContent = cur === TOTAL-1 ? '完成' : '下一步 →';
+  document.getElementById('scrollArea').scrollTop = 0;
+}
+function next() { if (cur < TOTAL-1) goToStep(cur+1); }
+function prev() { if (cur > 0) goToStep(cur-1); }
+function showStillBad() {
+  document.getElementById('still-bad-hint').style.display = 'block';
+}
+</script>
+</body>
+</html>

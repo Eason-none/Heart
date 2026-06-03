@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 助手</title>
+<style>
+:root {
+  --bg:#F7F5F1; --card:#F0EDE8; --text:#2C2A26; --sub:#888780;
+  --blue:#185FA5; --blue-light:#E6F1FB;
+  --orange:#BA7517; --orange-light:#FAEEDA;
+  --red:#A32D2D; --red-light:#FCEBEB;
+  --green:#1D9E75; --green-light:#D4F2E7; --green-dark:#085041;
+  --border:#C8C5BE;
+  --r-card:12px; --r-btn:8px; --r-pill:16px;
+  --bubble-user:#E4E1DC;
+  --bubble-ai:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif}
+.phone{width:390px;height:100vh;background:var(--bg);display:flex;flex-direction:column;position:relative;overflow:hidden}
+.status-bar{height:44px;background:var(--bg);display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex-shrink:0}
+.status-time{font-size:15px;font-weight:600;color:var(--text)}
+.status-icons{font-size:12px;color:var(--text)}
+.page-header{height:48px;background:var(--bg);display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.page-title{font-size:18px;font-weight:700;color:var(--text)}
+
+/* Safety banner */
+.safety-banner{flex-shrink:0;background:var(--orange-light);border-bottom:1px solid #E0C88A;padding:8px 16px;display:flex;align-items:flex-start;gap:8px}
+.safety-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.safety-text{font-size:13px;color:var(--orange);line-height:1.5;font-weight:500}
+
+/* Chat area */
+.chat-area{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:16px;-webkit-overflow-scrolling:touch}
+
+/* Welcome guide */
+.welcome-guide{display:flex;flex-direction:column;align-items:center;text-align:center;padding:16px 0 8px}
+.welcome-avatar{width:56px;height:56px;border-radius:16px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:12px;box-shadow:0 2px 8px rgba(24,95,165,.25)}
+.welcome-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px}
+.welcome-sub{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:16px}
+.suggested-questions{display:flex;flex-direction:column;gap:8px;width:100%}
+.sq-btn{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r-btn);padding:12px 14px;font-size:14px;color:var(--text);text-align:left;cursor:pointer;font-family:inherit;line-height:1.45;transition:all .12s;display:flex;align-items:center;gap:8px}
+.sq-btn:active{background:var(--blue-light);border-color:var(--blue)}
+.sq-arrow{color:var(--sub);font-size:14px;flex-shrink:0;margin-left:auto}
+
+/* Date divider */
+.date-divider{text-align:center;font-size:12px;color:var(--sub);position:relative}
+.date-divider::before{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:var(--border)}
+.date-divider span{position:relative;background:var(--bg);padding:0 10px}
+
+/* Message rows */
+.msg-row{display:flex;flex-direction:column;gap:4px}
+.msg-row.user{align-items:flex-end}
+.msg-row.ai{align-items:flex-start}
+.msg-meta{font-size:11px;color:var(--sub)}
+
+/* Bubbles */
+.bubble{max-width:80%;border-radius:var(--r-card);padding:12px 14px;position:relative}
+.bubble.user{background:var(--bubble-user);border-bottom-right-radius:4px}
+.bubble.ai{background:var(--bubble-ai);border:1px solid var(--border);border-bottom-left-radius:4px}
+.bubble-text{font-size:16px;color:var(--text);line-height:1.65;word-break:break-word}
+
+/* Streaming cursor */
+.streaming-cursor{display:inline-block;width:2px;height:1em;background:var(--blue);vertical-align:text-bottom;animation:blink .7s step-end infinite;margin-left:1px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* Safety footnote */
+.safety-footnote{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:13px;color:var(--sub);line-height:1.6}
+
+/* Intent badge */
+.intent-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:var(--r-pill);margin-bottom:6px}
+.intent-general      {background:#F0EDE8;color:var(--sub)}
+.intent-personal     {background:var(--blue-light);color:var(--blue)}
+.intent-symptom      {background:var(--orange-light);color:var(--orange)}
+.intent-prescription {background:var(--green-light);color:var(--green-dark)}
+.intent-outofscope   {background:var(--card);color:var(--sub);border:1px solid var(--border)}
+
+/* Typing indicator */
+.typing-indicator{display:flex;align-items:center;gap:4px;padding:12px 14px;background:var(--bubble-ai);border:1px solid var(--border);border-radius:var(--r-card);border-bottom-left-radius:4px;width:fit-content}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--sub);animation:typing .9s ease-in-out infinite}
+.typing-dot:nth-child(2){animation-delay:.15s}
+.typing-dot:nth-child(3){animation-delay:.3s}
+@keyframes typing{0%,80%,100%{transform:scale(.7);opacity:.5}40%{transform:scale(1);opacity:1}}
+
+/* Input area */
+.input-area{flex-shrink:0;background:var(--bg);border-top:1px solid var(--border);padding:10px 16px 32px;display:flex;gap:10px;align-items:flex-end}
+.message-input{flex:1;min-height:44px;max-height:120px;border:1.5px solid var(--border);border-radius:22px;padding:10px 16px;font-size:16px;color:var(--text);background:var(--card);resize:none;outline:none;font-family:inherit;line-height:1.5;overflow-y:auto;transition:border-color .15s}
+.message-input:focus{border-color:var(--blue)}
+.send-btn{width:44px;height:44px;border-radius:50%;background:var(--blue);border:none;color:#fff;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:opacity .15s;align-self:flex-end}
+.send-btn:disabled{background:var(--border);cursor:not-allowed}
+.send-btn:active:not(:disabled){opacity:.8}
+
+/* Tab bar */
+.tab-bar{position:absolute;bottom:0;width:100%;height:0;display:none}/* hidden — phone has fixed height, input is at bottom */
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">●●● WiFi 🔋</div>
+  </div>
+  <div class="page-header">
+    <span class="page-title">助手</span>
+  </div>
+
+  <!-- Safety banner -->
+  <div class="safety-banner">
+    <span class="safety-icon">⚠️</span>
+    <span class="safety-text">如出现胸痛、胸闷、心慌、头晕等不适，请立即就医，不要依赖本助手判断。</span>
+  </div>
+
+  <!-- Chat area -->
+  <div class="chat-area" id="chatArea">
+
+    <!-- Welcome guide (shown when empty) -->
+    <div class="welcome-guide" id="welcomeGuide">
+      <div class="welcome-avatar">🤖</div>
+      <div class="welcome-title">你好，我是你的心脏康复助手</div>
+      <div class="welcome-sub">我可以回答心脏康复相关的科普知识问题。<br>以下是一些你可能感兴趣的话题：</div>
+      <div class="suggested-questions">
+        <button class="sq-btn" onclick="fillSQ('运动后为什么要记录感受？这对康复有什么帮助？')">
+          <span>🏃 运动后为什么要记录感受？</span>
+          <span class="sq-arrow">›</span>
+        </button>
+        <button class="sq-btn" onclick="fillSQ('我每天可以走多远？适合我的步行距离是多少？')">
+          <span>🚶 适合我的步行距离是多少？</span>
+          <span class="sq-arrow">›</span>
+        </button>
+        <button class="sq-btn" onclick="fillSQ('我应该走多快？步频或配速有标准吗？')">
+          <span>⚡ 我应该走多快？（处方具体参数）</span>
+          <span class="sq-arrow">›</span>
+        </button>
+        <button class="sq-btn" onclick="fillSQ('冠心病患者在饮食上最需要注意哪些？')">
+          <span>🥗 冠心病饮食最需要注意什么？</span>
+          <span class="sq-arrow">›</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Input area -->
+  <div class="input-area">
+    <textarea class="message-input" id="msgInput" placeholder="向助手提问…" rows="1"
+      oninput="onInputChange()" onkeydown="onKeyDown(event)"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>↑</button>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   DATA — pre-canned Q&A for demo
+══════════════════════════════════════ */
+const RESPONSES = [
+  {
+    match: ['记录','感受','反馈','为什么','有什么帮助'],
+    intent: 'general',
+    text: '运动感受记录（主要是 RPE 主观疲劳评级）是心脏康复中非常重要的监测工具。\n\n它的作用主要有两点：\n\n① 帮助系统了解你的运动适应状况，判断当前强度是否合适。如果连续多次 RPE 偏高，系统会建议降低强度；\n\n② 记录心率恢复时间，可以间接反映心脏功能的改善趋势。随着康复进展，相同强度下你的心率恢复会越来越快。\n\n简单说：每次反馈不只是给你自己看的，它是系统优化下一次处方的核心输入。',
+    footnote: false,
+  },
+  {
+    // Intent_PrescriptionSpecific: 处方级具体数字问题 — 引导查运动页，不附 SafetyFootnote
+    match: ['多快','配速','速度','步频','几组','组数','几分钟','时长多久','心率区间','靶心率'],
+    intent: 'prescription',
+    text: '你问的是具体的处方参数——这类问题我没办法给你一个通用数字，因为它们需要结合你的评估结果实时计算。\n\n👉 你可以去「运动」Tab 查看今日的具体处方，里面有专门为你生成的时长、强度和结构安排。\n\n如果你想了解「为什么这样设计处方」背后的康复知识，我很乐意继续聊——比如心率恢复的原理、RPE 各档位的生理含义，或者热身冷身为什么不能省略。',
+    footnote: false,
+    isPrescription: true,
+  },
+  {
+    match: ['走多远','步行','距离','公里','多少步'],
+    intent: 'personalized',
+    text: '步行距离要结合你的当前 RPE 目标档位（适中）和个人体能综合判断，没有绝对标准。\n\n一般适应期（前 4 周）的参考范围是：\n· 每次 2,000–3,500 步（约 1.5–2.5 公里）\n· 步速建议能保持「能说话但不能唱歌」的节奏\n· 总时长 20–25 分钟（不含热身冷身）\n\n随着适应，可每两周增加约 5–10% 的时长或距离，切勿快速加量。',
+    footnote: true,
+  },
+  {
+    match: ['饮食','吃','营养','食物','注意'],
+    intent: 'general',
+    text: '冠心病患者饮食方面最关键的几点：\n\n① 控盐：每天食盐 ≤ 5g（约 1 茶匙），注意酱油、腌制品等隐性盐；\n\n② 减少饱和脂肪：减少猪油、黄油、肥肉；用橄榄油、茶籽油替代；\n\n③ 增加 Omega-3：每周 2 次以上深海鱼（三文鱼、鲈鱼、带鱼等）；\n\n④ 多蔬菜：每天 ≥ 400g，深色蔬菜优先；\n\n⑤ 全谷物替代精制主食：燕麦、糙米、杂粮饭。\n\n营养 Tab 有更详细的选购指南和中式食材替换表，可以参考。',
+    footnote: false,
+  },
+  {
+    match: ['胸闷','胸痛','不舒服','头晕','能不能运动','心慌','昨天','症状'],
+    intent: 'symptom',
+    text: '你描述的情况涉及身体症状，我没有办法判断你现在是否适合运动。\n\n建议你：\n① 今天暂停运动，充分休息；\n② 如果症状较明显或持续，请联系主治医生或就近就医；\n③ 在未获得医生明确意见前，不要自行判断「应该可以运动了」。\n\n安全是康复的第一原则。',
+    footnote: false,
+    isSymptom: true,
+  },
+  {
+    match: ['支架','寿命','多少年','换','手术'],
+    intent: 'outofscope',
+    text: '本模块服务于健康教育和知识科普，不侧重于解答具体的医疗诊断或治疗问题。\n\n关于支架的具体情况（使用年限、复查时间等），建议直接咨询你的主治心内科医生，他们掌握你的完整病历信息，能给出准确的个性化意见。',
+    footnote: false,
+  },
+];
+
+const DEFAULT_RESPONSE = {
+  intent: 'general',
+  text: '这是一个很好的问题！关于心脏康复的科普知识，我会尽力为你解答。\n\n目前我的知识库涵盖运动康复、饮食营养、用药知识、心理健康、睡眠管理等 12 个健康教育主题。\n\n如果你的问题超出这个范围（如具体的医疗诊断），建议直接咨询主治医生。',
+  footnote: false,
+};
+
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let messages = [];       // {role, text, intent, footnote, isSymptom}
+let isStreaming = false;
+
+/* ══════════════════════════════════════
+   UI HELPERS
+══════════════════════════════════════ */
+function onInputChange() {
+  const val = document.getElementById('msgInput').value.trim();
+  document.getElementById('sendBtn').disabled = !val || isStreaming;
+  // Auto-resize
+  const el = document.getElementById('msgInput');
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function onKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (!document.getElementById('sendBtn').disabled) sendMessage();
+  }
+}
+
+function scrollToBottom() {
+  const ca = document.getElementById('chatArea');
+  ca.scrollTop = ca.scrollHeight;
+}
+
+function hideWelcome() {
+  const w = document.getElementById('welcomeGuide');
+  if (w) w.style.display = 'none';
+}
+
+function fillSQ(text) {
+  document.getElementById('msgInput').value = text;
+  onInputChange();
+  document.getElementById('msgInput').focus();
+}
+
+/* ══════════════════════════════════════
+   MESSAGE RENDERING
+══════════════════════════════════════ */
+function createUserBubble(text) {
+  const row = document.createElement('div');
+  row.className = 'msg-row user';
+  row.innerHTML = `
+    <div class="msg-meta">你 · 刚刚</div>
+    <div class="bubble user"><div class="bubble-text">${escHtml(text)}</div></div>
+  `;
+  return row;
+}
+
+function createTypingIndicator() {
+  const row = document.createElement('div');
+  row.className = 'msg-row ai';
+  row.id = 'typingRow';
+  row.innerHTML = `<div class="typing-indicator">
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+    <div class="typing-dot"></div>
+  </div>`;
+  return row;
+}
+
+function createAIBubble(intent, text, footnote, isSymptom) {
+  const intentLabels = {
+    general:      {cls:'intent-general',      label:'📚 通用知识'},
+    personalized: {cls:'intent-personal',     label:'👤 个性化参考'},
+    symptom:      {cls:'intent-symptom',      label:'⚠ 症状相关'},
+    prescription: {cls:'intent-prescription', label:'🏃 查看运动页'},
+    outofscope:   {cls:'intent-outofscope',   label:'🔖 超出范围'},
+  };
+  const badge = intentLabels[intent] || intentLabels.general;
+
+  let footnoteHtml = '';
+  if (footnote) {
+    footnoteHtml = `<div class="safety-footnote">⚠ 以上为参考范围，请根据自身感受动态调整，有不适及时就医。</div>`;
+  }
+  if (isSymptom) {
+    // no footnote for symptom intent — it IS the soft block
+  }
+
+  const formattedText = escHtml(text).replace(/\n/g, '<br>');
+
+  const row = document.createElement('div');
+  row.className = 'msg-row ai';
+  row.innerHTML = `
+    <div class="msg-meta">康复助手 · 刚刚</div>
+    <div class="bubble ai" id="aiBubble_${Date.now()}">
+      <span class="intent-badge ${badge.cls}">${badge.label}</span>
+      <div class="bubble-text" id="streamText_${Date.now()}"></div>
+      ${footnoteHtml}
+    </div>
+  `;
+  return { row, textEl: null };
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ══════════════════════════════════════
+   INTENT MATCHING
+══════════════════════════════════════ */
+function matchResponse(userText) {
+  const lower = userText.toLowerCase();
+  for (const r of RESPONSES) {
+    if (r.match.some(kw => lower.includes(kw))) return r;
+  }
+  return DEFAULT_RESPONSE;
+}
+
+/* ══════════════════════════════════════
+   STREAM SIMULATION
+══════════════════════════════════════ */
+function streamText(el, fullText, onDone) {
+  const chars = fullText.split('');
+  let idx = 0;
+
+  // Add streaming cursor
+  const cursor = document.createElement('span');
+  cursor.className = 'streaming-cursor';
+  el.appendChild(cursor);
+
+  const interval = setInterval(() => {
+    const chunk = chars.slice(idx, idx + 3).join('');
+    const textNode = document.createTextNode(chunk);
+    el.insertBefore(textNode, cursor);
+    idx += 3;
+    scrollToBottom();
+    if (idx >= chars.length) {
+      clearInterval(interval);
+      cursor.remove();
+      if (onDone) onDone();
+    }
+  }, 40); // ~75 chars/sec ≈ visual comfort
+}
+
+/* ══════════════════════════════════════
+   SEND FLOW
+══════════════════════════════════════ */
+async function sendMessage() {
+  const input = document.getElementById('msgInput');
+  const text  = input.value.trim();
+  if (!text || isStreaming) return;
+
+  isStreaming = true;
+  document.getElementById('sendBtn').disabled = true;
+  hideWelcome();
+
+  // Clear input
+  input.value = '';
+  input.style.height = 'auto';
+
+  // 1. Append user bubble
+  const chatArea = document.getElementById('chatArea');
+  chatArea.appendChild(createUserBubble(text));
+  scrollToBottom();
+
+  // 2. Short delay → show typing
+  await delay(400);
+  const typingRow = createTypingIndicator();
+  chatArea.appendChild(typingRow);
+  scrollToBottom();
+
+  // 3. Match response
+  const resp = matchResponse(text);
+
+  // 4. Wait 600–1000ms simulating "thinking"
+  await delay(600 + Math.random() * 400);
+
+  // 5. Remove typing indicator
+  typingRow.remove();
+
+  // 6. Create AI bubble
+  const intentLabels = {
+    general:      {cls:'intent-general',      label:'📚 通用知识'},
+    personalized: {cls:'intent-personal',     label:'👤 个性化参考'},
+    symptom:      {cls:'intent-symptom',      label:'⚠ 症状相关'},
+    prescription: {cls:'intent-prescription', label:'🏃 查看运动页'},
+    outofscope:   {cls:'intent-outofscope',   label:'🔖 超出范围'},
+  };
+  const badge = intentLabels[resp.intent] || intentLabels.general;
+
+  const aiRow = document.createElement('div');
+  aiRow.className = 'msg-row ai';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble ai';
+
+  const badgeEl = document.createElement('span');
+  badgeEl.className = 'intent-badge ' + badge.cls;
+  badgeEl.textContent = badge.label;
+  bubble.appendChild(badgeEl);
+
+  const textEl = document.createElement('div');
+  textEl.className = 'bubble-text';
+  bubble.appendChild(textEl);
+
+  // Footnote placeholder (will be shown after streaming)
+  let footnoteEl = null;
+  if (resp.footnote) {
+    footnoteEl = document.createElement('div');
+    footnoteEl.className = 'safety-footnote';
+    footnoteEl.style.display = 'none';
+    footnoteEl.textContent = '⚠ 以上为参考范围，请根据自身感受动态调整，有不适及时就医。';
+    bubble.appendChild(footnoteEl);
+  }
+
+  const metaEl = document.createElement('div');
+  metaEl.className = 'msg-meta';
+  metaEl.textContent = '康复助手 · 刚刚';
+
+  aiRow.appendChild(metaEl);
+  aiRow.appendChild(bubble);
+  chatArea.appendChild(aiRow);
+  scrollToBottom();
+
+  // 7. Stream text
+  streamText(textEl, resp.text, () => {
+    // After streaming: show footnote, unlock input
+    if (footnoteEl) footnoteEl.style.display = 'block';
+    isStreaming = false;
+    document.getElementById('sendBtn').disabled = false;
+    scrollToBottom();
+  });
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>

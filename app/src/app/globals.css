@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #F7F5F1;
+  --card: #F0EDE8;
+  --text: #2C2A26;
+  --sub: #888780;
+  --blue: #185FA5;
+  --blue-light: #E6F1FB;
+  --orange: #BA7517;
+  --orange-light: #FAEEDA;
+  --red: #A32D2D;
+  --red-light: #FCEBEB;
+  --green: #1D9E75;
+  --green-light: #D4F2E7;
+  --green-dark: #085041;
+  --border: #C8C5BE;
+  --r-card: 12px;
+  --r-btn: 8px;
+  --r-pill: 16px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  background: #E8E4DE;
+  font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Phone shell — centers content on desktop, full-width on mobile */
+.phone-shell {
+  width: 100%;
+  max-width: 390px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Scrollable content area (leave room for bottom nav) */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Utility: text truncate multi-line */
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Bottom nav safe area */
+.bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Ensure min touch targets */
+button, [role="button"], a {
+  min-height: 44px;
+}
+
+/* Smooth scroll on mobile */
+* {
+  scroll-behavior: smooth;
+}

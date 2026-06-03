@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>心脏康复 · 知识地图</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F7F5F1;
+  --white:#FFFFFF;
+  --text:#1C1B20;
+  --muted:#6E6D75;
+  --border:#E8E6E1;
+  --sidebar:260px;
+  --radius:14px;
+  --shadow:0 2px 10px rgba(0,0,0,.07);
+  --shadow-hover:0 6px 24px rgba(0,0,0,.12);
+  --cta:#D95033;
+}
+body{
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  display:flex;
+  overflow:hidden;
+  font-size:15px;
+}
+
+/* ─── Sidebar ─── */
+#sidebar{
+  width:var(--sidebar);
+  background:var(--white);
+  border-right:1px solid var(--border);
+  height:100vh;
+  overflow-y:auto;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+}
+.sidebar-head{
+  padding:20px 18px 16px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.sidebar-tag{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+.sidebar-title{
+  font-size:17px;
+  font-weight:700;
+  margin-top:4px;
+  line-height:1.3;
+}
+.sidebar-sub{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:3px;
+}
+.nav-list{padding:8px 0}
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 18px;
+  cursor:pointer;
+  border-left:3px solid transparent;
+  transition:all .15s;
+  position:relative;
+}
+.nav-item:hover{background:var(--bg)}
+.nav-item.active{
+  border-left-color:var(--s-color);
+  background:var(--s-bg);
+}
+.nav-dot{
+  width:32px;
+  height:32px;
+  border-radius:10px;
+  background:var(--s-bg);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:16px;
+  flex-shrink:0;
+}
+.nav-item.active .nav-dot{background:var(--s-color);filter:brightness(1.1)}
+.nav-label{
+  font-size:13px;
+  font-weight:500;
+  line-height:1.3;
+  flex:1;
+}
+.nav-urgent{
+  font-size:10px;
+  font-weight:700;
+  color:var(--cta);
+  background:#FEE8E4;
+  padding:2px 6px;
+  border-radius:20px;
+}
+
+/* ─── Main ─── */
+#main{
+  flex:1;
+  overflow-y:auto;
+  padding:28px 32px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* Breadcrumb */
+.breadcrumb{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:22px;
+  flex-shrink:0;
+}
+.bc-item{cursor:pointer;transition:color .1s}
+.bc-item:hover{color:var(--text)}
+.bc-item:last-child{color:var(--text);cursor:default;font-weight:500}
+.bc-sep{color:var(--border)}
+
+/* Section header */
+.sec-header{
+  background:var(--white);
+  border-radius:var(--radius);
+  padding:22px 24px;
+  margin-bottom:20px;
+  border-left:5px solid var(--s-color);
+  box-shadow:var(--shadow);
+}
+.sec-icon-lg{font-size:28px;margin-bottom:10px}
+.sec-title-lg{font-size:21px;font-weight:700;margin-bottom:6px}
+.sec-desc{font-size:14px;color:var(--muted);line-height:1.65}
+
+/* Grid */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:14px;
+  margin-bottom:8px;
+}
+.sub-card{
+  background:var(--white);
+  border-radius:var(--radius);
+  padding:18px 16px;
+  cursor:pointer;
+  transition:all .18s;
+  border:2px solid transparent;
+  box-shadow:var(--shadow);
+}
+.sub-card:hover{
+  border-color:var(--s-color);
+  transform:translateY(-3px);
+  box-shadow:var(--shadow-hover);
+}
+.sub-icon{font-size:22px;margin-bottom:10px}
+.sub-title{font-size:14px;font-weight:600;line-height:1.4;color:var(--text)}
+.sub-count{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:5px;
+}
+
+/* Card list */
+.sub-header{
+  background:var(--white);
+  border-radius:var(--radius);
+  padding:18px 22px;
+  margin-bottom:16px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  box-shadow:var(--shadow);
+}
+.sub-header-icon{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  background:var(--s-bg);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  flex-shrink:0;
+}
+.sub-header-title{font-size:18px;font-weight:700}
+.sub-header-path{font-size:12px;color:var(--muted);margin-top:3px}
+
+.card-list{display:flex;flex-direction:column;gap:10px}
+.card-row{
+  background:var(--white);
+  border-radius:var(--radius);
+  padding:15px 20px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  transition:all .15s;
+  border-left:3px solid transparent;
+  box-shadow:var(--shadow);
+}
+.card-row:hover{
+  border-left-color:var(--s-color);
+  transform:translateX(4px);
+  box-shadow:var(--shadow-hover);
+}
+.card-row-body{flex:1}
+.card-row-title{font-size:15px;font-weight:600;margin-bottom:4px}
+.card-row-preview{font-size:13px;color:var(--muted);line-height:1.4}
+.card-row-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.badge{
+  font-size:11px;
+  padding:3px 8px;
+  border-radius:20px;
+  background:#F0EFED;
+  color:var(--muted);
+}
+.badge.p0{background:#FEF3C7;color:#92400E}
+.badge.emergency{background:#FEE8E4;color:#B91C1C}
+.row-arrow{color:var(--muted);font-size:14px}
+
+/* Card detail */
+.card-detail{
+  background:var(--white);
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.detail-header{
+  background:var(--s-color);
+  padding:24px 28px;
+  color:#fff;
+}
+.detail-path{font-size:12px;opacity:.75;margin-bottom:8px}
+.detail-title{font-size:22px;font-weight:700;line-height:1.3}
+.detail-source{
+  font-size:11px;
+  opacity:.7;
+  margin-top:8px;
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.detail-body{padding:28px}
+.detail-summary{
+  font-size:16px;
+  line-height:1.75;
+  color:var(--text);
+  margin-bottom:24px;
+}
+.points-label{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:12px;
+}
+.points{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.point{
+  display:flex;
+  gap:10px;
+  font-size:15px;
+  line-height:1.55;
+  align-items:flex-start;
+}
+.point-marker{
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:var(--s-bg);
+  border:2px solid var(--s-color);
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:11px;
+  font-weight:700;
+  color:var(--s-color);
+  margin-top:1px;
+}
+.detail-divider{height:1px;background:var(--border);margin-bottom:24px}
+
+/* CTA */
+.cta-box{
+  border:2px solid #F5D3CB;
+  border-radius:12px;
+  padding:20px;
+  background:#FFF6F4;
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.cta-emoji{font-size:30px}
+.cta-body{flex:1}
+.cta-title{font-size:15px;font-weight:700;color:var(--cta);margin-bottom:4px}
+.cta-desc{font-size:13px;color:var(--muted);line-height:1.45}
+.cta-btn{
+  background:var(--cta);
+  color:#fff;
+  border:none;
+  padding:11px 20px;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:background .15s;
+  flex-shrink:0;
+}
+.cta-btn:hover{background:#C04228}
+
+/* Context chip in assistant preview */
+.context-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  font-weight:600;
+  padding:5px 12px;
+  background:#EEF7FF;
+  color:#1565C0;
+  border-radius:20px;
+  border:1px solid #BBDEFB;
+  margin-top:12px;
+}
+
+/* Home */
+.home{max-width:640px;margin:0 auto;padding:8px 0}
+.home-header{margin-bottom:32px}
+.home-icon{font-size:44px;margin-bottom:14px}
+.home-title{font-size:26px;font-weight:700;margin-bottom:10px;line-height:1.3}
+.home-desc{font-size:15px;color:var(--muted);line-height:1.7}
+.home-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+.home-tile{
+  background:var(--white);
+  border-radius:var(--radius);
+  padding:20px;
+  cursor:pointer;
+  transition:all .18s;
+  border-top:3px solid var(--c);
+  box-shadow:var(--shadow);
+}
+.home-tile:hover{
+  transform:translateY(-3px);
+  box-shadow:var(--shadow-hover);
+}
+.home-tile-icon{font-size:24px;margin-bottom:10px}
+.home-tile-num{font-size:11px;font-weight:700;color:var(--c);margin-bottom:4px}
+.home-tile-name{font-size:14px;font-weight:600;line-height:1.35}
+.home-tile-count{font-size:12px;color:var(--muted);margin-top:5px}
+
+/* Toast */
+#toast{
+  position:fixed;
+  bottom:32px;
+  left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:#1C1B20;
+  color:#fff;
+  padding:12px 22px;
+  border-radius:100px;
+  font-size:14px;
+  opacity:0;
+  transition:all .25s;
+  pointer-events:none;
+  z-index:999;
+  max-width:88vw;
+  text-align:center;
+  line-height:1.5;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#D0CEC9;border-radius:3px}
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <div class="sidebar-head">
+    <div class="sidebar-tag">Heart · 患者端</div>
+    <div class="sidebar-title">心脏康复<br>知识地图</div>
+    <div class="sidebar-sub">点击主题开始探索</div>
+  </div>
+  <nav class="nav-list" id="nav"></nav>
+</aside>
+
+<main id="main">
+  <div class="breadcrumb" id="bc"></div>
+  <div id="view"></div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+//  数据
+// ─────────────────────────────────────────────
+const SECTIONS = [
+  {
+    id:'heart', icon:'🫀', title:'认识我的心脏',
+    desc:'了解心脏的结构、冠心病的形成原理，以及您所接受的手术方式。知道发生了什么，有助于您更积极地参与康复。',
+    color:'#C0392B', bg:'#FEF2F2', urgent:false,
+    subs:[
+      { id:'heart-works', icon:'⚙️', title:'心脏怎么工作', cards:[
+        { id:'heart-anatomy-01', title:'心脏的结构', summary:'心脏是人体不间断工作的肌肉泵。它分为四个腔室，通过瓣膜控制血流方向，冠状动脉则负责给心肌本身输送血液和氧气。', points:['心脏每天约跳动10万次，将血液泵向全身','左心负责体循环，右心负责肺循环','冠状动脉堵塞会导致心肌缺血，这就是冠心病的根本原因'], source:'UHN Guide 1', priority:'P0' },
+        { id:'heart-anatomy-02', title:'血液是怎么在身体里流动的', summary:'血液在体内走两条路：一条通向全身（体循环），一条通向肺部交换氧气（肺循环）。了解这个过程，有助于您理解为何心脏一旦出问题会影响全身。', points:['含氧血由左心室泵出，沿动脉到达全身器官','回来的缺氧血经右心室泵入肺部，重新获得氧气','冠状动脉在心脏外壁，如同心脏自己的供血网络'], source:'UHN Guide 1', priority:'P0' },
+      ]},
+      { id:'cad', icon:'🔬', title:'冠心病是什么', cards:[
+        { id:'heart-cad-01', title:'动脉粥样硬化：血管堵塞是怎么发生的', summary:'冠心病的根源是冠状动脉内壁逐渐积累了脂肪斑块，使血管越来越窄，就像水管里结了水垢。血流受阻时，心肌得不到足够的氧气，就会出现胸痛或心梗。', points:['斑块积累是一个缓慢的过程，往往几十年才出现症状','危险因素（高血压、高血脂、吸烟、糖尿病）会加速这个过程','通过药物和生活方式改变，可以稳定斑块、防止进一步恶化'], source:'冠心病基层指南2020', priority:'P0' },
+        { id:'heart-cad-02', title:'心绞痛和心肌梗死有什么区别', summary:'两者都是心肌缺血，但程度不同。心绞痛是暂时的血流减少，休息或服药后可缓解；心梗是冠状动脉完全堵塞，心肌开始坏死，是紧急情况。', points:['稳定型心绞痛：劳累时出现，休息后消失，规律可预测','不稳定型心绞痛：休息时也会发作，需要紧急就医','心肌梗死：胸痛持续且剧烈，硝酸甘油不能缓解，立即叫120'], source:'冠心病基层指南2020', priority:'P0' },
+      ]},
+      { id:'surgery', icon:'🏥', title:'我做了什么手术', cards:[
+        { id:'heart-surgery-01', title:'支架手术（PCI）是怎么做的', summary:'经皮冠状动脉介入治疗（PCI）是通过手腕或腹股沟的小切口，将导管送入堵塞的冠状动脉，用球囊扩开血管，再植入金属支架保持通畅，无需开胸。', points:['手术时间约1小时，创伤小，大多数患者次日可下床','支架植入后需长期服用双联抗血小板药物防止血栓','支架不会消失，它会与血管壁融合，是永久性植入物'], source:'卫健委健康教育处方', priority:'P0' },
+        { id:'heart-surgery-02', title:'搭桥手术（CABG）是怎么做的', summary:'冠状动脉旁路移植术（CABG）是取患者自身的血管（通常是腿部或胸部血管），绕过堵塞的冠状动脉建立新的血流通路，就像修建一条新公路绕开堵塞路段。', points:['通常需要开胸，恢复时间比PCI更长（约6–8周）','适合多支血管病变或PCI不适合的患者','搭桥使用的是自身血管，长期通畅率较好'], source:'卫健委健康教育处方', priority:'P0' },
+        { id:'heart-surgery-03', title:'溶栓治疗：用药物"冲开"血栓', summary:'当患者无法及时接受PCI时，医生会使用溶栓药物（静脉注射）来溶解堵塞的血栓。这是争取时间、挽救心肌的紧急措施。', points:['溶栓有严格的时间窗口，心梗发作后越早越好','溶栓成功后，后续仍需行冠状动脉造影评估','溶栓存在出血风险，需由医生评估后决定'], source:'卫健委健康教育处方', priority:'P1' },
+      ]},
+      { id:'prognosis', icon:'📈', title:'病情会怎么发展', cards:[
+        { id:'heart-prognosis-01', title:'康复后，我能恢复正常生活吗', summary:'绝大多数心脏康复患者在坚持系统康复后，都能回归正常乃至更健康的日常生活。研究表明，系统的心脏康复可以降低约25%的死亡风险，显著改善生活质量。', points:['多数患者在3–6个月后恢复到日常活动水平','按计划坚持运动、用药和饮食，预后会明显改善','康复是一个过程，进步可能是缓慢但稳定的'], source:'UHN Guide 9', priority:'P0' },
+        { id:'heart-prognosis-02', title:'哪些因素影响我的康复结果', summary:'康复效果与多种因素有关，其中许多是您能主动影响的。坚持服药、规律运动、控制危险因素，以及保持积极心态，都会对您的长期预后产生积极作用。', points:['可控因素：服药依从性、运动坚持、饮食、戒烟、情绪管理','不可控因素：年龄、疾病严重程度、遗传背景','控制好可控因素，可以很大程度上抵消不可控因素的影响'], source:'二级预防指南', priority:'P1' },
+      ]},
+    ]
+  },
+  {
+    id:'risk', icon:'🛡️', title:'危险因素管理',
+    desc:'冠心病的发展与多个可以控制的危险因素密切相关。控制好这些因素，是预防再次发病的最有效手段。',
+    color:'#D97706', bg:'#FFFBEB', urgent:false,
+    subs:[
+      { id:'bp', icon:'🩺', title:'高血压', cards:[
+        { id:'risk-bp-01', title:'高血压为什么会伤心脏', summary:'血压长期偏高，就像水管中水压过大，会使心脏持续超负荷工作，加速动脉硬化，增加心梗和心衰的风险。控制血压是心脏康复中最重要的任务之一。', points:['冠心病患者血压目标通常是<130/80 mmHg','血压每降低10mmHg，心脏事件风险可减少约20%','无症状不代表没有危害，高血压被称为"沉默的杀手"'], source:'健康教育处方', priority:'P0' },
+        { id:'risk-bp-02', title:'在家怎么正确测血压', summary:'在家测量血压可以更真实地反映日常血压水平，避免"白大衣高血压"的影响。测量方法和时机都有讲究。', points:['早晨起床后、晚上睡前各测一次，取平均值','测前静坐休息5分钟，不要在运动或情绪激动后测','每天记录数值，就诊时带给医生看'], source:'健康教育处方', priority:'P0' },
+      ]},
+      { id:'lipid', icon:'🧪', title:'血脂异常', cards:[
+        { id:'risk-lipid-01', title:'"坏胆固醇"升高有什么危害', summary:'低密度脂蛋白（LDL-C），也叫"坏胆固醇"，是斑块的主要成分。它越高，斑块越容易增长，血管越容易堵塞。冠心病患者的LDL-C控制目标比普通人更严格。', points:['PCI/CABG后，LDL-C目标通常需降至<1.8 mmol/L','即使血脂已"正常"，仍需继续服用他汀——它还能稳定斑块','高脂肪饮食和缺乏运动都会升高LDL-C'], source:'指南提炼', priority:'P0' },
+        { id:'risk-lipid-02', title:'为什么需要长期吃他汀，不能停药吗', summary:'他汀类药物不只是降低胆固醇数字，它还有稳定已有斑块、减少炎症的作用。停药后斑块可能迅速失稳，增加心梗风险——这是很多患者不了解的事情。', points:['他汀是冠心病二级预防的基石，需要长期服用','不能因为"指标正常了"就自行停药','如果出现肌肉酸痛等副作用，应告诉医生，不要自行停药'], source:'二级预防指南', priority:'P0' },
+      ]},
+      { id:'glucose', icon:'🍬', title:'血糖与糖尿病', cards:[
+        { id:'risk-glucose-01', title:'血糖高为什么会伤害心脏', summary:'高血糖会损伤血管内皮，加速动脉粥样硬化，同时影响神经，使心脏病发作时症状不典型（如无痛性心梗）。合并糖尿病的冠心病患者风险更高。', points:['约40%的冠心病患者合并糖尿病或糖耐量异常','控制血糖可以显著降低心血管事件风险','运动和饮食控制是血糖管理的重要手段'], source:'指南提炼', priority:'P0' },
+      ]},
+      { id:'weight', icon:'⚖️', title:'体重管理', cards:[
+        { id:'risk-weight-01', title:'我的健康体重目标是多少', summary:'超重增加心脏负担，腰腹肥胖（内脏脂肪堆积）与心血管风险直接相关。但快速减重有风险，建议在医生指导下制定合理目标。', points:['BMI目标：18.5–24 kg/m²（中国成人参考）','腰围目标：男性<90cm，女性<85cm','每周减重不超过0.5–1kg为宜，快速减重需谨慎'], source:'二级预防指南', priority:'P1' },
+      ]},
+      { id:'smoke', icon:'🚭', title:'戒烟', cards:[
+        { id:'risk-smoke-01', title:'戒烟对心脏有立竿见影的好处', summary:'戒烟是所有生活方式改变中对心脏最有益的一项。吸烟者戒烟后，心血管风险会迅速下降，速度超过大多数人的想象。', points:['戒烟24小时后，心脏病发作风险开始下降','戒烟1年后，冠心病风险降低约50%','戒烟5–15年后，心脏病风险接近从不吸烟者'], source:'戒烟干预中国专家共识', priority:'P0' },
+        { id:'risk-smoke-02', title:'戒烟很难怎么办：实用方法和支持资源', summary:'尼古丁成瘾是一种慢性疾病，戒烟需要方法和支持，而不只是"意志力"。了解可用的工具和支持渠道，可以大幅提高成功率。', points:['尼古丁替代疗法（贴片、口香糖）可减轻戒断症状','处方药（如伐尼克兰）有效率比单纯意志力高3–4倍','戒烟门诊和热线（12320）可提供专业支持'], source:'戒烟干预中国专家共识', priority:'P1' },
+      ]},
+    ]
+  },
+  {
+    id:'emergency', icon:'🚨', title:'应急应对',
+    desc:'了解危险信号和紧急处置步骤，是保护自己最重要的技能。这部分内容请务必认真阅读，并告诉您的家人。',
+    color:'#B91C1C', bg:'#FEF2F2', urgent:true,
+    subs:[
+      { id:'signs', icon:'⚠️', title:'识别危险信号', cards:[
+        { id:'emergency-signs-01', title:'哪些胸部感觉可能是心脏在求救', summary:'心脏发出的警报并不总是"剧烈胸痛"——很多患者描述为压迫感、紧绷感、胸部沉重，有时只是轻微不适。了解这些典型和不典型的表现，可以帮助您及时判断。', points:['典型症状：胸骨后压榨感、胸痛放射至左肩/下颌/左臂','不典型症状：上腹痛、恶心、气短、出冷汗（女性和糖尿病患者更常见）','休息时出现或比以前更严重的胸痛，都需要引起重视'], source:'UHN Guide 4', priority:'P0' },
+        { id:'emergency-signs-02', title:'除了胸痛，还要注意哪些身体警报', summary:'心脏病发作不一定只有胸痛。以下症状同样需要警惕，尤其是同时出现多种症状时。', points:['突然大量出汗（尤其是冷汗）、面色苍白、极度疲乏','气短或呼吸困难（即使在安静休息时）','心跳异常——明显心悸、心跳过缓或不规则','头晕、眼前发黑（黑矇）或短暂意识丧失'], source:'UHN Guide 4', priority:'P0' },
+      ]},
+      { id:'nitro', icon:'💊', title:'胸痛发作怎么办', cards:[
+        { id:'emergency-nitro-01', title:'硝酸甘油怎么用：正确步骤和注意事项', summary:'硝酸甘油是心绞痛发作时的急救用药。正确使用可以在几分钟内缓解症状，但使用方法和保存方式都有严格要求。', points:['用法：舌下含服（不要吞服），5分钟后仍未缓解可再含一片，最多3次','若3次无效或首次发作，立即拨打120','保存：避光避热，放在随手可取到的地方，注意有效期'], source:'卫健委健康教育处方', priority:'P0' },
+        { id:'emergency-nitro-02', title:'发作时从第一步到最后一步：该怎么做', summary:'遇到胸痛发作，冷静按步骤处理比慌乱更重要。这是UHN心脏康复中心的标准六步流程，请提前熟悉并告知家人。', points:['①慢下来运动1分钟→②完全停止，坐下休息1分钟→③仍未缓解：取硝酸甘油舌下含服，再等5分钟','④5分钟后仍未缓解：第2次用药，再等5分钟→⑤仍未缓解：第3次用药，等5分钟→⑥仍未缓解：立即拨打120','重要：含服2次才缓解→当天不得再运动；出现新的/不同的症状→立即联系医生'], source:'UHN Guide 4', priority:'P0' },
+      ]},
+      { id:'ems', icon:'🚑', title:'什么时候叫120', cards:[
+        { id:'emergency-ems-01', title:'必须立即拨打120的情况（不要等待）', summary:'有些情况等不得——哪怕您觉得"可能是虚惊一场"，也要先叫救护车再判断。延误救治每多一分钟，心肌坏死范围就多一分。', points:['硝酸甘油含服3次、15分钟后仍无缓解','有史以来最严重的胸痛，或和以往发作感觉明显不同','出现意识模糊、呼吸困难、晕厥，或家人发现您没有反应'], source:'卫健委健康教育处方', priority:'P0' },
+        { id:'emergency-ems-02', title:'等待救援时，家人应该做什么', summary:'救护车到来之前，家人的正确处置非常重要。以下是应该做和不应该做的事情。', points:['让患者保持平静，半卧位（头背微抬）或坐位，减少活动','不要给患者喝水或吃东西（可能需要急诊手术）','准备好就诊材料：病历、药品清单、近期检查报告'], source:'UHN Guide 4', priority:'P0' },
+      ]},
+      { id:'cpr', icon:'❤️‍🔥', title:'家庭急救基础', cards:[
+        { id:'emergency-cpr-01', title:'心肺复苏（CPR）基础：家人必须知道', summary:'如果患者失去意识、没有呼吸，在救护车到达前，家人的CPR可以成为救命的关键。学会基本步骤，定期练习。', points:['判断：轻拍双肩并大声呼叫，无反应则开始抢救','按压：双手交叠压胸骨中下段，深度5–6cm，频率100–120次/分','等待：持续按压直到救护车到达或患者恢复反应'], source:'卫健委健康教育处方', priority:'P0' },
+        { id:'emergency-cpr-02', title:'家中应该备哪些急救物品', summary:'提前准备好急救物品，并告知家人存放位置，可以在关键时刻节省宝贵时间。', points:['硝酸甘油：至少备一瓶，注意有效期，随身携带','急救卡：写明患者姓名、诊断、用药、紧急联系人','医疗资料袋：病历本、出院小结、近期检查报告集中存放'], source:'卫健委健康教育处方', priority:'P0' },
+      ]},
+    ]
+  },
+  {
+    id:'exercise', icon:'🏃', title:'运动康复',
+    desc:'运动是心脏康复最重要的"处方"。科学的运动不但安全，而且是降低死亡风险最有效的干预之一。',
+    color:'#15803D', bg:'#F0FDF4', urgent:false,
+    subs:[
+      { id:'why', icon:'💡', title:'为什么康复期要运动', cards:[
+        { id:'exercise-why-01', title:'运动对心脏康复的科学证据', summary:'多项大规模研究一致表明，系统性心脏康复运动可以降低约25%的心血管死亡率，减少再住院次数，并显著提高生活质量。运动不是冒险，不运动才是风险。', points:['有规律的有氧运动可以改善心脏功能，增加心肌供血','运动能降低血压、血脂、血糖，控制多个危险因素','心理获益：运动有助于缓解焦虑和抑郁，增强自信心'], source:'运动处方共识', priority:'P0' },
+        { id:'exercise-why-02', title:'"手术刚做完，运动安全吗？"——常见担心的回答', summary:'这是最常见的担心。真相是：在专业评估和指导下的运动康复是经过严格安全性验证的。过度静养反而会导致体能快速下降，增加后续风险。', points:['心脏康复运动已有50年以上的安全记录','运动前会经过危险分层评估，高危患者有专属方案','感到害怕是正常的，从小量开始并逐步适应是关键'], source:'运动处方共识', priority:'P0' },
+      ]},
+      { id:'intensity', icon:'📊', title:'怎么判断运动强度', cards:[
+        { id:'exercise-intensity-01', title:'自感运动强度（RPE）：最简单的强度工具', summary:'RPE是一种通过自我感觉来判断运动强度的方法，无需任何设备。只需问自己"现在有多累？"，然后在6到20的量表上打分。心脏康复的目标区间是11–14分（"相当轻松"到"有点吃力"）。', points:['RPE ≤10：太轻松，可以适当提速或增加距离','RPE 11–14：理想区间，这就是心脏康复的目标强度——有点感觉但能坚持','RPE ≥15：太用力，需要减速放缓——感到很吃力时不要硬撑'], source:'UHN Guide 5', priority:'P0' },
+        { id:'exercise-intensity-02', title:'用心率来监测：目标心率怎么计算', summary:'最大心率（HRmax）约等于"220减去年龄"。康复阶段的目标是维持在HRmax的50–80%之间，随训练阶段逐步提升上限。', points:['例：60岁患者，HRmax ≈ 160次/分','第1–4周目标心率：80–96次/分（50–60%）','第5–8周：96–112次/分（60–70%）；第9–12周：112–128次/分（70–80%）'], source:'KG/exercise_aerobic.json', priority:'P0' },
+        { id:'exercise-intensity-03', title:'Talk Test：用说话来测强度（最简单的方法）', summary:'Talk Test是最直觉的强度判断法：如果您能舒服地说话但不能唱歌，强度通常恰到好处。不需要任何设备，随时可用。', points:['能流畅说话 = 强度偏低，可以适当提升','说话断断续续，勉强能说完整句子 = 理想中等强度','上气不接下气，只能说几个字 = 强度过高，需要降低'], source:'国际指南', priority:'P0' },
+      ]},
+      { id:'plan', icon:'📅', title:'我的运动计划', cards:[
+        { id:'exercise-plan-01', title:'运动频率和时长：从3次开始，目标5次/周', summary:'刚开始的目标是让身体适应规律运动。主要方式是快步走或慢速固定自行车，强度保持在轻松到稍有感觉的范围，不要追求速度。最终目标是每周5次，每次30–60分钟。', points:['起步：每周3次，每次10–30分钟；约3周内逐步增加到每周5次','目标频率：每周5次，每次30–60分钟（不含热身/冷身）','上限：不要超过每周5次——超过会增加受伤、疲劳和心律失常风险（UHN Guide 5）'], source:'UHN Guide 5', priority:'P0' },
+        { id:'exercise-plan-02', title:'第5–8周：逐步增加时间和强度', summary:'度过了适应期，身体开始更有效率地工作。这一阶段可以把强度和时长都稍稍提升，但仍以舒适为主，不要跳级。', points:['频率：每周4–5次；时长：30–40分钟','心率目标：60–70% HRmax；RPE目标：13–14分','这一阶段可以开始加入轻度阻力训练（如弹力带）'], source:'KG/exercise_aerobic.json', priority:'P0' },
+        { id:'exercise-plan-03', title:'第9–12周：达到长期维持的目标强度', summary:'经过两个月的积累，心脏功能已经得到显著改善。第三阶段是巩固并达到长期目标，建立可以持续终生的运动习惯。', points:['频率：每周4–5次；时长：40–60分钟','心率目标：70–80% HRmax；RPE目标：14–16分','继续保持良好习惯——这是真正的"终身处方"'], source:'KG/exercise_aerobic.json', priority:'P1' },
+        { id:'exercise-plan-04', title:'热身和冷身：绝对不能省略的环节', summary:'每次运动前5–10分钟的热身和运动后的冷身，不只是习惯，而是降低运动风险的重要措施，对心脏患者尤其重要。热身允许心率和血压缓慢上升；冷身防止突然停止造成血压骤降。', points:['热身：同样的运动以慢速进行5–10分钟（例如快步走前先慢步走）','冷身：运动后再慢步走5–10分钟，配合静态拉伸（小腿、大腿、胸背各30秒×4组）','拉伸时动作要缓慢，不要弹振，感到轻微拉伸感即可，避免疼痛'], source:'UHN Guide 5 + article/breath.md', priority:'P0' },
+      ]},
+      { id:'precaution', icon:'🔔', title:'运动前后注意事项', cards:[
+        { id:'exercise-precaution-01', title:'运动前：出门前要做这几件事', summary:'每次运动前花几分钟进行简单自查，可以大幅降低运动中出现意外的风险。', points:['测量静息心率和血压——心率>100次/分或血压>180/100，今天暂停运动','饮食：运动前1小时不要进食，也不要空腹运动，少量喝水','检查身体感受：昨晚是否睡好？今天是否有发烧、胸闷等不适？'], source:'运动处方共识', priority:'P0' },
+        { id:'exercise-precaution-02', title:'运动后：做好心率恢复和症状自查', summary:'运动结束后的15–20分钟同样重要。观察身体恢复情况，是了解自己运动量是否适当的重要依据。', points:['运动后1分钟内心率应降低12次以上（心率恢复正常参考值）','若运动后1小时仍感到疲劳、胸闷，下次需降低强度','记录今天的运动时长、心率和感觉，作为调整依据'], source:'KG/rules.yaml', priority:'P0' },
+      ]},
+      { id:'stop', icon:'🛑', title:'哪些情况不能运动', cards:[
+        { id:'exercise-stop-01', title:'运动中出现这些症状，立即停下', summary:'运动中出现任何不寻常的感觉，都应该立即停止，不要强撑。以下是需要立即停止并坐下休息的信号：', points:['胸痛、胸闷、胸部紧压感（最重要的停止信号）','头晕、眼前发黑、感觉快要晕倒','心跳突然明显加速或感到心跳不规律、气短明显加重'], source:'KG/rules.yaml', priority:'P0' },
+        { id:'exercise-stop-02', title:'这些情况今天最好不要运动', summary:'有些身体状态不适合当天运动，强行运动反而有害。以下情况应推迟到状态恢复后再开始。', points:['发烧、感冒、急性感染期间（即使感觉还好）','血压过高（收缩压>180 mmHg 或舒张压>110 mmHg）','昨夜严重失眠、过度疲劳，或情绪特别激动时'], source:'运动处方共识', priority:'P1' },
+      ]},
+    ]
+  },
+  {
+    id:'diet', icon:'🥗', title:'饮食管理',
+    desc:'饮食调整不是"吃药一样的痛苦限制"，而是找到新的美味方式保护心脏。地中海饮食模式已被证明对心脏最有益。',
+    color:'#7C3AED', bg:'#F5F3FF', urgent:false,
+    subs:[
+      { id:'principle', icon:'📋', title:'饮食总原则', cards:[
+        { id:'diet-principle-01', title:'地中海饮食：对心脏最友好的饮食方式', summary:'地中海饮食可以控制血压、胆固醇和血糖，降低心脏病发作、中风、糖尿病的风险。核心是大量植物性食物、健康脂肪和适量鱼类。', points:['每天：水果≥3份（1个中等大小水果或½杯），蔬菜≥5份（½杯熟蔬菜或1杯绿叶菜），午晚餐盘子装满一半蔬菜','每周：鱼类或海鲜≥3次（三文鱼、金枪鱼、沙丁鱼优先，每次约110g）；豆类≥3次；坚果≥3次（每次约30g，¼杯）','三餐使用特级初榨橄榄油；避免加工食品、少红肉；每日盐摄入<1500mg'], source:'UHN Guide 6', priority:'P0' },
+        { id:'diet-principle-02', title:'减盐：最有效的心脏保护措施之一', summary:'高盐饮食直接升高血压。大多数人的盐摄入远超推荐量，而且许多盐来自隐藏来源（酱油、加工食品）而不是厨房里的盐罐。', points:['目标：每天食盐少于6克（约一平茶匙）','酱油、豆瓣酱、腌制食品中的盐要算在总量内','用香草、柠檬汁、醋、大蒜等来增加风味替代盐'], source:'UHN Guide 6', priority:'P0' },
+      ]},
+      { id:'goodfood', icon:'✅', title:'该多吃什么', cards:[
+        { id:'diet-good-01', title:'对心脏有益的食物清单', summary:'这些食物有助于降低"坏胆固醇"、提供抗氧化物质、减少炎症，对心脏健康有直接益处。', points:['深海鱼（三文鱼、沙丁鱼、鲭鱼）：富含Omega-3，每周2次','绿叶蔬菜（菠菜、芥兰、西兰花）：提供钾和抗氧化物质','燕麦、豆类：可溶性纤维有助降低LDL-C；坚果（适量，约30g/天）'], source:'UHN Guide 6', priority:'P0' },
+      ]},
+      { id:'avoid', icon:'⛔', title:'该少吃/避免什么', cards:[
+        { id:'diet-avoid-01', title:'这些食物需要限制', summary:'某些食物会直接升高"坏胆固醇"、增加炎症或加重血压，心脏康复期间需要有意识地减少摄入，而不必完全禁止。', points:['饱和脂肪：动物肥肉、黄油、棕榈油、全脂奶制品（适量）','加工肉类（香肠、腌肉）和高盐零食（薯片等）','含糖饮料和甜点（与心脏病和肥胖密切相关）'], source:'UHN Guide 6', priority:'P0' },
+        { id:'diet-avoid-02', title:'服用抗凝药时需要注意的食物', summary:'如果您服用华法林（抗凝药），某些维生素K含量高的食物会影响药物效果，需要保持饮食中摄入量稳定，而不是完全不吃。', points:['深绿色蔬菜（菠菜、甘蓝）富含维生素K，量要稳定，不要突然大量增减','不要因此不吃蔬菜——蔬菜对心脏有益，关键是"稳定摄入"','每次复查时告诉医生您的饮食有没有明显变化'], source:'UHN Guide 3', priority:'P1' },
+      ]},
+      { id:'dining', icon:'🍽️', title:'外出就餐怎么选', cards:[
+        { id:'diet-dining-01', title:'外出用餐的实用技巧', summary:'心脏康复不意味着不能外出聚餐，掌握几个原则，大多数场合都可以找到合适的选择。', points:['主动要求"少油少盐"，餐厅一般可以配合','选清蒸、水煮、凉拌优先于油炸、红烧、干锅','注意份量——中式餐厅往往分量大，可以分餐或打包'], source:'UHN Guide 6', priority:'P1' },
+      ]},
+    ]
+  },
+  {
+    id:'meds', icon:'💊', title:'用药与复查',
+    desc:'坚持服药是冠心病二级预防的关键。了解每种药的作用，您才能真正理解"为什么一定要坚持吃"。',
+    color:'#1565C0', bg:'#EFF6FF', urgent:false,
+    subs:[
+      { id:'drugs', icon:'🔬', title:'常用药物介绍', cards:[
+        { id:'meds-drug-01', title:'抗血小板药物：防止血栓形成', summary:'阿司匹林和氯吡格雷（或替格瑞洛）是防止支架内血栓的关键药物。PCI术后通常需要双联用药至少1年，不能因为"没有感觉"就停药。', points:['常用药：阿司匹林 + 氯吡格雷（波立维）/ 替格瑞洛（倍林达）/ 普拉格雷，由医生选择组合','双联抗血小板治疗（DAPT）通常需要持续12个月，停药前必须与医生商量','常见副作用：皮肤容易瘀青、鼻出血、胃部不适（饭后服用减少刺激）'], source:'UHN Guide 3', priority:'P0' },
+        { id:'meds-drug-02', title:'他汀类降脂药：不只是降胆固醇', summary:'他汀（如阿托伐他汀、瑞舒伐他汀）不只降低LDL-C，还能稳定已有斑块、减少斑块破裂风险。这是冠心病患者必须长期服用的药物。', points:['目标：LDL-C<1.8 mmol/L，或基线降幅>50%','最常见的副作用是肌肉酸痛，出现时告诉医生，不要自行停药','睡前服用效果更好（肝脏夜间合成胆固醇最旺盛）'], source:'UHN Guide 3', priority:'P0' },
+        { id:'meds-drug-03', title:'β受体阻滞剂：减慢心率，保护心脏', summary:'美托洛尔等β受体阻滞剂通过降低心率和血压，减少心肌耗氧，保护心肌梗死后受损的心肌组织。', points:['服药后心率偏慢是正常现象，目标静息心率55–65次/分','不能突然停药——会引起"反弹"导致心率骤升','运动前不要省略这个药——它是保障运动安全的重要保护'], source:'UHN Guide 3', priority:'P0' },
+        { id:'meds-drug-04', title:'ACEI/ARB：保护心脏和肾脏', summary:'普利类（ACEI）和沙坦类（ARB）药物通过阻断激素通路，降低血压，减少心脏负荷，保护心肌和肾脏功能。心梗后和心衰患者常用。', points:['ACEI常用药（中文）：雷米普利、依那普利、培哚普利、福辛普利、赖诺普利；ARB：氯沙坦、缬沙坦、厄贝沙坦、坎地沙坦','ACEI最常见副作用：干咳——这是机制性的，不是过敏，可换ARB','不建议ACEI和ARB同时使用；用药期间需定期监测肾功能和血钾'], source:'UHN Guide 3', priority:'P1' },
+      ]},
+      { id:'howto', icon:'⏰', title:'正确服药方法', cards:[
+        { id:'meds-how-01', title:'服药时间和随身携带要点', summary:'不同药物的最佳服用时间有所不同。建立固定的用药习惯，配合饮食和生活节奏，可以减少漏服和副作用。', points:['阿司匹林：饭后服用减少胃部刺激','他汀类：建议晚上或睡前服用','随身携带硝酸甘油：出门必带，放在前胸口袋等随手可取的位置'], source:'UHN Guide 3', priority:'P0' },
+        { id:'meds-how-02', title:'漏服了怎么办？发现有副作用怎么处理', summary:'偶尔漏服不要恐慌，但不同药物的处理方法不一样。绝对不要因为担心副作用就自行加量或减量。', points:['一般原则：想起后尽快服用，但若接近下次服药时间，则跳过本次，不要补加量','不能做的事：为了补上漏服的量而加倍服药','副作用处理：记录副作用症状，下次就诊告知医生，不要自行停药'], source:'UHN Guide 3', priority:'P0' },
+      ]},
+      { id:'checkup', icon:'📅', title:'定期复查项目', cards:[
+        { id:'meds-checkup-01', title:'我需要定期做哪些检查——复查清单', summary:'规律复查可以让医生及时发现药物的效果和副作用，并根据病情变化调整方案。以下是建议的复查项目和频率。', points:['出院后1个月、3个月、6个月、1年各随访一次','每次随访基本项目：血脂、肝功能、肾功能、血常规、心电图','每6–12个月：超声心动图评估心脏功能（根据病情）'], source:'卫健委健康教育处方', priority:'P0' },
+      ]},
+      { id:'labs', icon:'📊', title:'化验单怎么看', cards:[
+        { id:'meds-labs-01', title:'血脂化验单：这几个数字最重要', summary:'拿到血脂化验单，不必被一排数字困扰。冠心病患者最需要关注的是LDL-C（低密度脂蛋白胆固醇）这一项。', points:['LDL-C目标（PCI/CABG后）：<1.8 mmol/L，或较基线降低≥50%','TG（甘油三酯）：<1.7 mmol/L；HDL-C（好胆固醇）：越高越好','如果LDL-C没有达标，需要和医生讨论调整他汀剂量'], source:'二级预防指南', priority:'P0' },
+        { id:'meds-labs-02', title:'血压和血糖控制目标速查', summary:'了解自己的控制目标，可以更有效地参与自我管理，发现异常及时就诊。', points:['血压目标（一般冠心病患者）：<130/80 mmHg','空腹血糖目标（合并糖尿病）：4.4–7.0 mmol/L','餐后2小时血糖目标：<10 mmol/L；HbA1c目标：<7%'], source:'卫健委健康教育处方', priority:'P1' },
+      ]},
+    ]
+  },
+  {
+    id:'psych', icon:'🧠', title:'心理与情绪',
+    desc:'心脏病后出现情绪波动是非常正常的反应，不是软弱。照顾好情绪，同样是康复的一部分。',
+    color:'#B45309', bg:'#FFFBEB', urgent:false,
+    subs:[
+      { id:'reaction', icon:'💭', title:'康复期常见心理反应', cards:[
+        { id:'psych-reaction-01', title:'焦虑和害怕：正常的，也是可以应对的', summary:'心脏病发作后，很多患者会变得焦虑——对任何身体感觉都过度警惕，担心再次发病，甚至不敢运动。这是非常普遍的反应，而不是您的问题。', points:['约40–50%的心肌梗死患者在康复期出现焦虑症状','过度焦虑本身也会升高心率和血压，对康复不利','识别焦虑是应对的第一步——知道"这是焦虑"有助于不被它控制'], source:'UHN Guide 7', priority:'P0' },
+        { id:'psych-reaction-02', title:'心脏病后的抑郁：不只是"情绪不好"', summary:'心肌梗死后约20–25%的患者会经历临床抑郁，这与预后密切相关。抑郁不是意志力问题，而是需要正视和处理的健康问题。', points:['表现：持续的低落、丧失兴趣、睡眠和食欲改变、疲乏无力','抑郁会降低服药依从性和运动参与度，影响康复结果','不要独自承受——告诉医生您的感受，有效的支持和治疗方法是存在的'], source:'卫健委健康教育处方', priority:'P0' },
+      ]},
+      { id:'cope', icon:'🌿', title:'自我调节方法', cards:[
+        { id:'psych-cope-01', title:'减压方法实用清单：从呼吸到冥想', summary:'压力管理有多种有效方法，UHN Guide 7推荐的方式包括腹式呼吸、渐进式肌肉放松、瑜伽、视觉化、冥想和认知重构。从最简单的开始，找到适合自己的一两种坚持下去。', points:['腹式呼吸（最易入门）：鼻吸气4秒腹部鼓起，口呼气6秒腹部收回，每天2次，每次5–10分钟','渐进式肌肉放松：从脚趾开始依次收紧再放松全身肌肉群，睡前做效果尤佳','冥想/正念：每天5–15分钟，专注于当下的呼吸和感受，不评判、不抗拒'], source:'UHN Guide 7', priority:'P0' },
+        { id:'psych-cope-02', title:'与担心的想法相处：认知调整的简单方法', summary:'焦虑往往来自对风险的过度放大。学会识别"灾难化思维"并用更平衡的视角来看待，是应对焦虑的根本方法。', points:['当出现"万一…怎么办"的想法，问自己：这种情况真的有多大可能性？','找出反例：有哪些证据说明事情不会那么糟糕？','用行动替代担忧——把注意力放在"我可以做什么"上'], source:'UHN Guide 7', priority:'P1' },
+      ]},
+      { id:'help', icon:'🤝', title:'什么时候需要专业帮助', cards:[
+        { id:'psych-help-01', title:'这些信号说明应该找专业人士了', summary:'当情绪困扰超出了日常自我调节的能力，或者对生活和康复产生了实质影响，是时候寻求专业心理支持了——这是照顾自己，不是示弱。', points:['持续两周以上的低落、焦虑、失眠，且自我调节没有明显改善','因为情绪问题开始回避运动、漏服药物、不愿意参加康复活动','出现绝望感、对未来失去兴趣，或有伤害自己的想法（立即就医）'], source:'卫健委健康教育处方', priority:'P0' },
+      ]},
+      { id:'family', icon:'👨‍👩‍👧', title:'家人如何支持', cards:[
+        { id:'psych-family-01', title:'给家属：有效的支持是什么样的', summary:'家属的态度对患者康复影响巨大。好的支持是鼓励独立和参与康复，而不是过度保护——后者反而会加重患者的焦虑和依赖感。', points:['鼓励而非限制：让患者做力所能及的事，包括轻度家务和运动','避免过度询问身体状况——这会强化患者的"病人角色"和焦虑','一起参与康复：陪伴运动、学习健康饮食，让康复成为全家的事'], source:'UHN Guide 7', priority:'P1' },
+      ]},
+      { id:'intimacy', icon:'💑', title:'两性关系与亲密生活', cards:[
+        { id:'psych-intimacy-01', title:'手术后多久可以恢复性生活', summary:'这是很多患者不好意思问但心里担心的问题。答案是：通常没有大家想象的那么久，关键是循序渐进，并与医生确认。', points:['安全判断：能够轻松爬两段楼梯，就说明心脏在性生活时基本安全','心脏损伤很小的患者，出院后2–3周内即可考虑恢复（UHN Guide 8）','重要警告：正在服用治疗勃起功能障碍药物的男性，绝对不能同时使用硝酸甘油——两者合用可导致血压骤降，非常危险'], source:'UHN Guide 8', priority:'P1' },
+        { id:'psych-intimacy-02', title:'关于亲密关系的常见担心和误解', summary:'有些担心是真实的，有些是误解。了解实情，可以减少不必要的顾虑，维护亲密关系对心理康复同样重要。', points:['有些降压药（如β受体阻滞剂）可能影响性功能，如有困扰可告知医生','不需要回避，但如果发生胸痛应停下休息，并告知医生','开放坦诚的沟通——让伴侣了解您的担心和感受，共同面对'], source:'UHN Guide 8', priority:'P1' },
+      ]},
+    ]
+  },
+  {
+    id:'daily', icon:'🏠', title:'回归日常',
+    desc:'康复的终极目标是让您重新回归有质量、有意义的正常生活——工作、社交、旅行，这些都可以再次实现。',
+    color:'#0F766E', bg:'#F0FDFA', urgent:false,
+    subs:[
+      { id:'activity', icon:'🚶', title:'日常活动能量消耗', cards:[
+        { id:'daily-activity-01', title:'日常活动的心脏负荷参考（METs表）', summary:'不同日常活动对心脏的负荷差异很大。了解各活动的代谢当量（METs）值，有助于您安全地逐步恢复日常生活。', points:['低强度（1–2 METs）：散步、穿衣、洗漱，术后1–2周可进行','中等强度（3–4 METs）：家务劳动、慢速爬楼，术后2–4周','较高强度（5 METs以上）：快走、打扫、轻度园艺，按康复进度开放'], source:'卫健委健康教育处方', priority:'P0' },
+        { id:'daily-activity-02', title:'这些家务活动需要特别注意', summary:'有些日常动作看起来轻松，但对心脏的负荷超出直觉，在康复早期需要特别留意。', points:['搬举重物（超过5kg）：会显著升高血压，建议6–8周后再开始','弯腰动作（如捡东西、系鞋带）：会短暂增加胸腔压力，动作要慢','洗澡水温不要过热或过冷：极端温度会引起血管骤然收缩或舒张'], source:'卫健委健康教育处方', priority:'P1' },
+      ]},
+      { id:'work', icon:'💼', title:'回归工作', cards:[
+        { id:'daily-work-01', title:'我什么时候可以回去工作', summary:'重返工作岗位是康复的重要里程碑，但时机和方式需要根据工作性质和身体状况综合判断，没有统一标准。', points:['脑力工作（办公室）：通常PCI后4–6周可考虑恢复，可从半天开始','体力劳动：需要更长时间评估，需与医生讨论，可能需要岗位调整','告知雇主您的健康状况，争取初期减少工作负荷的过渡期'], source:'卫健委健康教育处方', priority:'P0' },
+      ]},
+      { id:'drive', icon:'🚗', title:'驾车与出行', cards:[
+        { id:'daily-drive-01', title:'手术后多久可以重新开车', summary:'驾驶涉及紧急应对能力和注意力，因此有一定的恢复等待期。遵循建议是对自己和他人负责的做法。', points:['PCI术后：穿刺点完全愈合且停止相关药物限制后，一般4–6周','CABG术后：胸骨愈合需更长时间，通常6–8周','长途出行：建议每隔2小时停车休息活动，预防血栓形成'], source:'卫健委健康教育处方', priority:'P1' },
+      ]},
+      { id:'milestone', icon:'🏆', title:'康复里程碑', cards:[
+        { id:'daily-milestone-01', title:'4周、8周、12周：我的康复预期目标', summary:'设定清晰的阶段目标，有助于保持动力和信心。以下是一般性参考——每个人的进度不同，关注趋势比绝对数字更重要。', points:['4周：完成早期适应，可独立进行20–30分钟步行，日常生活基本自理','8周：有氧能力明显提升，可增加运动时间，情绪趋于稳定','12周：达到中等运动强度，多数日常活动无明显限制，考虑恢复工作'], source:'UHN Guide 9', priority:'P0' },
+        { id:'daily-milestone-02', title:'如何记录自己的康复进步', summary:'简单的自我记录可以帮助您看到自己的进步，这是保持动力的重要来源；也为医生提供有价值的参考信息。', points:['记录内容：每天步数、运动心率、运动后感受（RPE）、血压','每月做一次简单的"能力测试"：同一路线步行，比较时间和疲劳感','不要只看数字——情绪改善、睡眠变好、爬楼不喘，这些都是进步'], source:'UHN Guide 9', priority:'P1' },
+      ]},
+      { id:'longterm', icon:'🌱', title:'长期自我管理', cards:[
+        { id:'daily-longterm-01', title:'维持健康生活方式的实用策略', summary:'知道该做什么和真正坚持做之间有一道鸿沟。以下是帮助您跨越这道鸿沟、将健康行为变成习惯的实用方法。', points:['把运动、服药、健康饮食与已有习惯挂钩（"habit stacking"）','把家人纳入进来——共同改变比独自坚持容易得多','给自己设立小奖励——每完成一个阶段目标，给自己一个肯定'], source:'UHN Guide 9', priority:'P0' },
+        { id:'daily-longterm-02', title:'冠心病是慢病：与它一起好好生活', summary:'冠心病无法"根治"，但可以被很好地管理。接受这个现实，并把注意力从"治好它"转向"好好活着"，是心理康复的重要一步。', points:['聚焦可控因素，放下对不可控因素的过度担心','康复不是终点，而是一种新的生活方式的开始','很多冠心病患者在康复后，生活质量甚至高于确诊之前'], source:'卫健委健康教育处方', priority:'P1' },
+      ]},
+    ]
+  },
+];
+
+// ─────────────────────────────────────────────
+//  State
+// ─────────────────────────────────────────────
+let state = { section: null, sub: null, card: null };
+
+// ─────────────────────────────────────────────
+//  Build sidebar
+// ─────────────────────────────────────────────
+function buildNav(){
+  const nav = document.getElementById('nav');
+  SECTIONS.forEach((s,i)=>{
+    const el = document.createElement('div');
+    el.className='nav-item';
+    el.style.cssText=`--s-color:${s.color};--s-bg:${s.bg}`;
+    el.id=`nav-${s.id}`;
+    el.innerHTML=`
+      <div class="nav-dot">${s.icon}</div>
+      <div class="nav-label">${s.title}</div>
+      ${s.urgent?'<span class="nav-urgent">必读</span>':''}
+    `;
+    el.onclick=()=>selectSection(s.id);
+    nav.appendChild(el);
+  });
+}
+
+// ─────────────────────────────────────────────
+//  Navigation helpers
+// ─────────────────────────────────────────────
+function selectSection(sid){
+  state={section:sid,sub:null,card:null};
+  updateNav(sid);
+  renderSection(sid);
+}
+function selectSub(sid,subid){
+  state={section:sid,sub:subid,card:null};
+  updateNav(sid);
+  renderSub(sid,subid);
+}
+function selectCard(sid,subid,cardid){
+  state={section:sid,sub:subid,card:cardid};
+  updateNav(sid);
+  renderCard(sid,subid,cardid);
+}
+function goHome(){
+  state={section:null,sub:null,card:null};
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  renderHome();
+}
+
+function updateNav(sid){
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  const el=document.getElementById(`nav-${sid}`);
+  if(el){
+    const s=SECTIONS.find(x=>x.id===sid);
+    el.style.cssText=`--s-color:${s.color};--s-bg:${s.bg}`;
+    el.classList.add('active');
+  }
+}
+
+function getSection(sid){ return SECTIONS.find(s=>s.id===sid); }
+function getSub(s,subid){ return s.subs.find(x=>x.id===subid); }
+function getCard(sub,cardid){ return sub.cards.find(c=>c.id===cardid); }
+
+// ─────────────────────────────────────────────
+//  Breadcrumb
+// ─────────────────────────────────────────────
+function renderBC(){
+  const bc=document.getElementById('bc');
+  const {section,sub,card}=state;
+  let html=`<span class="bc-item" onclick="goHome()">知识地图</span>`;
+  if(section){
+    const s=getSection(section);
+    html+=`<span class="bc-sep">›</span>`;
+    if(sub||card) html+=`<span class="bc-item" onclick="selectSection('${section}')">${s.title}</span>`;
+    else html+=`<span class="bc-item">${s.title}</span>`;
+  }
+  if(sub){
+    const s=getSection(section);
+    const su=getSub(s,sub);
+    html+=`<span class="bc-sep">›</span>`;
+    if(card) html+=`<span class="bc-item" onclick="selectSub('${section}','${sub}')">${su.title}</span>`;
+    else html+=`<span class="bc-item">${su.title}</span>`;
+  }
+  if(card){
+    const s=getSection(section);
+    const su=getSub(s,sub);
+    const c=getCard(su,card);
+    html+=`<span class="bc-sep">›</span><span class="bc-item">${c.title}</span>`;
+  }
+  bc.innerHTML=html;
+}
+
+// ─────────────────────────────────────────────
+//  Render: Home
+// ─────────────────────────────────────────────
+function renderHome(){
+  renderBC();
+  const v=document.getElementById('view');
+  const tiles=SECTIONS.map((s,i)=>`
+    <div class="home-tile" style="--c:${s.color}" onclick="selectSection('${s.id}')">
+      <div class="home-tile-icon">${s.icon}</div>
+      <div class="home-tile-num">${i+1 < 10 ? '0'+(i+1) : (i+1)}</div>
+      <div class="home-tile-name">${s.title}${s.urgent?'  <span style="font-size:10px;font-weight:700;color:#B91C1C;background:#FEE8E4;padding:2px 6px;border-radius:20px">必读</span>':''}</div>
+      <div class="home-tile-count">${s.subs.length} 个主题</div>
+    </div>
+  `).join('');
+  v.innerHTML=`
+    <div class="home">
+      <div class="home-header">
+        <div class="home-icon">🫀</div>
+        <div class="home-title">心脏康复<br>知识地图</div>
+        <div class="home-desc">系统了解冠心病康复的各个方面。选择您感兴趣的主题，查阅科普文章，也可以在阅读后直接向康复助手提问。</div>
+      </div>
+      <div class="home-grid">${tiles}</div>
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────────
+//  Render: Section
+// ─────────────────────────────────────────────
+function renderSection(sid){
+  renderBC();
+  const s=getSection(sid);
+  const totalCards=s.subs.reduce((a,b)=>a+b.cards.length,0);
+  const subCards=s.subs.map(su=>`
+    <div class="sub-card" style="--s-color:${s.color};--s-bg:${s.bg}"
+         onclick="selectSub('${sid}','${su.id}')">
+      <div class="sub-icon">${su.icon}</div>
+      <div class="sub-title">${su.title}</div>
+      <div class="sub-count">${su.cards.length} 篇科普</div>
+    </div>
+  `).join('');
+  document.getElementById('view').innerHTML=`
+    <div class="sec-header" style="--s-color:${s.color};--s-bg:${s.bg}">
+      <div class="sec-icon-lg">${s.icon}</div>
+      <div class="sec-title-lg">${s.title}</div>
+      <div class="sec-desc">${s.desc}</div>
+    </div>
+    <div class="grid">${subCards}</div>
+  `;
+}
+
+// ─────────────────────────────────────────────
+//  Render: Sub
+// ─────────────────────────────────────────────
+function renderSub(sid,subid){
+  renderBC();
+  const s=getSection(sid);
+  const su=getSub(s,subid);
+  const rows=su.cards.map(c=>{
+    const isP0=c.priority==='P0';
+    const isEmergency=sid==='emergency';
+    const badgeCls=isEmergency?'badge emergency':isP0?'badge p0':'badge';
+    const badgeTxt=isEmergency?'必读':isP0?'核心':'扩展';
+    return `
+      <div class="card-row" style="--s-color:${s.color};--s-bg:${s.bg}"
+           onclick="selectCard('${sid}','${subid}','${c.id}')">
+        <div class="card-row-body">
+          <div class="card-row-title">${c.title}</div>
+          <div class="card-row-preview">${c.summary.substring(0,55)}…</div>
+        </div>
+        <div class="card-row-right">
+          <span class="${badgeCls}">${badgeTxt}</span>
+          <span class="row-arrow">›</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('view').innerHTML=`
+    <div class="sub-header" style="--s-color:${s.color};--s-bg:${s.bg}">
+      <div class="sub-header-icon">${su.icon}</div>
+      <div>
+        <div class="sub-header-title">${su.title}</div>
+        <div class="sub-header-path">${s.title} › ${su.title}</div>
+      </div>
+    </div>
+    <div class="card-list">${rows}</div>
+  `;
+}
+
+// ─────────────────────────────────────────────
+//  Render: Card
+// ─────────────────────────────────────────────
+function renderCard(sid,subid,cardid){
+  renderBC();
+  const s=getSection(sid);
+  const su=getSub(s,subid);
+  const c=getCard(su,cardid);
+  const pts=c.points.map((p,i)=>`
+    <li class="point">
+      <span class="point-marker" style="--s-color:${s.color};--s-bg:${s.bg};border-color:${s.color};color:${s.color};background:${s.bg}">${i+1}</span>
+      <span>${p}</span>
+    </li>
+  `).join('');
+  const topicPath=`${s.title} › ${su.title} › ${c.title}`;
+  document.getElementById('view').innerHTML=`
+    <div class="card-detail">
+      <div class="detail-header" style="background:${s.color}">
+        <div class="detail-path">${s.title} › ${su.title}</div>
+        <div class="detail-title">${c.title}</div>
+        <div class="detail-source">📚 素材来源：${c.source}</div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-summary">${c.summary}</div>
+        <div class="points-label">关键要点</div>
+        <ul class="points">${pts}</ul>
+        <div class="detail-divider"></div>
+        <div class="cta-box">
+          <div class="cta-emoji">💬</div>
+          <div class="cta-body">
+            <div class="cta-title">向康复助手提问</div>
+            <div class="cta-desc">助手将知道您正在阅读这张卡片，可以直接就此话题提问，无需重复说明背景。</div>
+            <div class="context-chip">📍 正在看：${c.title}</div>
+          </div>
+          <button class="cta-btn" onclick="handleCTA('${c.id}','${encodeURIComponent(topicPath)}','${encodeURIComponent(c.title)}')">去提问</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────────
+//  CTA handler
+// ─────────────────────────────────────────────
+function handleCTA(cardId, topicPath, cardTitle){
+  const title=decodeURIComponent(cardTitle);
+  const topic=decodeURIComponent(topicPath);
+  // 在真实小程序中：
+  // wx.navigateTo({ url: `/pages/assistant/index?card_id=${cardId}&topic=${topicPath}` })
+  // 助手页 onLoad 接收后：
+  //   1. 显示上下文气泡 "正在看：${cardTitle}"
+  //   2. 将 topic 注入 system prompt
+  showToast(`在小程序中，康复助手将带入上下文：\n"${topic}"\n并优先回答相关问题`);
+}
+
+// ─────────────────────────────────────────────
+//  Toast
+// ─────────────────────────────────────────────
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),4000);
+}
+
+// ─────────────────────────────────────────────
+//  Init
+// ─────────────────────────────────────────────
+buildNav();
+renderHome();
+</script>
+</body>
+</html>

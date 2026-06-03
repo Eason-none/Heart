@@ -1,0 +1,969 @@
+# Heart 心脏康复 AI — 决策规则库
+# 版本: v0.2 | 模块: F2 运动模块（全量）
+# 上次更新: 2026-06-01
+#
+# 字段说明：
+#   id          — 唯一标识，格式 [模块]-[规则组]-[序号]
+#   label       — 人类可读规则名
+#   group       — 规则组（用于侧边栏分组）
+#   module      — 所属功能模块
+#   phase       — 触发时机
+#   trigger     — 触发条件
+#     type      — patient_attribute / threshold / sequence / composite
+#     condition — 条件描述
+#     source    — 数据从哪里采集
+#   action      — 执行动作
+#     type      — behavior_override / lock / alert / suggest / force
+#     description — 动作说明
+#     affects   — 影响范围
+#   evidence    — 文献依据（可多条）
+#     citation  — 文献引用
+#     key_finding — 支持本规则的关键结论
+#     confidence  — high / medium / low
+#   status      — evidence_ok / needs_review / no_evidence
+#   notes       — PM备注（待查文献、边界情况、待讨论）
+# ─────────────────────────────────────────────────────────────────────────────
+
+rules:
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # A 组：强度计算与评估方法（3条）
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: f2-a1-karvonen-standard
+    label: "标准有手环用户使用Karvonen法计算靶心率"
+    group: "A. 强度计算与评估方法"
+    module: F2-运动模块
+    phase: 问卷录入时（F3完成后）→ 持续影响整个F2
+
+    trigger:
+      type: composite
+      condition: "有手环数据 AND β受体阻滞剂 = 否"
+      source: "F3 慢病与用药字段 + 手环连接状态"
+
+    action:
+      type: behavior_override
+      description: >
+        使用心率储备法（Karvonen公式）计算靶心率区间作为运动强度主导指标。
+        靶心率 = (最大心率 - 静息心率) × 目标强度% + 静息心率。
+        最大心率优先用手环实测峰值，无数据时用 220 - 年龄估算。
+        静息心率使用手环采集的7天清晨均值。
+        起始强度：40%~60% HRR；目标强度：逐步达到70%~85% HRR。
+      affects:
+        - "F2 运动处方展示：主展示心率目标区间（如95~115次/分）"
+        - "F2 运动处方展示：同时展示对应RPE感受描述（双重表达）"
+        - "F2 强度调整触发层2/层3：心率相关条件全部生效"
+
+    evidence:
+      - citation: "中国心脏康复与二级预防指南（2018），第4章·运动处方·有氧运动"
+        key_finding: >
+          推荐使用心率储备法（Karvonen法）制定冠心病患者居家康复运动强度。
+          起始强度40%~60%心率储备，目标强度逐步达到70%~85%。
+          公式：靶心率 = (最大心率 - 静息心率) × 目标强度% + 静息心率。
+        confidence: high
+      - citation: "冠心病患者运动治疗中国专家共识（2015），运动处方制定部分"
+        key_finding: >
+          心率储备法是冠心病Ⅲ期居家康复中推荐的运动强度评估方法，
+          需结合实测最大心率或估算最大心率使用。
+        confidence: high
+      - citation: "02_文献总结_产品设计价值提炼.md §III 有氧运动处方"
+        key_finding: >
+          「靶心率计算——Karvonen法（心率储备法）：最大心率优先使用导入数据中的实测峰值心率；
+          无数据时用 220-年龄 估算；静息心率使用导入数据中的静息心率均值。
+          起始强度40%~60%，目标强度逐步达到70%~90%。」
+        confidence: high
+
+    status: evidence_ok
+    notes: ""
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  - id: f2-a2-rpe-only-beta-blocker
+    label: "β受体阻滞剂用户切换为RPE主导评估"
+    group: "A. 强度计算与评估方法"
+    module: F2-运动模块
+    phase: 问卷录入时（F3慢病与用药）→ 持续影响整个F2
+
+    trigger:
+      type: patient_attribute
+      condition: "用药记录中 β受体阻滞剂 = 是"
+      source: "F3 第三组 · 慢病与用药 · β受体阻滞剂字段"
+
+    action:
+      type: behavior_override
+      description: >
+        将运动强度评估主导指标从「靶心率（Karvonen法）」切换为「RPE（体感劳累度）」。
+        靶心率数据仍可计算和展示，但仅作参考，不参与任何触发逻辑。
+      affects:
+        - "F2 运动处方展示：主展示RPE目标区间，心率区间标注「仅参考，因用药影响」"
+        - "F2 强度调整触发层2/层3：禁用「连续N次心率恢复>30min」「次日心跳比平时快」两个心率条件，仅保留RPE + 6MWT"
+        - "F2 运动后问卷：移除基于心率数值的硬性阈值判断，改为主观感受选项"
+
+    evidence:
+      - citation: "ACSM's Guidelines for Exercise Testing and Prescription, 11th Ed. (2022), Ch.6"
+        key_finding: >
+          β受体阻滞剂通过竞争性拮抗β1肾上腺素受体，使最大心率和亚最大运动心率均显著降低
+          （通常降低10–30 bpm），导致Karvonen法靶心率计算严重失准。
+          指南明确推荐此类患者使用RPE作为运动强度监控的主要指标。
+        confidence: high
+      - citation: "ESC Guidelines on Cardiovascular Disease Prevention (2021), §6.4"
+        key_finding: >
+          对服用β受体阻滞剂的心血管病患者，应以感知劳累度（RPE, Borg 6–20量表）
+          替代心率作为运动强度监测的主要参考指标。
+        confidence: high
+      - citation: "中国心脏康复与二级预防指南（2018），第4章·运动处方制定"
+        key_finding: >
+          对服用β受体阻滞剂的患者，靶心率计算需修正，或直接改用RPE量表（Borg 6–20），
+          建议靶RPE为11–16。
+        confidence: high
+
+    status: evidence_ok
+    notes: ""
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  - id: f2-a3-rpe-primary-no-wearable
+    label: "无手环用户RPE为主、心率估算仅参考"
+    group: "A. 强度计算与评估方法"
+    module: F2-运动模块
+    phase: 问卷录入时（设备状态评估）→ 持续影响F2
+
+    trigger:
+      type: patient_attribute
+      condition: "手环连接状态 = 无手环 AND β受体阻滞剂 = 否"
+      source: "F3 设备信息 or 初始设置页"
+
+    action:
+      type: behavior_override
+      description: >
+        无实时心率数据时，RPE（体感劳累度）作为运动强度的主要参考和记录指标。
+        产品同时展示基于220-年龄估算的目标心率区间，标注「估算，仅参考」。
+        用户可选择手动填写运动中心率数值，填入后精度提升。
+      affects:
+        - "F2 运动处方展示：主展示RPE目标区间，心率区间标注「估算参考」"
+        - "F2 强度调整触发层2/层3：心率相关条件降级为可选参考，不作为硬性触发条件"
+        - "F2 运动后问卷：心率数值字段改为可选填，RPE问卷为必填"
+
+    evidence:
+      - citation: "02_文献总结_产品设计价值提炼.md §XI 关键结论2"
+        key_finding: >
+          「RPE量表是最适合居家场景的强度监测工具：不依赖设备、与心率高度相关、
+          用户学习成本低，应作为产品的核心强度表达方式。」
+        confidence: high
+      - citation: "Pelliccia A et al. (2022). Exercise intensity assessment and prescription. European Journal of Preventive Cardiology, 29(1), 230–245."
+        key_finding: >
+          EAPC立场声明指出，RPE量表（Borg 6–20）在无监测设备时是可靠的运动强度
+          替代指标，在心脏康复居家场景中具有良好的实用性。
+        confidence: high
+
+    status: evidence_ok
+    notes: ""
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # B 组：危险分层 → 功能访问控制（3条）
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: f2-b1-high-risk-lock
+    label: "高危用户运动模块锁定，进入只读模式"
+    group: "B. 危险分层 → 功能访问控制"
+    module: F2-运动模块 / 全产品
+    phase: F3首次评估完成后立即生效
+
+    trigger:
+      type: composite
+      condition: >
+        满足以下任一项：
+        (1) LVEF < 40%
+        (2) 静息时有胸痛/心绞痛
+        (3) 近期晕厥史
+        (4) 充血性心力衰竭（NYHA III~IV级）
+        (5) 静息时复杂室性心律失常
+        (6) PHQ-9或GAD-7 ≥ 15分（重度心理障碍）
+      source: "F3 第二组·高危三问 + 心脏功能字段 + F3 第五组·PHQ-2/GAD-2初筛结果"
+
+    action:
+      type: lock
+      description: >
+        用户进入只读模式。运动模块（F2）、个性化AI反馈引擎（F4）、饮食个性化部分（F5）
+        全部对用户不可见。界面固定提示：「你目前的情况建议在医生指导下开始康复，
+        本产品可以帮你了解心脏康复的相关知识。」
+        康复助手（F1）不给任何行为指导建议，只提供知识性内容。
+      affects:
+        - "F2 运动模块：不可见/不可访问"
+        - "F4 AI反馈引擎：不可见"
+        - "F5 饮食模块：只开放通用科普，不展示个性化方案"
+        - "F1 康复助手：限制为知识问答，不给行为建议"
+        - "可访问：F1科普内容、F5饮食推荐（简化）、F9心理模块练习"
+
+    evidence:
+      - citation: "中国心血管疾病患者居家康复专家共识（中国循环杂志，2022），危险分层部分"
+        key_finding: >
+          高危患者（LVEF<40%、静息心绞痛、近期晕厥、严重心律失常、心力衰竭）
+          不建议在无医疗监督的情况下进行居家运动康复，需转介至医院监督下康复。
+        confidence: high
+      - citation: "02_文献总结_产品设计价值提炼.md §II 危险分层标准"
+        key_finding: >
+          危险分层表：高危指标包括LVEF<40%、心力衰竭、复杂室性心律失常、
+          静息心绞痛（<5METs时）、心电图ST段下移≥2mm、血流动力学异常（心率变时不良或收缩压下降）。
+          高危患者居家康复安全性不可保障。
+        confidence: high
+      - citation: "心脏康复分级诊疗中国专家共识（中国介入心脏病学杂志，2022）"
+        key_finding: >
+          高危患者应在具备心肺复苏能力的II期心脏康复中心进行，
+          不建议直接进行无监督的居家III期康复。
+        confidence: high
+
+    status: evidence_ok
+    notes: >
+      PHQ-9/GAD-7重度（≥15分）触发高危降级，这是产品设计决策，
+      非运动能力分层，而是安全考量（重度抑郁/焦虑影响依从性和自我监测能力）。
+      需核查该阈值是否有直接文献支持，或属于产品合规性决策。
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  - id: f2-b2-medium-risk-enhanced-followup
+    label: "中危用户同等运动路径 + 前18次额外心率恢复询问"
+    group: "B. 危险分层 → 功能访问控制"
+    module: F2-运动模块
+    phase: F3首次评估完成后生效，持续至第18次运动完成
+
+    trigger:
+      type: patient_attribute
+      condition: >
+        危险分层 = 中危（满足以下条件之一且无高危指标）：
+        LVEF 40%~50%，或METs 5~7，或运动时心绞痛（≥5METs时），
+        或ST段下移<2mm
+      source: "F3 第二组·心脏功能字段 + VSAQ评分"
+
+    action:
+      type: behavior_override
+      description: >
+        中危用户进入与低危相同的运动模块路径，但前18次运动后额外增加一道问题：
+        「运动结束后心跳是否已恢复正常？」（主观三选项）
+        第3次拒绝强度降档建议时，触发强制小幅降低（见规则F2-f2-medium-risk-force-reduction）。
+      affects:
+        - "F2 运动后问卷：前18次运动额外追加心跳恢复主观询问"
+        - "F2 强度调整触发层2：中危额外敏感于心跳恢复异常信号"
+        - "F8 随访：中危用户随访频率更高，第12/18次运动有额外强度重评"
+
+    evidence:
+      - citation: "02_文献总结_产品设计价值提炼.md §II 危险分层标准"
+        key_finding: >
+          中危患者危险分层标准（LVEF 40~50%，METs 5~7，可有心绞痛但≥5METs时）。
+          文献建议中危患者居家康复需比低危患者更密集的随访监测。
+        confidence: high
+      - citation: "心率恢复在心血管疾病评估的应用价值及进展（article/心率恢复在心血管疾病评估的应用价值及进展.pdf）"
+        key_finding: >
+          心率恢复（HRR）是心血管疾病预后的独立预测指标。
+          运动后1分钟心率下降<12次/分是自主神经功能异常的信号。
+          居家场景无法精确测量HRR，但主观感受（心跳是否恢复正常）
+          可作为替代性监测手段。
+        confidence: medium
+
+    status: evidence_ok
+    notes: "「前18次」的截止数量为产品设计决策，对应约6周康复期（3次/周×6周）。需确认是否有文献支持该时间窗长度。"
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  - id: f2-b3-low-risk-standard
+    label: "低危用户标准流程，无额外限制"
+    group: "B. 危险分层 → 功能访问控制"
+    module: F2-运动模块
+    phase: F3首次评估完成后生效
+
+    trigger:
+      type: patient_attribute
+      condition: >
+        危险分层 = 低危（所有指标均满足低危标准）：
+        LVEF≥50% + METs≥7 + 无运动时心绞痛 + 无ST段改变 + 无复杂室性心律失常
+        + 血流动力学正常 + 无心力衰竭 + 无严重心理障碍
+      source: "F3 第二组·心脏功能字段 + VSAQ评分 + PHQ-2/GAD-2初筛"
+
+    action:
+      type: behavior_override
+      description: >
+        用户进入完整运动模块，全部功能可用，无额外限制。
+        强度调整建议为「用户确认制」（接受/暂时保持），不强制执行。
+      affects:
+        - "F2 全部功能正常开放"
+        - "F2 强度调整：用户确认制，不强制"
+
+    evidence:
+      - citation: "02_文献总结_产品设计价值提炼.md §II 危险分层标准"
+        key_finding: >
+          低危患者（LVEF≥50%，METs≥7，无心绞痛，无ST段改变，
+          血流动力学正常，无心力衰竭，无心理障碍）是无监督居家康复的适宜人群。
+        confidence: high
+
+    status: evidence_ok
+    notes: ""
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # C 组：运动前筛查 → 触发逻辑（3条）
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: f2-c1-presymptom-lock
+    label: "运动前症状筛查阳性 → 预警 + 当日锁定"
+    group: "C. 运动前筛查"
+    module: F2-运动模块
+    phase: 用户进入运动模块、点击「开始运动」前
+
+    trigger:
+      type: patient_attribute
+      condition: >
+        运动前症状筛查：以下任一选项为「是」：
+        胸痛 / 胸闷 / 心慌（心跳异常感）/ 头晕或眼前发黑 / 呼吸困难（明显气促）
+      source: "F2 运动前二步筛查第一步·症状问卷"
+
+    action:
+      type: alert
+      description: >
+        弹出预警卡片，内容：「今天出现了这些症状，暂时不适合运动。
+        如果症状持续或加重，请尽快联系医生或拨打120。」
+        当日运动模块锁定（运动按钮不可点击）。
+        不阻断用户查看科普内容、饮食建议等其他模块。
+      affects:
+        - "F2 当日运动：锁定，次日自动解锁"
+        - "F1 科普/F5饮食/F9心理：不受影响，正常可用"
+
+    evidence:
+      - citation: "02_文献总结_产品设计价值提炼.md §IV 应立即停止运动的症状"
+        key_finding: >
+          文献高度一致地列出以下运动禁忌症状：胸痛/胸闷、头晕/眼前发黑（黑矇）、
+          严重气促、心跳明显异常（过快/过慢/不规律）、出冷汗/恶心/面色苍白。
+          出现上述症状时应立即停止运动并寻求医疗帮助。
+        confidence: high
+      - citation: "冠心病患者运动治疗中国专家共识（2015），运动安全部分"
+        key_finding: >
+          运动前询问症状是冠心病运动康复的安全保障核心环节。
+          静息状态下出现心绞痛、严重气促、头晕等症状是当日运动的绝对禁忌。
+        confidence: high
+
+    status: evidence_ok
+    notes: ""
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  - id: f2-c2-poor-state-user-choice
+    label: "差状态日（中危/低危统一）→ 用户从四选一"
+    group: "C. 运动前筛查"
+    module: F2-运动模块
+    phase: 运动前二步筛查第二步·状态评估
+    last_updated: 2026-06-02
+
+    trigger:
+      type: composite
+      condition: >
+        状态评估结果为「差」（中危/低危均适用）：
+        睡眠选「很差」 OR 精力选「很累」（任一条件即触发）
+      source: "F2运动前状态评估问卷"
+
+    action:
+      type: behavior_override
+      description: >
+        系统不自动分配训练类型，而是展示四选一界面，由用户主动选择今日训练方案：
+        ① 下调强度，继续有氧（步行 20 分钟，RPE 目标降一档）
+        ② 抗阻训练（低强度，Borg ≤ 12）
+        ③ 柔韧训练（推荐；主要肌群静态拉伸 10–15 分钟）
+        ④ 缩唇膈肌呼吸 PLDB（10 分钟，吸气 2s / 呼气 4s）
+        所有方案均不计入有氧打卡次数。本次不计入强度调整触发计数。
+      affects:
+        - "F2 当日运动方案：用户选一，系统展示对应训练界面"
+        - "F2 运动强度计算：本次不计入连续3次触发计数"
+
+    evidence:
+      - citation: "article/breath.md §三·与有氧/抗阻训练的关系（汇编自：ACSM 2022；GVSU临床教材；Bronson Health CR Home Exercise Book）"
+        key_finding: >
+          训练状态分级处理表：「轻度疲劳、主观状态差 → 以柔韧性+呼吸训练替代有氧/抗阻」
+          支持差状态时调整训练类型的核心逻辑。用户选择制保留临床推荐选项的同时增加依从性。
+        confidence: high
+      - citation: "ACSM's Guidelines for Exercise Testing and Prescription, 11th Ed. (2022)"
+        key_finding: >
+          明显疲劳、睡眠不足等状态是降低运动强度或调整训练类型的信号。
+          保留运动连续性（选低强度而非完全停训）符合心脏康复原则。
+        confidence: medium
+
+    status: evidence_ok
+    notes: >
+      2026-06-02 更新：原 f2-c2（中危→柔韧/呼吸）和 f2-c3（低危→降强度有氧）合并为本规则。
+      触发条件由 AND（两项都差）改为 OR（任一差）；中危/低危差异化处理取消，统一为用户选择制。
+      低危用户之前的「降强度有氧」保留为四选一中的选项①。
+    created: 2026-06-01
+    last_reviewed: 2026-06-02
+
+
+  - id: f2-c4-moderate-state-reduce-one-tier
+    label: "一般状态 → 当日处方降1 RPE档，继续训练"
+    group: "C. 运动前筛查"
+    module: F2-运动模块
+    phase: 运动前二步筛查第二步·状态评估
+    last_updated: 2026-06-02
+
+    trigger:
+      type: composite
+      condition: >
+        状态评估结果为「一般」（不触发差状态日的次优状态）：
+        （睡眠一般 AND 精力还可以）OR（睡眠一般 AND 精力比较累）OR（睡眠好 AND 精力比较累）
+        注：睡眠很差 OR 精力很累 → 触发 f2-c2（差状态日），不触发本规则
+      source: "F2运动前状态评估问卷"
+
+    action:
+      type: behavior_override
+      description: >
+        当日有氧处方目标 RPE 下调1档（如适中→轻松），不切换训练类型，不跳转差状态日界面。
+        展示橙色小提示条："今天状态一般，运动强度稍微降一档。"
+        用户正常进入处方页，处方显示调整后的强度目标。
+        本次按实际完成 RPE 记录，不计入层2触发计数。
+      affects:
+        - "F2 当日处方：RPE 目标降1档"
+        - "F2 运动强度计算：本次不计入连续3次触发计数"
+
+    evidence:
+      - citation: "ACSM's Guidelines for Exercise Testing and Prescription, 11th Ed. (2022)"
+        key_finding: >
+          身体状态欠佳但未达到需要完全替换训练类型的程度时，
+          降低强度而非停止训练是维持康复连续性的推荐方式。
+        confidence: medium
+
+    status: needs_review
+    notes: >
+      2026-06-02 新增。「一般」状态的具体判定组合和触发条件为产品设计决策，
+      尚无直接文献量化该中间层的处理方式。建议请临床专家审核降1档（而非降2档）的合理性。
+    created: 2026-06-02
+    last_reviewed: 2026-06-02
+
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # D 组：运动后问卷 → 响应（2条）
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: f2-d1-post-warning-symptom-lock
+    label: "运动后预警症状快筛阳性 → 就医提示 + 当日锁定"
+    group: "D. 运动后问卷响应"
+    module: F2-运动模块
+    phase: 用户点击「结束运动」后
+
+    trigger:
+      type: patient_attribute
+      condition: >
+        运动后问卷层1（预警症状快筛）：以下任一选项被选中：
+        胸痛/胸闷 / 头晕/眼前发黑 / 严重气促 / 心跳明显异常（过快/过慢/不规律）
+        / 出冷汗、恶心、面色苍白
+      source: "F2 运动后问卷·层1预警症状快筛"
+
+    action:
+      type: alert
+      description: >
+        1秒内显示红色警示卡：
+        「请立即停止运动并坐下休息。
+        如症状持续超过5分钟，或同时伴随其他不适，请立即拨打120。」
+        当日运动模块锁定（不可再次开始新运动）。
+        次日运动前增加确认弹窗：「昨天出现的症状是否已完全缓解？」
+        → 未缓解则继续锁定并强提示就医。
+      affects:
+        - "F2 当日运动：锁定"
+        - "F2 次日运动前：增加症状确认弹窗"
+        - "F8 随访：触发额外随访提醒（72小时内）"
+
+    evidence:
+      - citation: "02_文献总结_产品设计价值提炼.md §IV 应立即停止运动并显示警示的症状"
+        key_finding: >
+          列出应立即停止运动的症状：胸痛/胸闷、头晕/眼前发黑、严重气促、
+          心跳明显异常、出冷汗/恶心/面色苍白。以及量化停止指征（运动心率增加>20次/分等）。
+        confidence: high
+      - citation: "冠心病患者运动治疗中国专家共识（2015），紧急处理部分"
+        key_finding: >
+          运动中或运动后出现心绞痛症状，须立即停止运动、休息，
+          必要时舌下含服硝酸甘油，5分钟内未缓解须拨打急救电话。
+        confidence: high
+
+    status: evidence_ok
+    notes: "「5分钟」时限来自硝酸甘油使用指南，适用于胸痛/胸闷场景。其他症状（头晕等）适用同样规则是产品一致性设计决策。"
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  - id: f2-d2-post-hr-recovery-abnormal-record
+    label: "运动后心率恢复异常 → 记录并计入强度调整触发计数"
+    group: "D. 运动后问卷响应"
+    module: F2-运动模块
+    phase: 运动后问卷·层2 RPE + 恢复期记录
+
+    trigger:
+      type: threshold
+      condition: >
+        以下任一情况发生：
+        (A) 主观感受：「心跳是否恢复正常？」→ 选「还没有恢复正常」（运动结束5分钟后仍感心跳偏快）
+        (B) 有手环数据：运动结束30分钟后心率仍高于静息心率均值+20次/分
+      source: "F2 运动后问卷·恢复期记录（主观问卷或手环数据）"
+
+    action:
+      type: behavior_override
+      description: >
+        本次运动标记为「心率恢复异常」，写入运动记录。
+        该次记录计入层2强度调整触发条件计数
+        （「连续3次中≥2次心率恢复异常」→ 触发降低强度建议）。
+        单次不直接弹出调整建议。
+      affects:
+        - "F2 运动记录：标记该次恢复异常"
+        - "F2 强度调整层2触发：计入条件计数"
+
+    evidence:
+      - citation: "心率恢复在心血管疾病评估的应用价值及进展（article/心率恢复.pdf）"
+        key_finding: >
+          运动后心率恢复（HRR）是自主神经功能和心血管健康的重要指标。
+          运动后1分钟心率下降<12次/分、或运动结束后心率长时间不恢复，
+          与不良心血管事件风险独立相关。HRR异常是心脏康复强度过高的信号之一。
+        confidence: high
+      - citation: "02_文献总结_产品设计价值提炼.md §IV 次日暂停/减量的信号"
+        key_finding: >
+          「运动结束30分钟后心率仍未恢复正常」是次日运动需要减量的信号之一。
+        confidence: high
+
+    status: evidence_ok
+    notes: >
+      「30分钟」阈值来自文献，「主观感受5分钟后仍未恢复」是产品设计的居家替代方案。
+      两者触发同一规则的逻辑需要确认是否合理。
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # E 组：强度调整触发逻辑（4条）
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: f2-e1-intensity-reduce-l2
+    label: "层2触发 — 推送强度降低建议（连续3次条件）"
+    group: "E. 强度调整触发逻辑"
+    module: F2-运动模块
+    phase: 运动后评估完成后，系统后台分析
+
+    trigger:
+      type: sequence
+      condition: >
+        最近3次运动（均含完整运动后问卷，14天内完成），满足以下任一条件：
+        (1) ≥2次 RPE ≥ 15（感觉「较累」以上）
+        (2) ≥2次 心率恢复异常（主观未恢复 or 手环30min未恢复）
+        (3) ≥2次 次日早晨心跳「比平时快」
+        (4) ≥1次 运动中轻微不适（非预警症状但有不舒服感）
+        注：跳过问卷的运动不计入「3次」
+      source: "F2 运动记录 + 运动后问卷数据 + 每日check-in心跳感受"
+
+    action:
+      type: suggest
+      description: >
+        向用户推送强度降低建议卡片：
+        「根据你最近的运动情况，建议稍微降低一下运动强度，让身体更好地适应。」
+        用户可选：「好的，调整一下」或「我感觉还好，暂时保持」。
+        推出建议后，计数器主动重置；14天内未完成3次则计数器也重置并推送依从性提醒。
+        下限保护：强度降至首次处方起始强度后不再继续降低。
+      affects:
+        - "F2 运动处方：用户确认后降一个强度档位"
+        - "F2 强度调整计数器：重置"
+
+    evidence:
+      - citation: "article/low.md §2.5 RPE触发的强度调整（来源：AACVPR Phase I；ACSM 2022；GVSU Phase II教材）"
+        key_finding: >
+          明确量化阈值：Phase II（居家康复对应）RPE > 16 持续 → 降至 12–14 区间。
+          Phase I（住院期）RPE ≥ 14 → 立即减量至 RPE < 13。阻力训练靶 RPE：11–13。
+          直接支持「RPE偏高触发强度降低」的规则核心逻辑，且提供了量化边界。
+        confidence: high
+      - citation: "ACSM's Guidelines for Exercise Testing and Prescription, 11th Ed. (2022), 运动强度进展章节"
+        key_finding: >
+          RPE持续偏高（≥15）提示运动强度超出当前适应范围，
+          连续多次出现时推荐降低强度以避免过度训练和不良事件。
+        confidence: high
+      - citation: "中国心脏康复与二级预防指南（2018），强度调整原则"
+        key_finding: >
+          居家康复运动强度应根据患者反应动态调整，
+          出现运动耐受不佳信号时（心率恢复差、自觉劳累明显）应及时下调强度。
+        confidence: high
+
+    status: needs_review
+    notes: >
+      low.md提供了明确RPE阈值（Phase II: RPE>16持续→降至12-14），核心原则证据充分。
+      但「连续3次」「14天内」「≥2次满足」等触发频次参数仍为产品设计决策，
+      尚无直接文献量化。建议请临床专家确认触发频次的合理性。
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  - id: f2-e2-intensity-increase-l2
+    label: "层2触发 — 推送强度提升建议（连续3次四项全满足）"
+    group: "E. 强度调整触发逻辑"
+    module: F2-运动模块
+    phase: 运动后评估完成后，系统后台分析
+
+    trigger:
+      type: sequence
+      condition: >
+        最近3次运动（均含完整运动后问卷，14天内完成），
+        以下四项全部满足（缺一不可）：
+        (1) 3次 RPE ≤ 11（感觉「轻松」）
+        (2) 3次 无运动不适（无轻微不适记录）
+        (3) 3次 心率恢复正常（主观感觉恢复 or 手环数据达标）
+        (4) 距上次强度调整（无论升降）超过2周
+      source: "F2 运动记录 + 运动后问卷数据 + 强度调整历史记录"
+
+    action:
+      type: suggest
+      description: >
+        向用户推送强度提升建议卡片：
+        「你最近运动完成得很好，身体已经适应了当前强度，建议适当提高一点。」
+        用户可选：「好的，提升一下」或「我还想保持这个强度」。
+      affects:
+        - "F2 运动处方：用户确认后提升一个强度档位"
+        - "F2 强度调整计数器：重置"
+
+    evidence:
+      - citation: "article/up.md §二·进阶的前提：判断「适应良好」的临床标准（来源：AACVPR Phase I；ACSM 2022；GVSU临床教材）"
+        key_finding: >
+          明确规定进阶须同时满足四条：(1)心率响应正常（随负荷适当升高）
+          (2)收缩压随负荷上升10–40mmHg（3)无新发心律失常/ST改变
+          (4)无心绞痛、无明显呼吸困难、无过度疲劳、无心悸。
+          四条全满足才可进阶——直接支持本规则「四项全满足」的触发逻辑。
+        confidence: high
+      - citation: "article/up.md §四 §4.1 每周增幅上限（来源：EAPC立场声明 EJPC 2022）"
+        key_finding: >
+          「强度和时长的增加幅度为每周5–10%，在心血管患者中通常耐受良好。」
+          「距上次调整>2周」对应约10–14%的累积增幅，处于推荐范围内。
+        confidence: high
+      - citation: "ACSM's Guidelines for Exercise Testing and Prescription, 11th Ed. (2022), 运动进展原则"
+        key_finding: >
+          当患者能够轻松完成当前处方（RPE持续偏低，无不适，恢复良好）时，
+          是进一步提高运动刺激的时机。两次调整之间保持足够间隔以观察真实反应。
+        confidence: high
+
+    status: evidence_ok
+    notes: >
+      up.md提供的「四条全满足」临床判断标准与本规则触发逻辑高度吻合，证据充分。
+      「距上次调整>2周」对应EAPC每周5-10%进阶幅度的保守取值。
+      「升档四项全满足 vs 降档满足其一」的不对称设计体现安全优先，有充分依据。
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  - id: f2-e3-conflict-safety-first
+    label: "层2/层3冲突 — 降档信号覆盖升档建议"
+    group: "E. 强度调整触发逻辑"
+    module: F2-运动模块
+    phase: 运动后分析 or 随访评估时
+
+    trigger:
+      type: composite
+      condition: >
+        同时触发：
+        层2分析推出「升档建议」
+        AND 层3随访分析检测到「降档信号」（多数天check-in心跳比平时快，或6MWT趋势下降）
+      source: "F2层2分析结果 + F8每周随访数据 + 每日check-in记录"
+
+    action:
+      type: behavior_override
+      description: >
+        层3降档信号覆盖层2升档建议：系统不推送升档，
+        转而推送降档建议或「先维持当前强度，下周再评估」提示。
+        原则：任何降低安全信号的触发，优先于任何提升强度的建议。
+      affects:
+        - "F2 当次调整建议：升档建议取消，改为降档或维持"
+
+    evidence:
+      - citation: "产品安全性原则（PRD v2.0 非功能性需求·安全性）"
+        key_finding: >
+          「运动模块症状预警触发后，强制终止运动建议直至用户确认症状缓解。」
+          安全优先于进展，是产品核心设计原则。
+        confidence: high
+
+    status: needs_review
+    notes: >
+      此规则的底层逻辑（安全信号优先）有充分依据，但具体的「冲突解决机制」
+      （覆盖逻辑、系统如何判断两者同时触发）是产品设计决策，无直接文献。
+      建议请临床专家评审该冲突场景的处理是否合理。
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  - id: f2-e4-beta-blocker-intensity-rule-override
+    label: "β受体阻滞剂用户层2/层3触发条件修正"
+    group: "E. 强度调整触发逻辑"
+    module: F2-运动模块
+    phase: 强度调整触发分析时
+
+    trigger:
+      type: composite
+      condition: "β受体阻滞剂 = 是 AND 层2 or 层3强度调整逻辑触发"
+      source: "F3慢病与用药字段 + F2强度调整系统"
+
+    action:
+      type: behavior_override
+      description: >
+        β受体阻滞剂用户的层2/层3触发逻辑中，移除所有心率相关条件：
+        「次日心跳比平时快」「心率恢复>30min」「手环心率超过目标区间」
+        均不参与计数和触发。仅保留：RPE评分 + 6MWT趋势（随访时）。
+      affects:
+        - "F2 强度调整层2/层3：心率条件全部禁用，只用RPE + 6MWT"
+
+    evidence:
+      - citation: "同规则 f2-a2-rpe-only-beta-blocker（β受体阻滞剂 RPE主导）"
+        key_finding: >
+          β受体阻滞剂降低最大心率和亚最大心率（通常10–30 bpm），
+          导致所有基于心率的评估指标均不可靠，包括心率恢复评估。
+          RPE是该类患者唯一可靠的主观运动强度指标。
+        confidence: high
+
+    status: evidence_ok
+    notes: "此规则是 f2-a2 在强度调整逻辑中的延伸应用，证据体系与 f2-a2 相同。"
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # F 组：特殊情况处理（2条）
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: f2-f1-cabg-upper-limb-filter
+    label: "CABG术后3个月内过滤上肢中高强度抗阻"
+    group: "F. 特殊情况处理"
+    module: F2-运动模块
+    phase: 问卷录入时（F3诊断类型 + 手术时间）→ 持续至手术满3个月
+
+    trigger:
+      type: composite
+      condition: >
+        诊断类型 = CABG（冠状动脉旁路移植术）
+        AND 手术距今 < 3个月
+      source: "F3 第一组·诊断类型 + 手术距今时间字段"
+
+    action:
+      type: behavior_override
+      description: >
+        运动处方生成时，自动过滤所有上肢中到高强度抗阻运动
+        （包括：器械推胸/划船/肩推，弹力带胸前推/肩外展，哑铃上肢动作）。
+        仅保留：下肢抗阻（腿举、深蹲等）、柔韧训练、低强度有氧。
+        3个月后系统自动解锁上肢训练，并提示用户可以逐步恢复。
+      affects:
+        - "F2 运动处方生成：过滤上肢中高强度抗阻"
+        - "F2 运动库：CABG<3月标签的运动不出现在推荐列表"
+        - "3个月后：自动解除过滤，系统推送「可以开始上肢训练了」提示"
+
+    evidence:
+      - citation: "02_文献总结_产品设计价值提炼.md §III 抗阻运动处方注意事项"
+        key_finding: >
+          「上肢训练禁忌：CABG术后3个月内不进行中到高强度上肢力量训练。」
+        confidence: high
+      - citation: "稳定性冠心病康复治疗与护理实践中国专家共识（中华内科杂志，2023），CABG术后康复"
+        key_finding: >
+          CABG术后胸骨需要至少3个月愈合，期间中到高强度上肢活动会产生胸骨剪切力，
+          增加切口并发症风险。术后3个月内应限制上肢负重。
+        confidence: high
+      - citation: "cardiac_rehab_exercise_evidence_summary.md §IV 柔韧性训练"
+        key_finding: >
+          「对CABG术后患者：胸廓和肩部活动度恢复是柔韧训练的重点目标。」
+          间接支持CABG术后初期以柔韧为主、避免上肢抗阻。
+        confidence: medium
+      - citation: "article/up.md §七 §7.4 CABG术后患者的进阶考量（来源：AHA/AACVPR 2024；ACSM 2022）"
+        key_finding: >
+          「阻力训练须在胸骨完全愈合（术后8–10周）且获得外科许可后方可开始进阶。」
+          ⚠️ 注意：此处为8–10周，与中国指南「3个月（12周）」存在差异。
+        confidence: high
+      - citation: "article/breath.md §一 柔韧性训练通用原则（来源：ACSM 2022；GVSU CR临床教材）"
+        key_finding: >
+          「CABG术后8–10周内禁止上肢上举动作（待外科许可后开放）。」
+        confidence: high
+
+    status: evidence_ok
+    notes: >
+      ⚠️ 文献差异：中国指南（中华内科杂志2023）= 3个月（12周）；
+      AHA/AACVPR 2024 + ACSM 2022（经up.md和breath.md引用）= 8–10周。
+      产品当前采用3个月（中国指南保守值）。建议请临床专家确认适用于中国居家患者的合理时间窗。
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  - id: f2-f2-medium-risk-force-reduction
+    label: "中危用户第3次拒绝降档 → 强制小幅降低"
+    group: "F. 特殊情况处理"
+    module: F2-运动模块
+    phase: 用户拒绝层2降档建议时
+
+    trigger:
+      type: sequence
+      condition: >
+        危险分层 = 中危
+        AND 用户对同一轮强度降低建议已选择「暂时保持」3次
+      source: "F2 强度调整建议·用户响应记录"
+
+    action:
+      type: force
+      description: >
+        系统强制执行小幅降低（下调一个强度档位），不再询问用户确认。
+        同时触发随访提醒：「根据你近期的运动情况，我们已帮你调低了运动强度，
+        如果有任何疑问，建议联系你的主治医生。」
+        强制执行后，后续数据正常 → 恢复用户选择权（恢复为建议制）。
+      affects:
+        - "F2 运动处方：强制降一档，不经用户确认"
+        - "F8 随访：触发额外随访提示「建议联系医生」"
+        - "强制执行后数据正常（连续3次RPE达标）→ 恢复用户选择权"
+
+    evidence:
+      - citation: "中国心血管疾病患者居家康复专家共识（2022），中危患者随访管理"
+        key_finding: >
+          中危患者居家康复期间需要比低危患者更密集的医疗监督。
+          连续出现运动过量信号而用户未响应调整建议时，
+          应触发更积极的干预措施，以确保患者安全。
+        confidence: medium
+
+    status: needs_review
+    notes: >
+      「3次拒绝触发强制」是产品安全设计决策，无直接文献量化该阈值。
+      核心逻辑：中危患者的自我保护意识可能不足，产品在一定次数后需要代为决策。
+      「3次」是平衡用户自主权与安全的结果，建议请临床医生审核该逻辑是否合理。
+      低危患者不触发此规则，因其安全边际更大。
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # G 组：进阶节奏原则（3条）——来自 up.md / low.md / breath.md 新增
+  # ═══════════════════════════════════════════════════════════════════════
+
+  - id: f2-g1-progression-order
+    label: "进阶顺序原则：时长优先于频率，频率优先于强度"
+    group: "G. 进阶节奏原则"
+    module: F2-运动模块
+    phase: 持续适用于整个康复过程的进阶决策
+
+    trigger:
+      type: composite
+      condition: >
+        当系统判断用户「适应良好」（层2升档条件满足）时，
+        在推送强度提升建议前，先判断当前时长/频率是否已达目标：
+        时长未达到 ≥30分钟/次 → 优先建议延长时长；
+        频率未达到 ≥4次/周 → 优先建议增加频率；
+        两者已达目标 → 再推进强度提升。
+      source: "F2 运动记录·每次时长 + 每周次数 + 层2升档触发结果"
+
+    action:
+      type: behavior_override
+      description: >
+        进阶推送内容根据当前短板维度自动调整：
+        短板在时长 → 推送「建议每次运动时间延长5~10分钟」；
+        短板在频率 → 推送「建议本周尝试增加一次运动」；
+        时长和频率均达标 → 推送「建议适当提高运动强度」（即标准升档建议）。
+        每次只调整一个维度，不同时调整两个维度。
+      affects:
+        - "F2 层2升档建议内容：三选一（时长/频率/强度）"
+        - "F2 运动处方：根据用户确认的维度更新"
+
+    evidence:
+      - citation: "article/up.md §三 进阶的顺序原则（来源：EAPC立场声明 EJPC 2022；Frontiers Cardiovasc Med综述 2021）"
+        key_finding: >
+          「正确的进阶顺序：时长（Duration）先增加 → 频率（Frequency）再增加 → 强度（Intensity）最后增加。
+          先达到每次运动≥30分钟、每周≥4天，再考虑提升强度。
+          三个维度不应同时调整，每次只调整一个。」
+        confidence: high
+      - citation: "EAPC立场声明（European Journal of Preventive Cardiology, 2022）"
+        key_finding: >
+          EAPC明确建议：在心脏康复强度进阶之前，应先确保运动时长和频率达到目标值。
+          过早提升强度而忽视时长/频率的基础积累，是常见的进阶错误。
+        confidence: high
+
+    status: evidence_ok
+    notes: ""
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  - id: f2-g2-weekly-progression-cap
+    label: "有氧强度每周进阶上限：单次增幅不超过5~10%"
+    group: "G. 进阶节奏原则"
+    module: F2-运动模块
+    phase: 强度上调时的执行约束
+
+    trigger:
+      type: threshold
+      condition: >
+        用户确认接受强度提升建议（层2升档）时，
+        系统计算新处方强度与当前处方强度的差值
+      source: "F2 层2升档确认事件 + 当前处方强度数据"
+
+    action:
+      type: behavior_override
+      description: >
+        单次强度提升幅度上限为当前强度的5~10%（HRR%或RPE档位换算）。
+        若算法计算出的升幅超过10%，系统自动缩减至10%并提示：
+        「为让身体平稳适应，这次我们只小幅提升一点。」
+        阻力训练负荷提升上限：一次约+5%（或换下一级弹力带）。
+      affects:
+        - "F2 新运动处方：强度增量上限钳制在5~10%"
+        - "F2 阻力训练：负荷+~5%或换更大张力弹力带"
+
+    evidence:
+      - citation: "article/up.md §四 §4.1 每周增幅上限（来源：EAPC立场声明 EJPC 2022）"
+        key_finding: >
+          「强度和时长的增加幅度为每周5–10%，在心血管患者中通常耐受良好。」
+        confidence: high
+      - citation: "article/up.md §五 §5.1 阻力训练负荷进阶标准（来源：AHA/AACVPR 2024核心组件声明）"
+        key_finding: >
+          「当患者能够以适当姿势舒适完成目标重复次数上限（10–15次）时，
+          负荷增加约5%；或换用张力更大的弹力带。」
+        confidence: high
+
+    status: evidence_ok
+    notes: ""
+    created: 2026-06-01
+    last_reviewed: 2026-06-01
+
+
+  - id: f2-g3-talk-test-dyspnea-reduce
+    label: "Talk Test失败（无法说完整句子）→ 立即降低运动强度"
+    group: "G. 进阶节奏原则"
+    module: F2-运动模块
+    phase: 运动执行中（用户主动上报 or 有氧训练期间）
+
+    trigger:
+      type: patient_attribute
+      condition: >
+        用户在运动中报告或选择：
+        「说话明显费力，说不完整的句子」
+        （产品通过运动中询问或运动后问卷第一层采集）
+      source: "F2 运动中状态询问 or 运动后问卷·呼吸困难项"
+
+    action:
+      type: alert
+      description: >
+        提示用户：「你现在的强度有点偏高，建议放慢节奏，
+        直到你能轻松说完一句话再继续。」
+        本次运动 RPE 标记为偏高，计入层2降档触发计数。
+        若合并胸痛/头晕等预警症状，升级为 f2-d1（就医提示+锁定）。
+      affects:
+        - "F2 运动中：提示降速/降强度"
+        - "F2 运动后问卷：本次RPE标记为偏高，计入层2计数"
+
+    evidence:
+      - citation: "article/low.md §2.4 呼吸困难触发的强度调整（来源：AHA/AACVPR 2024；EAPC EJPC 2022）"
+        key_finding: >
+          「Talk Test原则：患者能够用完整句子说话 = 处于通气阈以下，强度安全；
+          无法说完整句子 = 超过通气阈，需降低强度至可舒适交谈的水平。
+          AHA/AACVPR 2024明确将Talk Test列为无GXT数据时的替代强度指导工具。」
+        confidence: high
+      - citation: "EAPC立场声明（European Journal of Preventive Cardiology, 2022）"
+        key_finding: >
+          Talk Test是主观运动强度评估的有效工具，推荐用于无法进行实验室测试的居家康复场景。
+          能舒适交谈 = 第一通气阈以下，是居家有氧训练的安全区域。
+        confidence: high
+
+    status: evidence_ok
+    notes: "Talk Test是RPE的互补工具，两者共同构成居家无设备强度监测的主观双通道。β受体阻滞剂用户同样适用（Talk Test不依赖心率）。"
+    created: 2026-06-01
+    last_reviewed: 2026-06-01

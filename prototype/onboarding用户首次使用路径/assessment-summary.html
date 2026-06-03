@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 评估结果</title>
+<style>
+  :root {
+    --bg: #F7F5F1;
+    --card: #F0EDE8;
+    --text: #2C2A26;
+    --text-sub: #888780;
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --orange: #BA7517;
+    --orange-light: #FAEEDA;
+    --red: #A32D2D;
+    --red-light: #FCEBEB;
+    --green: #1D9E75;
+    --green-light: #D4F2E7;
+    --green-dark: #085041;
+    --border: #C8C5BE;
+    --r-card: 12px;
+    --r-btn: 8px;
+    --r-pill: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #E8E4DE;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
+  }
+
+  .phone {
+    width: 390px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .status-bar {
+    height: 44px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .status-time { font-size: 15px; font-weight: 600; color: var(--text); }
+  .status-icons { font-size: 12px; color: var(--text); }
+
+  /* Content */
+  .scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Demo switcher */
+  .demo-switcher {
+    display: flex;
+    background: var(--card);
+    border-radius: var(--r-pill);
+    padding: 3px;
+    gap: 2px;
+    margin-bottom: 20px;
+  }
+  .demo-tab {
+    flex: 1;
+    height: 34px;
+    border-radius: 14px;
+    border: none;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-sub);
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .demo-tab.active {
+    background: var(--bg);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+
+  /* Hero area */
+  .summary-hero {
+    border-radius: var(--r-card);
+    padding: 24px 20px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  .hero-icon { font-size: 56px; margin-bottom: 14px; }
+  .hero-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  .hero-subtitle {
+    font-size: 15px;
+    color: var(--text-sub);
+    line-height: 1.6;
+  }
+
+  .risk-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 14px;
+    border-radius: var(--r-pill);
+    font-size: 14px;
+    font-weight: 600;
+    margin: 12px auto 0;
+  }
+  .risk-pill.low { background: var(--green-light); color: var(--green-dark); }
+  .risk-pill.med { background: var(--blue-light); color: var(--blue); }
+  .risk-pill.high { background: var(--orange-light); color: var(--orange); }
+
+  /* Prescription card (low risk) */
+  .prescription-card {
+    background: var(--card);
+    border-radius: var(--r-card);
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .card-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .card-subtitle { font-size: 13px; color: var(--text-sub); margin-top: 1px; }
+
+  .prescription-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .prescription-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .p-row-label { font-size: 14px; color: var(--text-sub); }
+  .p-row-value { font-size: 15px; font-weight: 600; color: var(--text); text-align: right; }
+
+  .rpe-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .rpe-badge.moderate { background: var(--blue-light); color: var(--blue); }
+
+  /* First session hint */
+  .first-session-card {
+    background: var(--green-light);
+    border-radius: var(--r-card);
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .first-session-icon { font-size: 24px; flex-shrink: 0; }
+  .first-session-title { font-size: 14px; font-weight: 600; color: var(--green-dark); margin-bottom: 4px; }
+  .first-session-body { font-size: 14px; color: var(--green-dark); opacity: 0.8; line-height: 1.5; }
+
+  /* High risk: available features */
+  .feature-list-card {
+    background: var(--card);
+    border-radius: var(--r-card);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .feature-list-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-sub);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 12px;
+  }
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .feature-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .feature-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .feature-item-text { flex: 1; }
+  .feature-name { font-size: 15px; font-weight: 600; color: var(--text); }
+  .feature-desc { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+  .feature-check { font-size: 18px; color: var(--green); }
+
+  /* Exercise lock notice */
+  .exercise-lock-notice {
+    background: var(--orange-light);
+    border-radius: var(--r-card);
+    border-left: 4px solid var(--orange);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .lock-notice-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--orange);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .lock-notice-body { font-size: 14px; color: var(--text); line-height: 1.6; }
+
+  /* Continue button */
+  .footer-area {
+    flex-shrink: 0;
+    padding: 12px 16px 32px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-continue {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+    border-radius: var(--r-btn);
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    font-family: inherit;
+    transition: opacity 0.15s;
+  }
+  .btn-continue:active { opacity: 0.85; }
+
+  /* Sections */
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-sub);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    margin-top: 4px;
+  }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">●●● WiFi 🔋</div>
+  </div>
+
+  <div class="scroll-content">
+
+    <!-- Demo branch switcher -->
+    <div class="demo-switcher">
+      <button class="demo-tab" id="tab-low" onclick="showBranch('low')">?risk=low（低中危）</button>
+      <button class="demo-tab" id="tab-high" onclick="showBranch('high')">?risk=high（需准备）</button>
+    </div>
+
+    <!-- ===== LOW / MID RISK BRANCH ===== -->
+    <div id="branch-low">
+
+      <!-- Hero -->
+      <div class="summary-hero" style="background:var(--green-light);">
+        <div class="hero-icon">🎉</div>
+        <div class="hero-title">你的康复计划已生成</div>
+        <div class="hero-subtitle">根据你的评估结果，你现在可以开始心脏康复运动。初始方案已为你准备好。</div>
+        <div class="risk-pill low">✓ 评估通过 · 可以开始运动</div>
+      </div>
+
+      <!-- Initial prescription card -->
+      <div class="section-label">初始运动处方</div>
+      <div class="prescription-card">
+        <div class="card-header">
+          <div class="card-icon" style="background:var(--blue-light);">🏃</div>
+          <div>
+            <div class="card-title">步行 / 居家有氧</div>
+            <div class="card-subtitle">第一阶段 · 适应期</div>
+          </div>
+        </div>
+        <div class="prescription-row">
+          <span class="p-row-label">运动频率</span>
+          <span class="p-row-value">每周 3 次</span>
+        </div>
+        <div class="prescription-row">
+          <span class="p-row-label">每次时长</span>
+          <span class="p-row-value">30 分钟（含热身 5 分 + 冷身 5 分）</span>
+        </div>
+        <div class="prescription-row">
+          <span class="p-row-label">目标强度</span>
+          <span class="p-row-value">
+            <span class="rpe-badge moderate">适中</span>
+          </span>
+        </div>
+        <div class="prescription-row">
+          <span class="p-row-label">初始强度范围</span>
+          <span class="p-row-value">轻松 → 适中</span>
+        </div>
+      </div>
+
+      <!-- First session hint -->
+      <div class="first-session-card">
+        <div class="first-session-icon">🌅</div>
+        <div>
+          <div class="first-session-title">建议今天就开始第一次运动</div>
+          <div class="first-session-body">进入运动 Tab 后完成状态确认，即可查看今日详细运动方案。第一次以「感觉轻松」为主，不要追求强度。</div>
+        </div>
+      </div>
+
+    </div><!-- end low branch -->
+
+    <!-- ===== HIGH RISK BRANCH ===== -->
+    <div id="branch-high" class="hidden">
+
+      <!-- Hero -->
+      <div class="summary-hero" style="background:var(--orange-light);">
+        <div class="hero-icon">🛡</div>
+        <div class="hero-title">先做好准备</div>
+        <div class="hero-subtitle">根据你的情况，在开始运动康复之前，建议你先获得医生的明确评估和许可。</div>
+        <div class="risk-pill high">⏸ 运动功能待解锁</div>
+      </div>
+
+      <!-- Available features -->
+      <div class="section-label">现在你可以使用</div>
+      <div class="feature-list-card">
+        <div class="feature-item">
+          <div class="feature-item-icon" style="background:var(--blue-light);">📖</div>
+          <div class="feature-item-text">
+            <div class="feature-name">每日科普</div>
+            <div class="feature-desc">心脏健康知识、心理调适等 12 大主题</div>
+          </div>
+          <div class="feature-check">✓</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-item-icon" style="background:var(--green-light);">🥗</div>
+          <div class="feature-item-text">
+            <div class="feature-name">营养指南</div>
+            <div class="feature-desc">饮食方案、超市选购、食材替换</div>
+          </div>
+          <div class="feature-check">✓</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-item-icon" style="background:#EDE8F5;">🤖</div>
+          <div class="feature-item-text">
+            <div class="feature-name">康复助手</div>
+            <div class="feature-desc">随时提问，RAG 知识库支持</div>
+          </div>
+          <div class="feature-check">✓</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-item-icon" style="background:#F0F0F0;">🧠</div>
+          <div class="feature-item-text">
+            <div class="feature-name">心理科普</div>
+            <div class="feature-desc">焦虑、抑郁与心脏健康的关联知识</div>
+          </div>
+          <div class="feature-check">✓</div>
+        </div>
+      </div>
+
+      <!-- Exercise lock explanation -->
+      <div class="exercise-lock-notice">
+        <div class="lock-notice-title">🔒 运动功能暂时不可用</div>
+        <div class="lock-notice-body">你在评估中报告了一些需要医生进一步评估的情况。等你获得医生明确许可后，进入「我」页面更新评估，运动功能将自动解锁。</div>
+      </div>
+
+    </div><!-- end high branch -->
+
+  </div><!-- end scroll -->
+
+  <!-- Footer -->
+  <div class="footer-area">
+    <a href="onboarding-guide.html" class="btn-continue" id="continueBtn">查看功能引导 →</a>
+  </div>
+
+</div>
+
+<script>
+  function showBranch(branch) {
+    document.getElementById('branch-low').classList.toggle('hidden', branch !== 'low');
+    document.getElementById('branch-high').classList.toggle('hidden', branch !== 'high');
+    document.getElementById('tab-low').classList.toggle('active', branch === 'low');
+    document.getElementById('tab-high').classList.toggle('active', branch === 'high');
+
+    const btn = document.getElementById('continueBtn');
+    if(branch === 'high') {
+      btn.textContent = '去看看可以做什么 →';
+    } else {
+      btn.textContent = '查看功能引导 →';
+    }
+  }
+
+  // Read URL param
+  function init() {
+    const params = new URLSearchParams(window.location.search);
+    const risk = params.get('risk') || 'low';
+    showBranch(risk === 'high' ? 'high' : 'low');
+  }
+
+  init();
+</script>
+</body>
+</html>

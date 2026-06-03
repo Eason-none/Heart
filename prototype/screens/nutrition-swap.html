@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 食材替换表</title>
+<style>
+:root {
+  --bg:#F7F5F1; --card:#F0EDE8; --text:#2C2A26; --sub:#888780;
+  --blue:#185FA5; --blue-light:#E6F1FB;
+  --orange:#BA7517; --orange-light:#FAEEDA;
+  --green:#1D9E75; --green-light:#D4F2E7; --green-dark:#085041;
+  --border:#C8C5BE;
+  --r-card:12px; --r-btn:8px; --r-pill:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif}
+.phone{width:390px;min-height:100vh;background:var(--bg);display:flex;flex-direction:column}
+.status-bar{height:44px;background:var(--bg);display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex-shrink:0}
+.status-time{font-size:15px;font-weight:600;color:var(--text)}
+.status-icons{font-size:12px;color:var(--text)}
+.nav-bar{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid var(--border);position:relative}
+.nav-back{font-size:16px;color:var(--blue);text-decoration:none;height:44px;display:flex;align-items:center}
+.nav-title{font-size:17px;font-weight:600;color:var(--text);position:absolute;left:50%;transform:translateX(-50%)}
+
+.scroll-content{flex:1;overflow-y:auto;padding:14px 16px 32px;-webkit-overflow-scrolling:touch}
+
+/* Intro */
+.intro-card{background:var(--blue-light);border-radius:var(--r-card);padding:14px 16px;margin-bottom:14px;font-size:14px;color:var(--blue);line-height:1.6;border:1px solid #B8D4EE}
+.intro-card strong{font-weight:700}
+
+/* Category section */
+.cat-section{margin-bottom:8px}
+.cat-section-header{display:flex;align-items:center;gap:10px;padding:12px 0 8px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cat-section-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.cat-section-title{font-size:16px;font-weight:700;color:var(--text);flex:1}
+.cat-section-arrow{font-size:16px;color:var(--sub);transition:transform .2s}
+.cat-section-arrow.open{transform:rotate(180deg)}
+.cat-section-body{display:none}
+.cat-section-body.open{display:block}
+
+/* Swap card */
+.swap-card{border-radius:var(--r-card);border:1px solid var(--border);background:white;overflow:hidden;margin-bottom:10px}
+.swap-header{padding:10px 14px 8px;border-bottom:1px solid var(--border);background:var(--card)}
+.swap-scenario{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.swap-context{font-size:14px;color:var(--text);line-height:1.4}
+.swap-body{padding:12px 14px}
+.swap-arrow-row{display:flex;align-items:center;gap:0}
+.swap-from{flex:1;text-align:center;padding:10px 8px;background:var(--card);border-radius:var(--r-btn)}
+.swap-from-emoji{font-size:24px;margin-bottom:4px}
+.swap-from-name{font-size:13px;font-weight:600;color:var(--sub)}
+.swap-from-sub{font-size:11px;color:var(--sub);opacity:.7;margin-top:2px}
+.swap-middle{display:flex;flex-direction:column;align-items:center;padding:0 8px;flex-shrink:0}
+.swap-arrow{font-size:20px;color:var(--border);margin-bottom:2px}
+.swap-why{font-size:10px;color:var(--sub);white-space:nowrap}
+.swap-to{flex:1;text-align:center;padding:10px 8px;background:var(--green-light);border-radius:var(--r-btn)}
+.swap-to-emoji{font-size:24px;margin-bottom:4px}
+.swap-to-name{font-size:13px;font-weight:700;color:var(--green-dark)}
+.swap-to-sub{font-size:11px;color:var(--green-dark);opacity:.75;margin-top:2px}
+.swap-benefit{margin-top:10px;padding:8px 10px;background:var(--green-light);border-radius:var(--r-btn);font-size:13px;color:var(--green-dark);line-height:1.5;display:flex;gap:6px}
+.swap-benefit-icon{flex-shrink:0}
+
+/* Tip */
+.section-tip{background:var(--orange-light);border-radius:var(--r-btn);padding:10px 14px;margin-bottom:10px;font-size:13px;color:var(--orange);line-height:1.55;border-left:3px solid var(--orange)}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">●●● WiFi 🔋</div>
+  </div>
+  <div class="nav-bar">
+    <a href="nutrition-index.html" class="nav-back">‹ 营养</a>
+    <span class="nav-title">中式食材替换表</span>
+  </div>
+
+  <div class="scroll-content">
+
+    <div class="intro-card">
+      <strong>怎么用这张表：</strong>左边是日常常见的「原食材」，右边是营养升级版替换选项。不需要全部替换——每次做菜换掉一样，长期坚持就能产生明显效果。
+    </div>
+
+    <!-- 主食替换 -->
+    <div class="cat-section">
+      <div class="cat-section-header" onclick="toggleCat('grain')">
+        <div class="cat-section-icon" style="background:#FFF3E0">🌾</div>
+        <span class="cat-section-title">主食替换</span>
+        <span class="cat-section-arrow open" id="arrow-grain">∧</span>
+      </div>
+      <div class="cat-section-body open" id="body-grain">
+
+        <div class="swap-card">
+          <div class="swap-header">
+            <div class="swap-scenario">早餐场景</div>
+            <div class="swap-context">一碗白粥 → 更护心的早餐选择</div>
+          </div>
+          <div class="swap-body">
+            <div class="swap-arrow-row">
+              <div class="swap-from"><div class="swap-from-emoji">🍚</div><div class="swap-from-name">白粥</div><div class="swap-from-sub">GI 极高，饱腹感低</div></div>
+              <div class="swap-middle"><div class="swap-arrow">→</div><div class="swap-why">替换为</div></div>
+              <div class="swap-to"><div class="swap-to-emoji">🌾</div><div class="swap-to-name">燕麦粥</div><div class="swap-to-sub">GI 低，β-葡聚糖</div></div>
+            </div>
+            <div class="swap-benefit"><span class="swap-benefit-icon">✓</span>β-葡聚糖可降低 LDL 胆固醇，同等热量下饱腹感延长 2–3 小时，餐后血糖更平稳。</div>
+          </div>
+        </div>
+
+        <div class="swap-card">
+          <div class="swap-header">
+            <div class="swap-scenario">午餐 / 晚餐场景</div>
+            <div class="swap-context">白米饭 → 混合主食，营养密度翻倍</div>
+          </div>
+          <div class="swap-body">
+            <div class="swap-arrow-row">
+              <div class="swap-from"><div class="swap-from-emoji">🍚</div><div class="swap-from-name">白米饭</div><div class="swap-from-sub">精制碳水，纤维少</div></div>
+              <div class="swap-middle"><div class="swap-arrow">→</div><div class="swap-why">混合</div></div>
+              <div class="swap-to"><div class="swap-to-emoji">🍱</div><div class="swap-to-name">杂粮饭</div><div class="swap-to-sub">糙米+红豆+小米</div></div>
+            </div>
+            <div class="swap-benefit"><span class="swap-benefit-icon">✓</span>建议比例：白米 50% + 糙米/杂粮 50%，初次尝试可从 7:3 开始适应口感。膳食纤维增加约 3 倍。</div>
+          </div>
+        </div>
+
+        <div class="section-tip">⚡ 简单操作：买一袋「十谷米」或「杂粮包」，按 1:1 比例混入白米一起蒸，无需额外备料。</div>
+
+      </div>
+    </div>
+
+    <!-- 烹饪用油替换 -->
+    <div class="cat-section">
+      <div class="cat-section-header" onclick="toggleCat('oil')">
+        <div class="cat-section-icon" style="background:#FFF8E1">🫒</div>
+        <span class="cat-section-title">烹饪用油替换</span>
+        <span class="cat-section-arrow open" id="arrow-oil">∧</span>
+      </div>
+      <div class="cat-section-body open" id="body-oil">
+
+        <div class="swap-card">
+          <div class="swap-header">
+            <div class="swap-scenario">炒菜场景</div>
+            <div class="swap-context">减少猪油 / 色拉油的使用</div>
+          </div>
+          <div class="swap-body">
+            <div class="swap-arrow-row">
+              <div class="swap-from"><div class="swap-from-emoji">🧴</div><div class="swap-from-name">猪油/色拉油</div><div class="swap-from-sub">饱和脂肪高</div></div>
+              <div class="swap-middle"><div class="swap-arrow">→</div><div class="swap-why">替换为</div></div>
+              <div class="swap-to"><div class="swap-to-emoji">🌻</div><div class="swap-to-name">茶籽油 / 菜籽油</div><div class="swap-to-sub">单不饱和脂肪酸高，耐高温</div></div>
+            </div>
+            <div class="swap-benefit"><span class="swap-benefit-icon">✓</span>茶籽油是国内耐高温植物油中单不饱和脂肪酸含量最高的，适合中式大火爆炒。</div>
+          </div>
+        </div>
+
+        <div class="swap-card">
+          <div class="swap-header">
+            <div class="swap-scenario">凉拌 / 蘸料场景</div>
+            <div class="swap-context">不需加热时可用初榨橄榄油</div>
+          </div>
+          <div class="swap-body">
+            <div class="swap-arrow-row">
+              <div class="swap-from"><div class="swap-from-emoji">🧴</div><div class="swap-from-name">普通色拉油</div><div class="swap-from-sub">Omega-6 偏高</div></div>
+              <div class="swap-middle"><div class="swap-arrow">→</div><div class="swap-why">替换为</div></div>
+              <div class="swap-to"><div class="swap-to-emoji">🫒</div><div class="swap-to-name">初榨橄榄油</div><div class="swap-to-sub">多酚抗氧化，心脏保护</div></div>
+            </div>
+            <div class="swap-benefit"><span class="swap-benefit-icon">✓</span>不建议高温炒菜使用橄榄油（烟点低），凉拌 / 调汁场景最合适，保留多酚类抗氧化物质。</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 调味料替换 -->
+    <div class="cat-section">
+      <div class="cat-section-header" onclick="toggleCat('sauce')">
+        <div class="cat-section-icon" style="background:#F3E5F5">🧂</div>
+        <span class="cat-section-title">调味料替换（减盐关键）</span>
+        <span class="cat-section-arrow" id="arrow-sauce">∨</span>
+      </div>
+      <div class="cat-section-body" id="body-sauce">
+
+        <div class="swap-card">
+          <div class="swap-header">
+            <div class="swap-scenario">日常炒菜 / 炖煮</div>
+            <div class="swap-context">减钠不减味的核心策略</div>
+          </div>
+          <div class="swap-body">
+            <div class="swap-arrow-row">
+              <div class="swap-from"><div class="swap-from-emoji">🧂</div><div class="swap-from-name">普通食盐</div><div class="swap-from-sub">100% 氯化钠</div></div>
+              <div class="swap-middle"><div class="swap-arrow">→</div><div class="swap-why">替换为</div></div>
+              <div class="swap-to"><div class="swap-to-emoji">🫙</div><div class="swap-to-name">低钠盐 / 钾盐</div><div class="swap-to-sub">钠减少 30%，含钾</div></div>
+            </div>
+            <div class="swap-benefit"><span class="swap-benefit-icon">✓</span>低钠盐可在不改变咸度感知的前提下减少约 1/3 的钠摄入。注意：肾功能不全者使用前请咨询医生。</div>
+          </div>
+        </div>
+
+        <div class="swap-card">
+          <div class="swap-header">
+            <div class="swap-scenario">增香提鲜场景</div>
+            <div class="swap-context">不用味精 / 鸡精的天然增鲜方案</div>
+          </div>
+          <div class="swap-body">
+            <div class="swap-arrow-row">
+              <div class="swap-from"><div class="swap-from-emoji">🫙</div><div class="swap-from-name">味精 / 鸡精</div><div class="swap-from-sub">含大量谷氨酸钠（隐性盐）</div></div>
+              <div class="swap-middle"><div class="swap-arrow">→</div><div class="swap-why">替换为</div></div>
+              <div class="swap-to"><div class="swap-to-emoji">🍄</div><div class="swap-to-name">香菇 / 虾皮 / 海带</div><div class="swap-to-sub">天然谷氨酸，低钠增鲜</div></div>
+            </div>
+            <div class="swap-benefit"><span class="swap-benefit-icon">✓</span>干香菇水泡发后的汤汁是天然增鲜利器，做汤和炖菜时加入效果显著，完全不需要味精。</div>
+          </div>
+        </div>
+
+        <div class="section-tip">⚡ 减盐小技巧：出锅前放盐（而非烹饪中途），相同量的盐味道感知更强，实际摄入更少。</div>
+      </div>
+    </div>
+
+    <!-- 蛋白质替换 -->
+    <div class="cat-section">
+      <div class="cat-section-header" onclick="toggleCat('protein')">
+        <div class="cat-section-icon" style="background:#E8F5E9">🐟</div>
+        <span class="cat-section-title">蛋白质来源替换</span>
+        <span class="cat-section-arrow" id="arrow-protein">∨</span>
+      </div>
+      <div class="cat-section-body" id="body-protein">
+
+        <div class="swap-card">
+          <div class="swap-header">
+            <div class="swap-scenario">红烧 / 炖肉场景</div>
+            <div class="swap-context">用鱼肉代替猪肉，同样满足</div>
+          </div>
+          <div class="swap-body">
+            <div class="swap-arrow-row">
+              <div class="swap-from"><div class="swap-from-emoji">🥩</div><div class="swap-from-name">猪五花 / 排骨</div><div class="swap-from-sub">饱和脂肪高，嘌呤高</div></div>
+              <div class="swap-middle"><div class="swap-arrow">→</div><div class="swap-why">替换为</div></div>
+              <div class="swap-to"><div class="swap-to-emoji">🐟</div><div class="swap-to-name">鲈鱼 / 鳕鱼</div><div class="swap-to-sub">Omega-3 丰富，易消化</div></div>
+            </div>
+            <div class="swap-benefit"><span class="swap-benefit-icon">✓</span>每周 2 次以上鱼类，可使甘油三酯降低约 15–20%，是最容易实现的心脏保护性饮食改变之一。</div>
+          </div>
+        </div>
+
+        <div class="swap-card">
+          <div class="swap-header">
+            <div class="swap-scenario">加餐 / 凉拌场景</div>
+            <div class="swap-context">植物蛋白替代动物蛋白的实用方案</div>
+          </div>
+          <div class="swap-body">
+            <div class="swap-arrow-row">
+              <div class="swap-from"><div class="swap-from-emoji">🧀</div><div class="swap-from-name">普通奶酪 / 卤蛋</div><div class="swap-from-sub">饱和脂肪或钠偏高</div></div>
+              <div class="swap-middle"><div class="swap-arrow">→</div><div class="swap-why">替换为</div></div>
+              <div class="swap-to"><div class="swap-to-emoji">🫘</div><div class="swap-to-name">豆腐 / 毛豆</div><div class="swap-to-sub">植物蛋白，异黄酮护心</div></div>
+            </div>
+            <div class="swap-benefit"><span class="swap-benefit-icon">✓</span>大豆异黄酮对女性冠心病患者的心血管保护效果尤为明显，且豆类热量低、饱腹感强。</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+<script>
+  function toggleCat(id) {
+    const body  = document.getElementById('body-' + id);
+    const arrow = document.getElementById('arrow-' + id);
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    arrow.classList.toggle('open', !isOpen);
+    arrow.textContent = isOpen ? '∨' : '∧';
+  }
+</script>
+</body>
+</html>

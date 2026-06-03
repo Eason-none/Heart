@@ -1,0 +1,29 @@
+# Dependencies
+app/node_modules/
+
+# Next.js build output
+app/.next/
+app/out/
+
+# Environment variables (contain real credentials)
+app/.env.local
+app/.env*.local
+
+# TypeScript incremental build
+app/tsconfig.tsbuildinfo
+
+# PDF files (large binaries — tracked separately)
+**/*.pdf
+*.pdf
+
+# Images (tracked separately if needed)
+article/*.jpg
+article/image.png
+
+# Claude Code session data and CodeGraph index (generated artifacts)
+.claude/
+.codegraph/
+
+# OS
+.DS_Store
+Thumbs.db

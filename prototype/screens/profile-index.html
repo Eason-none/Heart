@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 我</title>
+<style>
+:root {
+  --bg:#F7F5F1; --card:#F0EDE8; --text:#2C2A26; --sub:#888780;
+  --blue:#185FA5; --blue-light:#E6F1FB;
+  --orange:#BA7517; --orange-light:#FAEEDA;
+  --red:#A32D2D; --red-light:#FCEBEB;
+  --green:#1D9E75; --green-light:#D4F2E7; --green-dark:#085041;
+  --border:#C8C5BE;
+  --r-card:12px; --r-btn:8px; --r-pill:16px;
+  --gold:#BA7517; --gold-light:#FAEEDA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif}
+.phone{width:390px;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;position:relative}
+.status-bar{height:44px;background:var(--bg);display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex-shrink:0}
+.status-time{font-size:15px;font-weight:600;color:var(--text)}
+.status-icons{font-size:12px;color:var(--text)}
+.page-header{height:48px;background:var(--bg);display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.page-title{font-size:18px;font-weight:700;color:var(--text)}
+
+.scroll-content{flex:1;overflow-y:auto;padding:0 0 100px;-webkit-overflow-scrolling:touch}
+
+/* ── USER INFO SECTION ── */
+.user-info-section{background:var(--blue);padding:24px 20px 20px;display:flex;align-items:center;gap:16px}
+.user-avatar{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;border:2.5px solid rgba(255,255,255,.5)}
+.user-info-text{flex:1}
+.user-name{font-size:20px;font-weight:700;color:#fff;margin-bottom:4px}
+.user-risk-pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:var(--r-pill);background:rgba(255,255,255,.2);color:#fff}
+.update-assess-btn{height:36px;padding:0 12px;border-radius:var(--r-pill);background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;transition:background .15s}
+.update-assess-btn:active{background:rgba(255,255,255,.3)}
+
+/* ── PROGRESS SECTION ── */
+.section-card{background:var(--bg);padding:16px 16px 0;margin-bottom:0}
+.section-inner{background:var(--card);border-radius:var(--r-card);padding:16px;margin-bottom:12px}
+.section-label{font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+
+/* Progress header */
+.progress-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.stage-info{display:flex;flex-direction:column;gap:2px}
+.stage-label{font-size:15px;font-weight:700;color:var(--text)}
+.stage-sub{font-size:13px;color:var(--sub)}
+.total-count-badge{font-size:18px;font-weight:800;color:var(--blue);text-align:right}
+.total-count-label{font-size:11px;color:var(--sub);text-align:right}
+
+/* Demo controls for milestones */
+.demo-row{display:flex;gap:6px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.demo-label{font-size:11px;color:var(--sub)}
+.demo-btn{font-size:11px;padding:4px 10px;border-radius:var(--r-pill);border:1.5px solid var(--border);background:var(--bg);color:var(--sub);cursor:pointer;font-family:inherit}
+.demo-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+
+/* ── MILESTONE CARDS ── */
+.milestone-row{display:flex;gap:8px}
+.milestone-card{flex:1;height:120px;border-radius:var(--r-card);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:10px 6px;position:relative;overflow:hidden;border:1.5px solid var(--border);transition:all .25s}
+
+/* Unlocked state */
+.milestone-card.unlocked{border-color:var(--gold);background:linear-gradient(145deg,#FFFBF2,var(--gold-light))}
+.milestone-card.unlocked-blue{border-color:var(--blue);background:linear-gradient(145deg,#F0F7FF,var(--blue-light))}
+
+/* Inner circle */
+.milestone-ring{width:60px;height:60px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:6px;position:relative}
+.milestone-ring.locked{border:2px dashed var(--border)}
+.milestone-ring.unlocked-gold{border:2.5px solid var(--gold)}
+.milestone-ring.unlocked-blue-ring{border:2.5px solid var(--blue)}
+
+/* Shine effect for unlocked */
+.milestone-card.unlocked::before,.milestone-card.unlocked-blue::before{
+  content:'';position:absolute;top:-20px;right:-20px;width:60px;height:60px;
+  border-radius:50%;background:rgba(255,255,255,.35);
+}
+
+.milestone-number{font-size:22px;font-weight:800;line-height:1}
+.milestone-unit{font-size:11px;font-weight:600;line-height:1.3;margin-top:1px}
+.milestone-card.unlocked .milestone-number{color:var(--gold)}
+.milestone-card.unlocked .milestone-unit{color:var(--gold)}
+.milestone-card.unlocked-blue .milestone-number{color:var(--blue)}
+.milestone-card.unlocked-blue .milestone-unit{color:var(--blue)}
+.milestone-card.locked-card .milestone-number{color:var(--border)}
+.milestone-card.locked-card .milestone-unit{color:var(--border)}
+
+/* Bottom motivational text */
+.milestone-caption{font-size:12px;font-weight:500;color:var(--text);text-align:center;line-height:1.35}
+.milestone-card.locked-card .milestone-caption{color:var(--border)}
+
+/* Lock icon overlay */
+.milestone-lock-overlay{position:absolute;top:6px;right:6px;font-size:12px;color:var(--border)}
+
+/* ── FOLLOWUP HISTORY ── */
+.timeline{display:flex;flex-direction:column}
+.timeline-item{display:flex;gap:12px;padding-bottom:16px;position:relative}
+.timeline-left{display:flex;flex-direction:column;align-items:center;width:20px;flex-shrink:0}
+.timeline-dot{width:12px;height:12px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:3px;border:2px solid var(--bg);box-shadow:0 0 0 2px var(--blue)}
+.timeline-line{flex:1;width:2px;background:var(--border);margin-top:2px}
+.timeline-item:last-child .timeline-line{display:none}
+.timeline-content{flex:1;padding-bottom:0}
+.timeline-date{font-size:12px;color:var(--sub);margin-bottom:3px}
+.timeline-type{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.timeline-type-badge{font-size:11px;font-weight:600;padding:1px 7px;border-radius:var(--r-pill)}
+.badge-weekly{background:var(--blue-light);color:var(--blue)}
+.badge-monthly{background:var(--orange-light);color:var(--orange)}
+.timeline-summary{font-size:13px;color:var(--sub);line-height:1.5}
+
+/* Empty followup */
+.empty-hint{text-align:center;padding:24px 0;font-size:15px;color:var(--sub)}
+
+/* ── SETTINGS ── */
+.settings-list{display:flex;flex-direction:column}
+.settings-item{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);gap:12px;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.settings-item:last-child{border-bottom:none}
+.settings-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.settings-name{font-size:16px;color:var(--text);flex:1}
+.settings-arrow{font-size:18px;color:var(--sub)}
+
+/* Inline modal overlay */
+.modal-overlay{position:absolute;inset:0;background:rgba(44,42,38,.5);display:none;align-items:flex-end;z-index:100}
+.modal-overlay.show{display:flex}
+.modal-sheet{background:var(--bg);border-radius:16px 16px 0 0;padding:20px 16px 40px;width:100%}
+.modal-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 16px}
+.modal-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:14px}
+.topic-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.topic-check-item{display:flex;align-items:center;gap:10px;padding:12px;border-radius:var(--r-btn);border:1.5px solid var(--border);background:var(--card);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.topic-check-item.checked{background:var(--blue-light);border-color:var(--blue)}
+.topic-chk{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);background:white;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.topic-check-item.checked .topic-chk{background:var(--blue);border-color:var(--blue)}
+.topic-check-item.checked .topic-chk::after{content:'';width:4px;height:7px;border-right:2px solid white;border-bottom:2px solid white;transform:rotate(45deg) translate(-1px,-1px);display:block}
+.topic-label{font-size:14px;color:var(--text)}
+.topic-check-item.checked .topic-label{color:var(--blue);font-weight:600}
+.modal-save-btn{margin-top:16px;width:100%;height:52px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-btn);font-size:17px;font-weight:600;cursor:pointer;font-family:inherit}
+
+/* Tab bar */
+.tab-bar{position:fixed;bottom:0;width:390px;height:68px;background:var(--bg);border-top:1px solid var(--border);display:flex;align-items:flex-start;padding-top:8px;z-index:50}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;cursor:pointer;position:relative}
+.tab-icon{font-size:22px;line-height:1}
+.tab-label{font-size:10px;color:var(--sub);font-weight:500}
+.tab-item.active .tab-label{color:var(--blue);font-weight:700}
+.tab-badge{position:absolute;top:-3px;right:18px;width:8px;height:8px;border-radius:50%;background:var(--red);display:none}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">●●● WiFi 🔋</div>
+  </div>
+  <div class="page-header">
+    <span class="page-title">我</span>
+  </div>
+
+  <div class="scroll-content">
+
+    <!-- ── USER INFO ── -->
+    <div class="user-info-section">
+      <div class="user-avatar">👤</div>
+      <div class="user-info-text">
+        <div class="user-name">李明</div>
+        <div class="user-risk-pill">✓ 心脏功能稳定 · 适合运动康复</div>
+      </div>
+      <a href="profile-update-assessment.html">
+        <button class="update-assess-btn">更新评估</button>
+      </a>
+    </div>
+
+    <!-- ── REHAB PROGRESS ── -->
+    <div style="padding:16px 16px 0">
+
+      <!-- Demo controls -->
+      <div class="demo-row">
+        <span class="demo-label">演示里程碑解锁：</span>
+        <button class="demo-btn" id="dm0" onclick="setMilestone(0)">全未解锁</button>
+        <button class="demo-btn" id="dm1" onclick="setMilestone(1)">解锁第1个</button>
+        <button class="demo-btn active" id="dm2" onclick="setMilestone(2)">解锁前2个</button>
+        <button class="demo-btn" id="dm3" onclick="setMilestone(3)">全解锁</button>
+      </div>
+
+      <div class="section-inner">
+        <!-- Progress header -->
+        <div class="progress-header">
+          <div class="stage-info">
+            <div class="stage-label">适应期</div>
+            <div class="stage-sub">第 1–12 次 · 建立运动习惯</div>
+          </div>
+          <div>
+            <div class="total-count-badge" id="totalCountNum">18</div>
+            <div class="total-count-label">累计运动次数</div>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div style="height:6px;background:var(--border);border-radius:3px;margin-bottom:16px;overflow:hidden">
+          <div style="height:100%;width:60%;background:var(--blue);border-radius:3px;transition:width .4s"></div>
+        </div>
+
+        <!-- Milestone cards -->
+        <div class="milestone-row" id="milestoneRow">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FOLLOWUP HISTORY ── -->
+    <div style="padding:0 16px">
+      <div class="section-inner">
+        <div class="section-label">
+          <span>随访记录</span>
+          <span style="font-size:13px;font-weight:400;color:var(--sub);text-transform:none;letter-spacing:0">最近 3 条</span>
+        </div>
+
+        <!-- Demo toggle -->
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+          <button class="demo-btn active" id="fuHasRecord" onclick="setFollowup(true)">有记录</button>
+          <button class="demo-btn" id="fuNoRecord" onclick="setFollowup(false)">空状态</button>
+        </div>
+
+        <div id="followupHasRecord">
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-left"><div class="timeline-dot"></div><div class="timeline-line"></div></div>
+              <div class="timeline-content">
+                <div class="timeline-date">2026年5月26日（周一）</div>
+                <div class="timeline-type">每周随访 <span class="timeline-type-badge badge-weekly">周随访</span></div>
+                <div class="timeline-summary">运动 3 次 · 无不适 · 睡眠一般 · 情绪还可以</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-left"><div class="timeline-dot"></div><div class="timeline-line"></div></div>
+              <div class="timeline-content">
+                <div class="timeline-date">2026年5月1日（周五）</div>
+                <div class="timeline-type">月度随访 <span class="timeline-type-badge badge-monthly">月随访</span></div>
+                <div class="timeline-summary">体重 72kg · 腰围 88cm · DASI 评分改善 · 无新症状 · 已复诊</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-left"><div class="timeline-dot"></div><div class="timeline-line"></div></div>
+              <div class="timeline-content">
+                <div class="timeline-date">2026年4月28日（周一）</div>
+                <div class="timeline-type">每周随访 <span class="timeline-type-badge badge-weekly">周随访</span></div>
+                <div class="timeline-summary">运动 2 次 · 轻度疲劳 · 睡眠好 · 情绪稳定</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="followupNoRecord" style="display:none">
+          <div class="empty-hint">暂无随访记录</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div style="padding:0 16px">
+      <div class="section-inner" style="padding:0">
+        <div class="settings-list">
+          <a href="../onboarding/onboarding-guide.html" class="settings-item">
+            <div class="settings-icon" style="background:var(--blue-light)">📖</div>
+            <span class="settings-name">重看功能引导</span>
+            <span class="settings-arrow">›</span>
+          </a>
+          <div class="settings-item" onclick="openTopicModal()">
+            <div class="settings-icon" style="background:var(--orange-light)">🏷</div>
+            <span class="settings-name">内容偏好</span>
+            <span class="settings-arrow">›</span>
+          </div>
+          <div class="settings-item">
+            <div class="settings-icon" style="background:var(--green-light)">❤️</div>
+            <span class="settings-name">关于 Heart</span>
+            <span class="settings-arrow">›</span>
+          </div>
+          <div class="settings-item">
+            <div class="settings-icon" style="background:var(--card)">🔒</div>
+            <span class="settings-name">隐私说明</span>
+            <span class="settings-arrow">›</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Version -->
+    <div style="text-align:center;padding:16px;font-size:12px;color:var(--sub)">Heart v1.0 · 心脏康复辅助工具</div>
+
+  </div><!-- end scroll -->
+
+  <!-- Topic modal -->
+  <div class="modal-overlay" id="topicModal" onclick="closeTopicModalOutside(event)">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-title">内容偏好（可多选）</div>
+      <div class="topic-grid" id="topicGrid">
+        <!-- rendered by JS -->
+      </div>
+      <button class="modal-save-btn" onclick="saveTopics()">保存偏好</button>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <a class="tab-item" href="home-index.html"><span class="tab-icon">🏠</span><span class="tab-label">首页</span></a>
+    <a class="tab-item" href="exercise-index.html"><span class="tab-icon">🏃</span><span class="tab-label">运动</span></a>
+    <a class="tab-item" href="nutrition-index.html"><span class="tab-icon">🥗</span><span class="tab-label">营养</span></a>
+    <a class="tab-item" href="assistant-index.html"><span class="tab-icon">🤖</span><span class="tab-label">助手</span></a>
+    <a class="tab-item active" href="profile-index.html"><span class="tab-icon">👤</span><span class="tab-label">我</span></a>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════
+   MILESTONE DATA
+════════════════════════════════ */
+const MILESTONES = [
+  {
+    num: '12',
+    unit: '次·适应期',
+    caption: '坚持的力量',
+    type: 'gold',   // gold | blue
+    threshold: 12,
+  },
+  {
+    num: '18',
+    unit: '次·改善期',
+    caption: '进步的节奏',
+    type: 'gold',
+    threshold: 18,
+  },
+  {
+    num: '90',
+    unit: '天·维持期',
+    caption: '习惯已成自然',
+    type: 'blue',
+    threshold: 90,
+  },
+];
+
+let currentCount = 18; // simulated count for demo
+let unlockedCount = 2; // how many are unlocked (0-3)
+
+function renderMilestones(unlocked) {
+  const row = document.getElementById('milestoneRow');
+  row.innerHTML = '';
+
+  MILESTONES.forEach((m, i) => {
+    const isUnlocked = i < unlocked;
+    const isBlue = m.type === 'blue';
+
+    const card = document.createElement('div');
+    card.className = 'milestone-card ' + (
+      isUnlocked
+        ? (isBlue ? 'unlocked-blue' : 'unlocked')
+        : 'locked-card'
+    );
+
+    // Lock icon (locked only)
+    if (!isUnlocked) {
+      const lockIcon = document.createElement('div');
+      lockIcon.className = 'milestone-lock-overlay';
+      lockIcon.textContent = '🔒';
+      card.appendChild(lockIcon);
+    }
+
+    // Ring
+    const ring = document.createElement('div');
+    ring.className = 'milestone-ring ' + (
+      isUnlocked
+        ? (isBlue ? 'unlocked-blue-ring' : 'unlocked-gold')
+        : 'locked'
+    );
+
+    const numEl = document.createElement('div');
+    numEl.className = 'milestone-number';
+    numEl.textContent = isUnlocked ? m.num : m.num;
+
+    const unitEl = document.createElement('div');
+    unitEl.className = 'milestone-unit';
+    unitEl.textContent = m.unit;
+
+    ring.appendChild(numEl);
+    ring.appendChild(unitEl);
+    card.appendChild(ring);
+
+    // Caption
+    const cap = document.createElement('div');
+    cap.className = 'milestone-caption';
+    cap.textContent = isUnlocked ? m.caption : '—';
+    card.appendChild(cap);
+
+    // Unlock shimmer badge
+    if (isUnlocked) {
+      const badge = document.createElement('div');
+      badge.style.cssText = 'position:absolute;top:6px;left:6px;font-size:12px;';
+      badge.textContent = '✨';
+      card.appendChild(badge);
+    }
+
+    row.appendChild(card);
+  });
+}
+
+function setMilestone(n) {
+  unlockedCount = n;
+  [0,1,2,3].forEach(i => {
+    document.getElementById('dm'+i).classList.toggle('active', i === n);
+  });
+  renderMilestones(n);
+}
+
+/* ════════════════════════════════
+   FOLLOWUP TOGGLE
+════════════════════════════════ */
+function setFollowup(hasRecord) {
+  document.getElementById('followupHasRecord').style.display = hasRecord ? '' : 'none';
+  document.getElementById('followupNoRecord').style.display  = hasRecord ? 'none' : '';
+  document.getElementById('fuHasRecord').classList.toggle('active', hasRecord);
+  document.getElementById('fuNoRecord').classList.toggle('active', !hasRecord);
+}
+
+/* ════════════════════════════════
+   TOPIC MODAL
+════════════════════════════════ */
+const TOPICS = [
+  {emoji:'🏃', label:'运动知识', checked:true},
+  {emoji:'🥗', label:'饮食营养', checked:true},
+  {emoji:'💊', label:'用药知识', checked:false},
+  {emoji:'🧠', label:'心理健康', checked:true},
+  {emoji:'😴', label:'睡眠管理', checked:false},
+  {emoji:'🩺', label:'复诊准备', checked:false},
+  {emoji:'🫀', label:'心脏科普', checked:true},
+  {emoji:'🌿', label:'生活方式', checked:false},
+];
+
+function renderTopicGrid() {
+  const grid = document.getElementById('topicGrid');
+  grid.innerHTML = '';
+  TOPICS.forEach((t, i) => {
+    const item = document.createElement('div');
+    item.className = 'topic-check-item' + (t.checked ? ' checked' : '');
+    item.onclick = () => {
+      t.checked = !t.checked;
+      item.classList.toggle('checked', t.checked);
+      const chk = item.querySelector('.topic-chk');
+      // force re-render of checkmark via class
+    };
+    item.innerHTML = `
+      <div class="topic-chk"></div>
+      <span class="topic-label">${t.emoji} ${t.label}</span>
+    `;
+    grid.appendChild(item);
+  });
+}
+
+function openTopicModal() {
+  renderTopicGrid();
+  document.getElementById('topicModal').classList.add('show');
+}
+function closeTopicModalOutside(e) {
+  if (e.target === document.getElementById('topicModal')) {
+    document.getElementById('topicModal').classList.remove('show');
+  }
+}
+function saveTopics() {
+  document.getElementById('topicModal').classList.remove('show');
+}
+
+/* ════════════════════════════════
+   INIT
+════════════════════════════════ */
+renderMilestones(2); // default: 2 unlocked
+</script>
+</body>
+</html>

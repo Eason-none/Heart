@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 随访问卷</title>
+<style>
+:root {
+  --bg:#F7F5F1;--card:#F0EDE8;--text:#2C2A26;--sub:#888780;
+  --blue:#185FA5;--blue-light:#E6F1FB;
+  --orange:#BA7517;--orange-light:#FAEEDA;
+  --red:#A32D2D;--red-light:#FCEBEB;
+  --green:#1D9E75;--green-light:#D4F2E7;--green-dark:#085041;
+  --border:#C8C5BE;
+  --r-card:12px;--r-btn:8px;--r-pill:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif}
+.phone{width:390px;min-height:100vh;background:var(--bg);display:flex;flex-direction:column;position:relative}
+.status-bar{height:44px;background:var(--bg);display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex-shrink:0}
+.status-time{font-size:15px;font-weight:600;color:var(--text)}
+.status-icons{font-size:12px;color:var(--text)}
+.nav-bar{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid var(--border);position:relative}
+.nav-back{font-size:16px;color:var(--blue);text-decoration:none;height:44px;display:flex;align-items:center}
+.nav-title{font-size:17px;font-weight:600;color:var(--text);position:absolute;left:50%;transform:translateX(-50%)}
+.scroll{flex:1;overflow-y:auto;padding:14px 16px 120px;-webkit-overflow-scrolling:touch}
+
+/* Demo */
+.demo-row{display:flex;gap:6px;margin-bottom:14px;align-items:center}
+.demo-lbl{font-size:11px;color:var(--sub)}
+.dbtn{font-size:12px;padding:5px 12px;border-radius:var(--r-pill);border:1.5px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-family:inherit;transition:all .15s}
+.dbtn.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+
+/* Header */
+.fu-header{background:var(--card);border-radius:var(--r-card);padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:14px}
+.fu-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.fu-type{font-size:18px;font-weight:700;color:var(--text);margin-bottom:3px}
+.fu-time{font-size:13px;color:var(--sub);display:flex;align-items:center;gap:4px}
+
+/* Group label */
+.grp-lbl{font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+
+/* Question card */
+.qcard{background:var(--card);border-radius:var(--r-card);padding:16px;margin-bottom:10px}
+.qmeta{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.qnum{width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qnum-extra{background:var(--sub)}
+.qbadge-monthly{font-size:10px;font-weight:700;padding:1px 7px;border-radius:var(--r-pill);background:var(--orange-light);color:var(--orange)}
+.qmeta-label{font-size:12px;color:var(--sub)}
+.qtxt{font-size:16px;font-weight:600;color:var(--text);line-height:1.5;margin-bottom:10px}
+.qskip{font-size:13px;color:var(--sub);margin-top:-6px;margin-bottom:10px}
+.qerr{font-size:13px;color:var(--red);margin-top:6px;display:none}
+.qerr.show{display:block}
+
+/* Single select */
+.opts{display:flex;flex-direction:column;gap:7px}
+.oitem{min-height:50px;background:var(--bg);border-radius:var(--r-btn);border:1.5px solid var(--border);padding:11px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.oitem.sel{background:var(--blue-light);border-color:var(--blue)}
+.oradio{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.oitem.sel .oradio{background:var(--blue);border-color:var(--blue)}
+.oitem.sel .oradio::after{content:'';width:7px;height:7px;border-radius:50%;background:#fff;display:block}
+.otxt{font-size:16px;color:var(--text)}
+.oitem.sel .otxt{color:var(--blue)}
+
+/* Multi select */
+.mitem{min-height:50px;background:var(--bg);border-radius:var(--r-btn);border:1.5px solid var(--border);padding:11px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.mitem.sel{background:var(--blue-light);border-color:var(--blue)}
+.mitem.sel-none{background:var(--green-light);border-color:var(--green)}
+.mchk{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.mitem.sel .mchk,.mitem.sel-none .mchk{background:var(--blue);border-color:var(--blue)}
+.mitem.sel-none .mchk{background:var(--green);border-color:var(--green)}
+.mitem.sel .mchk::after,.mitem.sel-none .mchk::after{content:'';width:4px;height:7px;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg) translate(-1px,-1px);display:block}
+.mtxt{font-size:16px;color:var(--text)}
+.mitem.sel .mtxt{color:var(--blue)}
+.mitem.sel-none .mtxt{color:var(--green-dark);font-weight:600}
+
+/* Number */
+.nwrap{display:flex;align-items:center;gap:10px}
+.ninput{flex:1;height:50px;border:1.5px solid var(--border);border-radius:var(--r-btn);background:var(--bg);font-size:18px;color:var(--text);padding:0 14px;outline:none;font-family:inherit}
+.ninput:focus{border-color:var(--blue)}
+.nunit{font-size:14px;color:var(--sub);min-width:30px}
+.bpwrap{display:flex;align-items:center;gap:8px}
+.bpinput{width:0;flex:1;height:50px;border:1.5px solid var(--border);border-radius:var(--r-btn);background:var(--bg);font-size:17px;color:var(--text);padding:0 12px;outline:none;font-family:inherit}
+.bpinput:focus{border-color:var(--blue)}
+.bpsep{font-size:20px;color:var(--sub);flex-shrink:0}
+
+/* Likert */
+.litem{min-height:50px;background:var(--bg);border-radius:var(--r-btn);border:1.5px solid var(--border);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;margin-bottom:5px;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.litem.sel{background:var(--blue-light);border-color:var(--blue)}
+.ltxt{font-size:16px;color:var(--text)}
+.lscore{font-size:12px;font-weight:700;width:24px;height:24px;border-radius:50%;background:var(--card);color:var(--sub);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);flex-shrink:0}
+.litem.sel .lscore{background:var(--blue);color:#fff;border-color:var(--blue)}
+.litem.sel .ltxt{color:var(--blue)}
+
+/* PHQ reveal */
+.phq-reveal{display:none;margin-top:10px;padding:12px;background:rgba(24,95,165,.05);border-radius:var(--r-card);border:1px solid var(--blue-light)}
+.phq-reveal.show{display:block}
+.phq-rlbl{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:8px}
+.phq-qlbl{font-size:14px;font-weight:600;color:var(--sub);margin-bottom:6px;margin-top:10px}
+.phq-qlbl:first-of-type{margin-top:0}
+
+/* DASI */
+.dasi-item{background:var(--bg);border-radius:var(--r-btn);border:1.5px solid var(--border);padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .12s}
+.dasi-item.sel{background:var(--blue-light);border-color:var(--blue)}
+.dasi-lbl{font-size:15px;color:var(--text);flex:1;line-height:1.4}
+.dasi-item.sel .dasi-lbl{color:var(--blue)}
+.dasi-chk{font-size:16px;color:var(--blue);display:none}
+.dasi-item.sel .dasi-chk{display:block}
+
+/* Monthly section */
+.monthly-sec{display:none}
+.monthly-sec.show{display:block}
+.sec-divider{height:1px;background:var(--border);margin:8px 0 16px;opacity:.5}
+
+/* Submit bar */
+.submit-area{position:fixed;bottom:0;width:390px;padding:12px 16px 32px;background:var(--bg);border-top:1px solid var(--border);z-index:30}
+.btn-submit{width:100%;height:56px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-btn);font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.btn-submit:active{opacity:.85}
+.btn-submit:disabled{background:var(--border)}
+
+/* Success */
+.success-ov{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px;z-index:100;text-align:center}
+.success-ov.show{display:flex}
+.suc-icon{font-size:64px}
+.suc-title{font-size:22px;font-weight:700;color:var(--text)}
+.suc-sub{font-size:15px;color:var(--sub);line-height:1.65}
+.suc-card{background:var(--card);border-radius:var(--r-card);padding:14px;width:100%;text-align:left}
+.suc-card-ttl{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.suc-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:14px}
+.suc-row:last-child{border-bottom:none}
+.suc-rl{color:var(--sub)} .suc-rv{color:var(--text);font-weight:600}
+.btn-done{width:100%;height:52px;background:var(--blue);color:#fff;border:none;border-radius:var(--r-btn);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">●●● WiFi 🔋</div>
+  </div>
+  <div class="nav-bar">
+    <a href="home-index.html" class="nav-back">‹ 返回</a>
+    <span class="nav-title" id="navTitle">每周随访</span>
+  </div>
+
+  <div class="scroll" id="scrollArea">
+
+    <!-- Demo controls -->
+    <div class="demo-row">
+      <span class="demo-lbl">演示：</span>
+      <button class="dbtn active" id="dw" onclick="setType('weekly')">?type=weekly</button>
+      <button class="dbtn" id="dm" onclick="setType('monthly')">?type=monthly</button>
+    </div>
+
+    <!-- Header -->
+    <div class="fu-header">
+      <div class="fu-icon" id="fuIcon" style="background:var(--blue-light)">📋</div>
+      <div>
+        <div class="fu-type" id="fuType">每周随访</div>
+        <div class="fu-time" id="fuTime">⏱ 预计约 2 分钟</div>
+      </div>
+    </div>
+
+    <!-- ════ WEEKLY QUESTIONS ════ -->
+    <div class="grp-lbl">本周情况</div>
+
+    <!-- W1 运动次数 -->
+    <div class="qcard">
+      <div class="qmeta"><span class="qnum">1</span><span class="qmeta-label">必填</span></div>
+      <div class="qtxt">本周运动了几次？</div>
+      <div class="opts" id="w1">
+        <div class="oitem" onclick="ss(this,'w1')"><div class="oradio"></div><span class="otxt">0 次（这周没有运动）</span></div>
+        <div class="oitem" onclick="ss(this,'w1')"><div class="oradio"></div><span class="otxt">1 次</span></div>
+        <div class="oitem" onclick="ss(this,'w1')"><div class="oradio"></div><span class="otxt">2 次</span></div>
+        <div class="oitem" onclick="ss(this,'w1')"><div class="oradio"></div><span class="otxt">3 次</span></div>
+        <div class="oitem" onclick="ss(this,'w1')"><div class="oradio"></div><span class="otxt">4 次及以上</span></div>
+      </div>
+      <div class="qerr" id="e_w1">此项必填</div>
+    </div>
+
+    <!-- W2 不适症状 -->
+    <div class="qcard">
+      <div class="qmeta"><span class="qnum">2</span><span class="qmeta-label">必填 · 可多选</span></div>
+      <div class="qtxt">运动时或运动后，有没有出现不适？</div>
+      <div class="opts" id="w2">
+        <div class="mitem" onclick="sm(this,'w2','none')"><div class="mchk"></div><span class="mtxt" style="font-weight:600">没有不适</span></div>
+        <div class="mitem" onclick="sm(this,'w2','chest')"><div class="mchk"></div><span class="mtxt">胸痛 / 胸闷</span></div>
+        <div class="mitem" onclick="sm(this,'w2','palp')"><div class="mchk"></div><span class="mtxt">心慌 / 心悸</span></div>
+        <div class="mitem" onclick="sm(this,'w2','dizzy')"><div class="mchk"></div><span class="mtxt">头晕 / 头痛</span></div>
+        <div class="mitem" onclick="sm(this,'w2','breath')"><div class="mchk"></div><span class="mtxt">呼吸困难</span></div>
+      </div>
+      <div class="qerr" id="e_w2">此项必填</div>
+    </div>
+
+    <!-- W3 睡眠 -->
+    <div class="qcard">
+      <div class="qmeta"><span class="qnum">3</span><span class="qmeta-label">必填</span></div>
+      <div class="qtxt">这周睡眠整体怎么样？</div>
+      <div class="opts" id="w3">
+        <div class="oitem" onclick="ss(this,'w3')"><div class="oradio"></div><span class="otxt">😴 好</span></div>
+        <div class="oitem" onclick="ss(this,'w3')"><div class="oradio"></div><span class="otxt">😐 一般</span></div>
+        <div class="oitem" onclick="ss(this,'w3')"><div class="oradio"></div><span class="otxt">😞 很差</span></div>
+      </div>
+      <div class="qerr" id="e_w3">此项必填</div>
+    </div>
+
+    <!-- W4 情绪 + PHQ展开 -->
+    <div class="qcard">
+      <div class="qmeta"><span class="qnum">4</span><span class="qmeta-label">必填</span></div>
+      <div class="qtxt">这周情绪整体怎么样？</div>
+      <div class="opts" id="w4">
+        <div class="oitem" onclick="ss(this,'w4');chkPHQ()"><div class="oradio"></div><span class="otxt">🙂 还不错</span></div>
+        <div class="oitem" onclick="ss(this,'w4');chkPHQ()"><div class="oradio"></div><span class="otxt">😐 还可以</span></div>
+        <div class="oitem" onclick="ss(this,'w4');chkPHQ()"><div class="oradio"></div><span class="otxt">😔 比较低落</span></div>
+      </div>
+      <div class="qerr" id="e_w4">此项必填</div>
+
+      <!-- PHQ reveal -->
+      <div class="phq-reveal" id="phqReveal">
+        <div class="phq-rlbl">💙 再进一步了解你的情绪状态</div>
+        <div class="phq-qlbl">做事提不起劲或没有兴趣？</div>
+        <div id="phq1">
+          <div class="litem" onclick="sl(this,'phq1')"><span class="ltxt">完全没有</span><span class="lscore">0</span></div>
+          <div class="litem" onclick="sl(this,'phq1')"><span class="ltxt">有几天</span><span class="lscore">1</span></div>
+          <div class="litem" onclick="sl(this,'phq1')"><span class="ltxt">超过一半天数</span><span class="lscore">2</span></div>
+          <div class="litem" onclick="sl(this,'phq1')"><span class="ltxt">几乎每天</span><span class="lscore">3</span></div>
+        </div>
+        <div class="phq-qlbl">感到心情低落、沮丧或绝望？</div>
+        <div id="phq2">
+          <div class="litem" onclick="sl(this,'phq2')"><span class="ltxt">完全没有</span><span class="lscore">0</span></div>
+          <div class="litem" onclick="sl(this,'phq2')"><span class="ltxt">有几天</span><span class="lscore">1</span></div>
+          <div class="litem" onclick="sl(this,'phq2')"><span class="ltxt">超过一半天数</span><span class="lscore">2</span></div>
+          <div class="litem" onclick="sl(this,'phq2')"><span class="ltxt">几乎每天</span><span class="lscore">3</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- W5 便秘 -->
+    <div class="qcard">
+      <div class="qmeta"><span class="qnum">5</span><span class="qmeta-label">必填</span></div>
+      <div class="qtxt">这周有没有便秘的困扰？</div>
+      <div class="opts" id="w5">
+        <div class="oitem" onclick="ss(this,'w5')"><div class="oradio"></div><span class="otxt">没有</span></div>
+        <div class="oitem" onclick="ss(this,'w5')"><div class="oradio"></div><span class="otxt">偶尔有</span></div>
+        <div class="oitem" onclick="ss(this,'w5')"><div class="oradio"></div><span class="otxt">比较明显</span></div>
+      </div>
+      <div class="qerr" id="e_w5">此项必填</div>
+    </div>
+
+    <!-- BP (高血压) -->
+    <div class="qcard">
+      <div class="qmeta"><span class="qnum qnum-extra">+</span><span class="qmeta-label">合并高血压</span></div>
+      <div class="qtxt">本周自测血压大概是多少？</div>
+      <div class="qskip">可跳过 — 不记得可留空</div>
+      <div class="bpwrap">
+        <input class="bpinput" type="number" placeholder="收缩压" min="60" max="250">
+        <span class="bpsep">/</span>
+        <input class="bpinput" type="number" placeholder="舒张压" min="40" max="150">
+        <span class="nunit">mmHg</span>
+      </div>
+    </div>
+
+    <!-- Medication (高血脂) -->
+    <div class="qcard">
+      <div class="qmeta"><span class="qnum qnum-extra">+</span><span class="qmeta-label">合并高血脂</span></div>
+      <div class="qtxt">本周有没有漏服降脂药？</div>
+      <div class="opts" id="med">
+        <div class="oitem" onclick="ss(this,'med')"><div class="oradio"></div><span class="otxt">没有，按时服药</span></div>
+        <div class="oitem" onclick="ss(this,'med')"><div class="oradio"></div><span class="otxt">偶尔漏服</span></div>
+        <div class="oitem" onclick="ss(this,'med')"><div class="oradio"></div><span class="otxt">经常漏服</span></div>
+      </div>
+    </div>
+
+    <!-- ════ MONTHLY EXTRA ════ -->
+    <div class="monthly-sec" id="monthlySec">
+      <div class="sec-divider"></div>
+      <div class="grp-lbl">本月情况（月度额外）</div>
+
+      <!-- M1 体重 -->
+      <div class="qcard">
+        <div class="qmeta"><span class="qnum">6</span><span class="qbadge-monthly">月度</span></div>
+        <div class="qtxt">本月体重大约是多少？</div>
+        <div class="qskip">可跳过</div>
+        <div class="nwrap"><input class="ninput" type="number" placeholder="如：71.5" min="30" max="200"><span class="nunit">kg</span></div>
+      </div>
+
+      <!-- M2 腰围 -->
+      <div class="qcard">
+        <div class="qmeta"><span class="qnum">7</span><span class="qbadge-monthly">月度</span></div>
+        <div class="qtxt">本月腰围大约是多少？</div>
+        <div class="qskip">可跳过</div>
+        <div class="nwrap"><input class="ninput" type="number" placeholder="如：88" min="40" max="200"><span class="nunit">cm</span></div>
+      </div>
+
+      <!-- M3 新症状 -->
+      <div class="qcard">
+        <div class="qmeta"><span class="qnum">8</span><span class="qbadge-monthly">月度</span><span class="qmeta-label">必填</span></div>
+        <div class="qtxt">本月有没有新的身体症状，或者去医院复诊？</div>
+        <div class="opts" id="m3">
+          <div class="oitem" onclick="ss(this,'m3')"><div class="oradio"></div><span class="otxt">没有，一切正常</span></div>
+          <div class="oitem" onclick="ss(this,'m3')"><div class="oradio"></div><span class="otxt">有新症状，但还没就医</span></div>
+          <div class="oitem" onclick="ss(this,'m3')"><div class="oradio"></div><span class="otxt">已经就医 / 复诊</span></div>
+        </div>
+        <div class="qerr" id="e_m3">此项必填</div>
+      </div>
+
+      <!-- M4 DASI -->
+      <div class="qcard">
+        <div class="qmeta"><span class="qnum">9</span><span class="qbadge-monthly">月度</span><span class="qmeta-label">DASI 活动自评 · 必填</span></div>
+        <div class="qtxt">以下活动，你目前能轻松完成到哪一项？（选最高难度）</div>
+        <div style="display:flex;flex-direction:column;gap:0;margin-top:6px" id="dasiList">
+          <div class="dasi-item" onclick="selDASI(this,1)"><span class="dasi-lbl">自己照顾日常起居（洗漱、穿衣）</span><span class="dasi-chk">✓</span></div>
+          <div class="dasi-item" onclick="selDASI(this,2)"><span class="dasi-lbl">在家做轻家务（扫地、擦桌子）</span><span class="dasi-chk">✓</span></div>
+          <div class="dasi-item" onclick="selDASI(this,3)"><span class="dasi-lbl">以正常速度在平地步行 1–2 条街</span><span class="dasi-chk">✓</span></div>
+          <div class="dasi-item" onclick="selDASI(this,4)"><span class="dasi-lbl">上一层楼梯不需要停歇</span><span class="dasi-chk">✓</span></div>
+          <div class="dasi-item" onclick="selDASI(this,5)"><span class="dasi-lbl">骑自行车或快速步行（爬缓坡）</span><span class="dasi-chk">✓</span></div>
+          <div class="dasi-item" onclick="selDASI(this,6)"><span class="dasi-lbl">慢跑 / 游泳 / 参加集体运动</span><span class="dasi-chk">✓</span></div>
+        </div>
+        <div class="qerr" id="e_m4">此项必填</div>
+      </div>
+
+      <!-- M5 椅子站立 -->
+      <div class="qcard">
+        <div class="qmeta"><span class="qnum">10</span><span class="qbadge-monthly">月度</span></div>
+        <div class="qtxt">椅子站立测试：30 秒内能站起来几次？</div>
+        <div class="qskip">可跳过 — 从有靠背椅子起立，30 秒内次数</div>
+        <div class="nwrap"><input class="ninput" type="number" id="m5in" placeholder="如：12" min="0" max="50"><span class="nunit">次</span></div>
+      </div>
+
+      <!-- Doctor contact (中危) -->
+      <div class="qcard">
+        <div class="qmeta"><span class="qnum qnum-extra">+</span><span class="qmeta-label">中危用户额外题</span></div>
+        <div class="qtxt">本月有没有联系或复诊主治医生？</div>
+        <div class="opts" id="dr">
+          <div class="oitem" onclick="ss(this,'dr')"><div class="oradio"></div><span class="otxt">是，已复诊 / 联系过</span></div>
+          <div class="oitem" onclick="ss(this,'dr')"><div class="oradio"></div><span class="otxt">否，没有</span></div>
+          <div class="oitem" onclick="ss(this,'dr')"><div class="oradio"></div><span class="otxt">已经计划好了</span></div>
+        </div>
+      </div>
+    </div><!-- monthly -->
+
+  </div><!-- scroll -->
+
+  <!-- Submit -->
+  <div class="submit-area">
+    <button class="btn-submit" id="subBtn" onclick="doSubmit()">提交随访</button>
+  </div>
+
+  <!-- Success overlay -->
+  <div class="success-ov" id="sucOv">
+    <div class="suc-icon">🎉</div>
+    <div class="suc-title">随访已完成！</div>
+    <div class="suc-sub">感谢认真填写。记录已保存，继续保持良好的康复状态！</div>
+    <div class="suc-card" id="sucCard"></div>
+    <button class="btn-done" onclick="window.location.href='home-index.html'">返回首页</button>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════ STATE ═══════════ */
+let fType='weekly';
+const ans={};
+const msel={};
+
+/* ═══════════ SINGLE SELECT ═══════════ */
+function ss(el,key){
+  el.closest('.opts').querySelectorAll('.oitem').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  ans[key]=el.querySelector('.otxt').textContent.trim();
+  const e=document.getElementById('e_'+key);
+  if(e)e.classList.remove('show');
+}
+
+/* ═══════════ MULTI SELECT ═══════════ */
+function sm(el,key,val){
+  if(!msel[key])msel[key]=[];
+  const opts=el.closest('.opts');
+  if(val==='none'){
+    opts.querySelectorAll('.mitem').forEach(o=>o.classList.remove('sel','sel-none'));
+    const was=el.classList.contains('sel-none');
+    msel[key]=was?[]:['none'];
+    if(!was)el.classList.add('sel-none');
+  } else {
+    opts.querySelectorAll('.mitem').forEach(o=>{if(o.querySelector('.mtxt').textContent.includes('没有不适'))o.classList.remove('sel-none');});
+    msel[key]=msel[key].filter(v=>v!=='none');
+    if(el.classList.contains('sel')){el.classList.remove('sel');msel[key]=msel[key].filter(v=>v!==val);}
+    else{el.classList.add('sel');msel[key].push(val);}
+  }
+  const e=document.getElementById('e_'+key);
+  if(e&&msel[key].length>0)e.classList.remove('show');
+}
+
+/* ═══════════ LIKERT ═══════════ */
+function sl(el,key){
+  const container=document.getElementById(key);
+  container.querySelectorAll('.litem').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  ans[key]=parseInt(el.querySelector('.lscore').textContent);
+}
+
+/* ═══════════ DASI ═══════════ */
+function selDASI(el,val){
+  document.querySelectorAll('.dasi-item').forEach((c,i)=>c.classList.toggle('sel',i<val));
+  ans['dasi']=val;
+  const e=document.getElementById('e_m4');
+  if(e)e.classList.remove('show');
+}
+
+/* ═══════════ PHQ REVEAL ═══════════ */
+function chkPHQ(){
+  const sel=document.querySelector('#w4 .oitem.sel');
+  if(!sel)return;
+  const show=sel.querySelector('.otxt').textContent.includes('低落')||(fType==='monthly');
+  document.getElementById('phqReveal').classList.toggle('show',show);
+}
+
+/* ═══════════ TYPE SWITCH ═══════════ */
+function setType(t){
+  fType=t;
+  const isM=(t==='monthly');
+  document.getElementById('dw').classList.toggle('active',!isM);
+  document.getElementById('dm').classList.toggle('active',isM);
+  document.getElementById('navTitle').textContent =isM?'每月随访':'每周随访';
+  document.getElementById('fuType').textContent   =isM?'每月完整随访':'每周随访';
+  document.getElementById('fuTime').textContent   =isM?'⏱ 预计约 5 分钟':'⏱ 预计约 2 分钟';
+  document.getElementById('fuIcon').style.background=isM?'var(--orange-light)':'var(--blue-light)';
+  document.getElementById('fuIcon').textContent   =isM?'📊':'📋';
+  document.getElementById('monthlySec').classList.toggle('show',isM);
+  // monthly also triggers PHQ expansion
+  if(isM)document.getElementById('phqReveal').classList.add('show');
+  else{const s=document.querySelector('#w4 .oitem.sel');if(!s||!s.querySelector('.otxt').textContent.includes('低落'))document.getElementById('phqReveal').classList.remove('show');}
+}
+
+/* ═══════════ VALIDATION ═══════════ */
+function validate(){
+  let ok=true;
+  ['w1','w3','w4','w5'].forEach(k=>{if(!ans[k]){document.getElementById('e_'+k).classList.add('show');ok=false;}});
+  if(!msel['w2']||!msel['w2'].length){document.getElementById('e_w2').classList.add('show');ok=false;}
+  if(fType==='monthly'){
+    if(!ans['m3']){document.getElementById('e_m3').classList.add('show');ok=false;}
+    if(!ans['dasi']){document.getElementById('e_m4').classList.add('show');ok=false;}
+  }
+  return ok;
+}
+
+/* ═══════════ SUBMIT ═══════════ */
+function doSubmit(){
+  if(!validate()){
+    const fe=document.querySelector('.qerr.show');
+    if(fe)fe.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  const btn=document.getElementById('subBtn');
+  btn.disabled=true; btn.textContent='提交中…';
+  setTimeout(()=>showSuccess(),600);
+}
+
+function showSuccess(){
+  const rows=[
+    {l:'随访类型', v:fType==='monthly'?'每月完整随访':'每周随访'},
+    {l:'本周运动', v:ans['w1']||'—'},
+    {l:'睡眠状况', v:ans['w3']||'—'},
+    {l:'情绪状态', v:ans['w4']||'—'},
+    {l:'运动不适', v:(msel['w2']||[]).includes('none')?'没有不适':'已记录不适症状'},
+  ];
+  if(fType==='monthly'&&ans['dasi']){
+    const dl=['','自我照料','轻家务','平地步行','上楼梯','骑车/快走','慢跑/游泳'];
+    rows.push({l:'活动能力', v:'最高达到：'+dl[ans['dasi']]});
+  }
+  let h='<div class="suc-card-ttl">本次随访摘要</div>';
+  rows.forEach(r=>h+=`<div class="suc-row"><span class="suc-rl">${r.l}</span><span class="suc-rv">${r.v}</span></div>`);
+  document.getElementById('sucCard').innerHTML=h;
+  document.getElementById('sucOv').classList.add('show');
+}
+
+/* ═══════════ INIT ═══════════ */
+const p=new URLSearchParams(window.location.search);
+setType(p.get('type')==='monthly'?'monthly':'weekly');
+</script>
+</body>
+</html>

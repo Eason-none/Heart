@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 差状态日（中危）</title>
+<style>
+:root {
+  --bg:#F7F5F1; --card:#F0EDE8; --text:#2C2A26; --sub:#888780;
+  --blue:#185FA5; --blue-light:#E6F1FB;
+  --orange:#BA7517; --orange-light:#FAEEDA;
+  --red:#A32D2D; --red-light:#FCEBEB;
+  --green:#1D9E75; --green-light:#D4F2E7; --green-dark:#085041;
+  --border:#C8C5BE;
+  --r-card:12px; --r-btn:8px; --r-pill:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#E8E4DE;font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif;min-height:100vh;}
+.outer{display:flex;flex-direction:column;align-items:center;padding:16px 16px 40px;gap:12px;}
+.flow-nav{width:390px;background:white;border-radius:12px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.flow-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.badge{padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;}
+.badge-orange{background:var(--orange-light);color:var(--orange);}
+.flow-steps{display:flex;gap:4px;flex-wrap:wrap;}
+.flow-step{font-size:10px;padding:3px 8px;border-radius:8px;border:1.5px solid var(--border);color:var(--sub);cursor:pointer;white-space:nowrap;transition:all .15s;}
+.flow-step.active{background:var(--orange);border-color:var(--orange);color:white;font-weight:700;}
+.flow-step.done{background:var(--green-light);border-color:var(--green);color:var(--green-dark);}
+.context-bar{width:390px;background:var(--orange-light);border-radius:10px;padding:10px 14px;border-left:3px solid var(--orange);font-size:13px;color:var(--orange);line-height:1.5;}
+.phone{width:390px;min-height:680px;background:var(--bg);border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);display:flex;flex-direction:column;}
+.status-bar{height:44px;background:var(--bg);display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex-shrink:0;}
+.status-time{font-size:15px;font-weight:600;color:var(--text);}
+.status-icons{font-size:12px;color:var(--text);}
+.page-header{height:48px;background:var(--bg);display:flex;align-items:center;padding:0 16px;justify-content:space-between;flex-shrink:0;border-bottom:1px solid var(--border);}
+.page-title{font-size:18px;font-weight:700;color:var(--text);}
+.scroll-area{flex:1;overflow-y:auto;padding:16px 16px 100px;}
+.panel{display:none;} .panel.active{display:block;}
+.tab-bar{height:68px;background:var(--bg);border-top:1px solid var(--border);display:flex;align-items:flex-start;padding-top:8px;flex-shrink:0;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;}
+.tab-icon{font-size:22px;line-height:1;}
+.tab-label{font-size:10px;color:var(--sub);font-weight:500;}
+.tab-item.active .tab-label{color:var(--blue);font-weight:700;}
+.card{background:var(--card);border-radius:var(--r-card);padding:16px;margin-bottom:12px;}
+.section-label{font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:var(--r-pill);}
+.pill-green{background:var(--green-light);color:var(--green-dark);}
+.pill-blue{background:var(--blue-light);color:var(--blue);}
+.pill-orange{background:var(--orange-light);color:var(--orange);}
+.btn-full{display:flex;align-items:center;justify-content:center;width:100%;border:none;border-radius:var(--r-btn);font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+.btn-full:active{opacity:.82;}
+.btn-blue{height:56px;background:var(--blue);color:white;}
+.btn-green{height:56px;background:var(--green);color:white;}
+.btn-secondary{height:48px;background:var(--card);color:var(--text);border:1.5px solid var(--border);}
+.step-indicator{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+.step-dot{width:8px;height:8px;border-radius:50%;background:var(--border);}
+.step-dot.active,.step-dot.done{background:var(--blue);}
+.rating-opt{border-radius:var(--r-btn);border:2px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;cursor:pointer;background:var(--bg);transition:all .12s;}
+.rating-opt.selected-bad{border-color:var(--orange);background:var(--orange-light);}
+.rating-lbl{font-size:16px;font-weight:600;color:var(--text);}
+.rating-sub-text{font-size:13px;color:var(--sub);margin-top:2px;}
+.rating-emoji{font-size:24px;}
+.rx-bad-state{border-radius:var(--r-card);overflow:hidden;margin-bottom:12px;border:2px solid var(--orange);}
+.rx-bad-header{background:var(--orange);padding:14px 16px;}
+.rx-bad-title{font-size:16px;font-weight:700;color:white;display:flex;align-items:center;gap:8px;}
+.rx-bad-sub{font-size:12px;color:rgba(255,255,255,.85);margin-top:3px;}
+.rx-block{background:var(--bg);padding:0 16px;}
+.rx-block-header{padding:14px 0 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.rx-block-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.rx-block-title{font-size:15px;font-weight:700;color:var(--text);}
+.rx-block-dur{font-size:13px;color:var(--sub);margin-top:1px;}
+.rx-instruction{padding:12px 0 14px;}
+.rx-instruction-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.rx-instruction-row:last-child{margin-bottom:0;}
+.rx-num{width:20px;height:20px;border-radius:50%;background:var(--blue-light);color:var(--blue);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.rx-instruction-text{font-size:14px;color:var(--text);line-height:1.6;}
+.rx-instruction-text strong{color:var(--blue);}
+.breathing-demo{background:var(--blue-light);border-radius:var(--r-btn);padding:14px 16px;margin-bottom:12px;}
+.breathing-cycle{display:flex;align-items:center;gap:0;margin-bottom:10px;}
+.breath-phase{flex:1;padding:12px 10px;text-align:center;border-radius:var(--r-btn);}
+.breath-in{background:var(--blue);color:white;}
+.breath-out{background:white;color:var(--blue);border:1.5px solid var(--blue);}
+.breath-label{font-size:13px;font-weight:700;}
+.breath-dur{font-size:22px;font-weight:700;margin:4px 0;}
+.breath-desc{font-size:11px;opacity:.85;}
+.breath-arrow{font-size:20px;color:var(--blue);padding:0 6px;flex-shrink:0;}
+.posture-note{font-size:13px;color:var(--blue);text-align:center;line-height:1.5;}
+.record-note{background:var(--card);border-radius:var(--r-btn);padding:10px 14px;font-size:13px;color:var(--sub);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.choice-card{background:var(--bg);border-radius:var(--r-btn);border:1.5px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:10px;transition:all .12s;}
+.choice-card.selected{background:var(--orange-light);border-color:var(--orange);}
+.choice-card-icon{width:40px;height:40px;border-radius:10px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.choice-card-body{flex:1;}
+.choice-card-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.choice-card.selected .choice-card-title{color:var(--orange);}
+.choice-card-desc{font-size:13px;color:var(--sub);line-height:1.4;}
+.badge-rec{font-size:11px;font-weight:700;background:var(--orange);color:white;padding:2px 8px;border-radius:var(--r-pill);flex-shrink:0;}
+.rpe-opt{border-radius:var(--r-btn);border:1.5px solid var(--border);background:var(--card);padding:0 16px;min-height:60px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:8px;transition:all .12s;}
+.rpe-opt.target{border:2px solid var(--green);background:var(--green-light);}
+.rpe-opt.selected-rpe{border:2px solid var(--blue);background:var(--blue-light);}
+.rpe-name{font-size:16px;font-weight:600;color:var(--text);}
+.rpe-hint{font-size:13px;color:var(--sub);margin-top:2px;}
+.sum-hero{background:var(--green-light);border-radius:var(--r-card);padding:20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;}
+.sum-icon{font-size:44px;flex-shrink:0;}
+.sum-hero-title{font-size:20px;font-weight:700;color:var(--green-dark);margin-bottom:4px;}
+.sum-hero-sub{font-size:14px;color:var(--green-dark);opacity:.75;}
+.stats-row{display:flex;gap:10px;margin-bottom:12px;}
+.stat-cell{flex:1;background:var(--card);border-radius:var(--r-card);padding:14px 12px;text-align:center;}
+.stat-val{font-size:20px;font-weight:700;color:var(--text);}
+.stat-lbl{font-size:12px;color:var(--sub);margin-top:3px;}
+.ai-block{background:white;border-radius:var(--r-card);border:1px solid var(--border);padding:16px;margin-bottom:12px;}
+.ai-header{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.ai-text{font-size:15px;color:var(--text);line-height:1.7;}
+.flow-footer{width:390px;background:white;border-radius:12px;padding:10px 14px;box-shadow:0 1px 4px rgba(0,0,0,.1);display:flex;justify-content:space-between;align-items:center;}
+.flow-footer span{font-size:13px;color:var(--sub);}
+.nav-btn{font-size:14px;font-weight:600;padding:8px 18px;border-radius:var(--r-btn);border:none;cursor:pointer;font-family:inherit;}
+.nav-prev{background:var(--card);color:var(--text);}
+.nav-next{background:var(--orange);color:white;}
+.nav-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ── 抗阻训练专用样式 ── */
+.rt-progress{display:flex;gap:6px;margin-bottom:20px;}
+.rt-seg{flex:1;height:5px;border-radius:3px;background:var(--border);transition:background .3s;}
+.rt-seg.rt-done{background:var(--green);}
+.rt-seg.rt-active{background:var(--blue);}
+
+.rt-ex-card{background:var(--card);border-radius:var(--r-card);padding:18px;margin-bottom:12px;}
+.rt-ex-num{font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;}
+.rt-ex-name{font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;}
+.rt-ex-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.rt-tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:var(--r-pill);background:var(--blue-light);color:var(--blue);}
+.rt-tag-green{background:var(--green-light);color:var(--green-dark);}
+
+.rt-desc{background:var(--bg);border-radius:var(--r-btn);padding:12px 14px;margin-bottom:10px;}
+.rt-desc-label{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+.rt-desc-text{font-size:14px;color:var(--text);line-height:1.7;}
+
+.rt-breath{background:var(--blue-light);border-radius:var(--r-btn);padding:10px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px;}
+.rt-breath-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
+.rt-breath-text{font-size:13px;color:var(--blue);line-height:1.5;}
+
+.rt-cabg-warn{background:var(--orange-light);border-radius:var(--r-btn);padding:10px 14px;margin-bottom:10px;font-size:13px;color:var(--orange);line-height:1.5;display:none;}
+
+.rt-search{border-radius:var(--r-btn);border:1.5px dashed var(--border);padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);cursor:default;}
+.rt-search-icon{font-size:15px;}
+
+.rt-set-tracker{background:white;border-radius:var(--r-card);border:1.5px solid var(--border);padding:14px 16px;margin-bottom:12px;}
+.rt-set-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.rt-set-label{font-size:15px;font-weight:700;color:var(--text);}
+.rt-set-dots{display:flex;gap:6px;}
+.rt-set-dot{width:10px;height:10px;border-radius:50%;background:var(--border);}
+.rt-set-dot.done{background:var(--green);}
+.rt-set-dot.active{background:var(--blue);box-shadow:0 0 0 3px var(--blue-light);}
+.rt-reps{font-size:14px;color:var(--sub);}
+.rt-rir{font-size:12px;color:var(--green-dark);background:var(--green-light);border-radius:var(--r-pill);padding:3px 10px;display:inline-block;margin-top:4px;}
+
+.rt-rest-card{background:var(--card);border-radius:var(--r-card);padding:20px 16px;margin-bottom:12px;text-align:center;}
+.rt-rest-title{font-size:14px;font-weight:600;color:var(--green-dark);margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:6px;}
+.rt-rest-sub{font-size:12px;color:var(--sub);margin-bottom:20px;}
+.rt-countdown-wrap{width:120px;height:120px;border-radius:50%;border:5px solid var(--blue-light);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;background:white;box-shadow:0 2px 12px rgba(24,95,165,.1);}
+.rt-countdown-num{font-size:56px;font-weight:700;color:var(--blue);line-height:1;}
+.rt-rest-tip{font-size:13px;color:var(--sub);line-height:1.6;margin-bottom:20px;}
+.rt-done-card{background:var(--green-light);border-radius:var(--r-card);padding:20px;text-align:center;}
+.rt-done-icon{font-size:44px;margin-bottom:8px;}
+.rt-done-title{font-size:18px;font-weight:700;color:var(--green-dark);margin-bottom:4px;}
+.rt-done-sub{font-size:13px;color:var(--green-dark);opacity:.75;}
+</style>
+</head>
+<body>
+<div class="outer">
+
+  <div class="flow-nav">
+    <div class="flow-title">🌡️ 差状态日流程（中危用户） <span class="badge badge-orange">Branch</span></div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:8px;">岔出点：主线 ⑩ Check-in 状态评估 → 睡眠很差<em>或</em>精力很累（中危/低危统一适用）。<strong>本演示展示「抗阻训练」路径</strong>，③④步骤可通过流程导航独立查看。</div>
+    <div class="flow-steps">
+      <div class="flow-step active" id="fs-0" onclick="goToStep(0)">① 状态触发</div>
+      <div class="flow-step" id="fs-1" onclick="goToStep(1)">② 差状态处方</div>
+      <div class="flow-step" id="fs-2" onclick="goToStep(2)">③ 抗阻训练 ★</div>
+      <div class="flow-step" id="fs-3" onclick="goToStep(3)">④ 柔韧训练</div>
+      <div class="flow-step" id="fs-4" onclick="goToStep(4)">⑤ PLDB 呼吸</div>
+      <div class="flow-step" id="fs-5" onclick="goToStep(5)">⑥ 反馈记录</div>
+      <div class="flow-step" id="fs-6" onclick="goToStep(6)">⑦ 训练摘要</div>
+    </div>
+  </div>
+
+  <div class="context-bar">
+    <strong>背景：</strong>用户睡眠很差或精力很累（任一触发）。系统不自动分配，用户从四个方案中自选：下调强度有氧 / 抗阻训练 / 柔韧训练 / 缩唇膈肌呼吸。<br><strong>留力法原则：</strong>差状态日抗阻目标 Borg ≤ 12——完成后应感觉还能再做 6+ 次。
+  </div>
+
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <span class="status-icons">●●● WiFi 🔋</span>
+    </div>
+
+    <div class="scroll-area" id="scrollArea">
+
+      <!-- ① 状态评估触发 -->
+      <div class="panel active" id="step-0">
+        <div class="page-header" style="position:sticky;top:0;z-index:10;margin:-16px -16px 16px;padding:0 16px;">
+          <span class="page-title">运动</span>
+        </div>
+        <div class="step-indicator">
+          <div class="step-dot done"></div>
+          <div class="step-dot active"></div>
+          <span class="step-lbl">步骤 2 / 2 · 今日状态</span>
+        </div>
+        <div class="card">
+          <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px;">今天的状态怎么样？</div>
+          <div class="section-label" style="margin-bottom:8px;">昨晚睡眠</div>
+          <div style="margin-bottom:14px;">
+            <div class="rating-opt"><div><div class="rating-lbl">好</div></div><div class="rating-emoji">😴</div></div>
+            <div class="rating-opt"><div><div class="rating-lbl">一般</div></div><div class="rating-emoji">😐</div></div>
+            <div class="rating-opt selected-bad"><div><div class="rating-lbl" style="color:var(--orange);">很差</div><div class="rating-sub-text" style="color:var(--orange);">没睡好，感觉疲惫</div></div><div class="rating-emoji">😞</div></div>
+          </div>
+          <div class="section-label" style="margin-bottom:8px;">今日精力</div>
+          <div style="margin-bottom:14px;">
+            <div class="rating-opt"><div><div class="rating-lbl">精力好</div></div><div class="rating-emoji">💪</div></div>
+            <div class="rating-opt"><div><div class="rating-lbl">还可以</div></div><div class="rating-emoji">🙂</div></div>
+            <div class="rating-opt"><div><div class="rating-lbl">比较累</div></div><div class="rating-emoji">😪</div></div>
+            <div class="rating-opt selected-bad"><div><div class="rating-lbl" style="color:var(--orange);">很累</div><div class="rating-sub-text" style="color:var(--orange);">明显疲劳，建议休息</div></div><div class="rating-emoji">😩</div></div>
+          </div>
+          <div style="background:var(--orange-light);border-radius:var(--r-btn);padding:10px 14px;font-size:13px;color:var(--orange);margin-bottom:14px;line-height:1.6;">
+            ⚠️ 今日状态不在最佳，可以选择调整运动方案。
+          </div>
+          <button class="btn-full" style="height:56px;background:var(--orange);color:white;border:none;border-radius:var(--r-btn);font-size:17px;font-weight:600;cursor:pointer;" onclick="goToStep(1)">
+            查看今日舒缓训练方案 →
+          </button>
+        </div>
+      </div>
+
+      <!-- ② 差状态处方 — 选择方案 -->
+      <div class="panel" id="step-1">
+        <div class="page-header" style="position:sticky;top:0;z-index:10;margin:-16px -16px 16px;padding:0 16px;">
+          <span class="page-title">运动</span>
+        </div>
+        <div style="background:var(--orange-light);border-radius:var(--r-card);padding:14px 16px;margin-bottom:16px;border-left:4px solid var(--orange);">
+          <div style="font-size:15px;font-weight:700;color:var(--orange);margin-bottom:4px;">今日状态不佳，选一个方案</div>
+          <div style="font-size:13px;color:var(--orange);opacity:.9;line-height:1.5;">选择适合今天的运动方式，明天有氧训练照常进行。</div>
+        </div>
+        <div class="section-label" style="margin-bottom:12px;">今日方案</div>
+        <div class="choice-card" id="opt-aerobic" onclick="selectPlan('aerobic')">
+          <div class="choice-card-icon">🚶</div>
+          <div class="choice-card-body">
+            <div class="choice-card-title">下调强度，继续有氧</div>
+            <div class="choice-card-desc">步行 20 分钟，RPE 降至「轻松」档</div>
+          </div>
+        </div>
+        <div class="choice-card selected" id="opt-resistance" onclick="selectPlan('resistance')">
+          <div class="choice-card-icon">💪</div>
+          <div class="choice-card-body">
+            <div class="choice-card-title">抗阻训练</div>
+            <div class="choice-card-desc">椅子站立 · 墙壁俯卧撑 · 小腿提踵 · 留力法低强度</div>
+          </div>
+        </div>
+        <div class="choice-card" id="opt-flex" onclick="selectPlan('flex')">
+          <div class="choice-card-icon">🤸</div>
+          <div class="choice-card-body">
+            <div class="choice-card-title">柔韧训练</div>
+            <div class="choice-card-desc">主要肌群静态拉伸，10–15 分钟</div>
+          </div>
+          <span class="badge-rec">推荐</span>
+        </div>
+        <div class="choice-card" id="opt-breath" onclick="selectPlan('breath')">
+          <div class="choice-card-icon">💨</div>
+          <div class="choice-card-body">
+            <div class="choice-card-title">缩唇膈肌呼吸（PLDB）</div>
+            <div class="choice-card-desc">10 分钟，可搭配柔韧训练</div>
+          </div>
+        </div>
+        <div class="record-note">📝 本次记录为舒缓训练，不计入有氧打卡次数</div>
+        <button class="btn-full btn-blue" onclick="startTraining()" style="margin-bottom:8px;">开始训练 →</button>
+        <button class="btn-full btn-secondary" onclick="goToStep(0)" style="margin-bottom:24px;">返回，我想今天休息</button>
+      </div>
+
+      <!-- ③ 抗阻训练（新增，留力法 + 组间倒计时 + 一次一个动作） -->
+      <div class="panel" id="step-2">
+        <div class="page-header" style="position:sticky;top:0;z-index:10;margin:-16px -16px 16px;padding:0 16px;">
+          <span class="page-title">抗阻训练</span>
+          <span style="font-size:13px;color:var(--sub);" id="rt-time-est">约 20 分钟</span>
+        </div>
+
+        <!-- 动作进度条 -->
+        <div class="rt-progress">
+          <div class="rt-seg rt-active" id="rt-seg-0"></div>
+          <div class="rt-seg" id="rt-seg-1"></div>
+          <div class="rt-seg" id="rt-seg-2"></div>
+        </div>
+
+        <!-- 训练执行视图 -->
+        <div id="rt-exercise-view">
+          <div class="rt-ex-card">
+            <div class="rt-ex-num" id="rt-ex-counter">第 1 个动作 / 共 3 个</div>
+            <div class="rt-ex-name" id="rt-ex-name">椅子站立</div>
+            <div class="rt-ex-tags" id="rt-ex-tags">
+              <span class="rt-tag rt-tag-green" id="rt-ex-target">大腿前侧 · 臀部</span>
+              <span class="rt-tag" id="rt-ex-sets-tag">2 组</span>
+              <span class="rt-tag" id="rt-ex-reps-tag">每组 10 次</span>
+            </div>
+            <div class="rt-desc" id="rt-desc-block">
+              <div class="rt-desc-label">姿势要点</div>
+              <div class="rt-desc-text" id="rt-ex-desc">坐在椅子前沿，双脚平放于地面（与肩同宽）。双臂交叉于胸前或自然下垂。缓慢站起至完全直立，再缓慢坐回，控制在 2–3 秒，不借助冲劲。</div>
+            </div>
+            <div class="rt-breath">
+              <span class="rt-breath-icon">💨</span>
+              <span class="rt-breath-text" id="rt-ex-breath">站起时呼气，坐下时吸气，全程不要屏气。</span>
+            </div>
+            <div class="rt-cabg-warn" id="rt-cabg-warn">
+              ⚠️ CABG 术后 3 个月内：请跳过此动作，点击下方「跳过此动作」直接进入下一个。
+            </div>
+            <div class="rt-search" id="rt-search-hint">
+              <span class="rt-search-icon">🔍</span>
+              <span id="rt-search-text">建议搜索「椅子站立 居家训练」跟练视频</span>
+            </div>
+          </div>
+
+          <div class="rt-set-tracker">
+            <div class="rt-set-row">
+              <div>
+                <div class="rt-set-label" id="rt-set-counter">第 1 组 / 共 2 组</div>
+                <div class="rt-reps" id="rt-set-reps">目标 10 次</div>
+              </div>
+              <div class="rt-set-dots" id="rt-set-dots">
+                <div class="rt-set-dot active" id="rt-dot-0"></div>
+                <div class="rt-set-dot" id="rt-dot-1"></div>
+              </div>
+            </div>
+            <div class="rt-rir" id="rt-rir-text">🎯 留力目标：完成后应感觉还能再做 6+ 次（Borg ≤ 12）</div>
+          </div>
+
+          <div style="margin-bottom:8px;" id="rt-cabg-skip-wrap" style="display:none;">
+            <button class="btn-full btn-secondary" style="height:44px;font-size:14px;margin-bottom:8px;" onclick="rtSkipExercise()" id="rt-cabg-skip-btn">跳过此动作（CABG 术后）</button>
+          </div>
+          <button class="btn-full btn-blue" style="margin-bottom:24px;" onclick="rtCompleteSet()">完成这一组 →</button>
+        </div>
+
+        <!-- 组间休息视图 -->
+        <div id="rt-rest-view" style="display:none;">
+          <div class="rt-rest-card">
+            <div class="rt-rest-title" id="rt-rest-setdone">✅ 第 1 组完成</div>
+            <div class="rt-rest-sub">组间休息</div>
+            <div class="rt-countdown-wrap">
+              <div class="rt-countdown-num" id="rt-countdown-num">60</div>
+            </div>
+            <div class="rt-rest-tip">轻松活动双腿，保持呼吸均匀。<br>不要突然坐下不动，小幅走动即可。</div>
+            <button class="btn-full btn-secondary" style="height:44px;font-size:14px;" onclick="rtSkipRest()">跳过休息，继续训练</button>
+          </div>
+        </div>
+
+        <!-- 全部完成视图 -->
+        <div id="rt-done-view" style="display:none;">
+          <div class="rt-done-card">
+            <div class="rt-done-icon">💪</div>
+            <div class="rt-done-title">抗阻训练完成！</div>
+            <div class="rt-done-sub">3 个动作 · 共 6 组 · 约 20 分钟</div>
+          </div>
+          <div style="background:var(--blue-light);border-radius:var(--r-btn);padding:12px 14px;margin:12px 0;font-size:13px;color:var(--blue);line-height:1.6;">
+            💡 留力法小结：差状态日控制在 Borg ≤ 12，有助于在身体不佳时仍保持肌肉刺激，同时避免加重疲劳。
+          </div>
+          <button class="btn-full btn-green" style="margin-bottom:24px;" onclick="goToStep(5)">记录本次训练感受 →</button>
+        </div>
+      </div>
+
+      <!-- ④ 柔韧训练 -->
+      <div class="panel" id="step-3">
+        <div class="page-header" style="position:sticky;top:0;z-index:10;margin:-16px -16px 16px;padding:0 16px;">
+          <span class="page-title">柔韧训练</span>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:16px;">
+          <div style="flex:1;height:6px;border-radius:3px;background:var(--green);"></div>
+          <div style="flex:1;height:6px;border-radius:3px;background:var(--border);"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:20px;">
+          <span style="flex:1;text-align:center;color:var(--green);font-weight:600;">🤸 柔韧训练</span>
+          <span style="flex:1;text-align:center;">💨 呼吸训练</span>
+        </div>
+        <div class="card">
+          <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px;">主要肌群静态拉伸</div>
+          <div style="font-size:13px;color:var(--sub);margin-bottom:16px;">每个动作 10–30 秒 × 4 次，CABG 术后 8–10 周内跳过上肢动作</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="background:var(--bg);border-radius:var(--r-btn);padding:14px 16px;border:1.5px solid var(--border);">
+              <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">① 颈部侧屈拉伸</div>
+              <div style="font-size:13px;color:var(--sub);line-height:1.5;">坐位，头缓慢向一侧倾斜，感受颈部侧面拉伸。保持 15 秒，换侧重复。注意不要屏气。</div>
+            </div>
+            <div style="background:var(--bg);border-radius:var(--r-btn);padding:14px 16px;border:1.5px solid var(--border);">
+              <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">② 胸部伸展</div>
+              <div style="font-size:13px;color:var(--sub);line-height:1.5;">坐位，双手置于脑后，肘部向外展开，深呼吸，感受胸部打开。保持 20 秒。</div>
+            </div>
+            <div style="background:var(--bg);border-radius:var(--r-btn);padding:14px 16px;border:1.5px solid var(--border);">
+              <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">③ 大腿前侧拉伸</div>
+              <div style="font-size:13px;color:var(--sub);line-height:1.5;">站立或坐位，单腿屈膝向后，感受大腿前侧拉伸。保持 20 秒，换腿重复。</div>
+            </div>
+            <div style="background:var(--bg);border-radius:var(--r-btn);padding:14px 16px;border:1.5px solid var(--border);">
+              <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">④ 小腿腓肠肌拉伸</div>
+              <div style="font-size:13px;color:var(--sub);line-height:1.5;">扶墙站立，一腿向后伸，脚跟着地，感受小腿拉伸。保持 20 秒，换腿重复。</div>
+            </div>
+          </div>
+          <div style="background:var(--orange-light);border-radius:var(--r-btn);padding:10px 14px;font-size:13px;color:var(--orange);margin-top:14px;line-height:1.5;">
+            ⚠️ 安全原则：拉伸至"紧绷感"临界点，不诱发疼痛；全程不屏气
+          </div>
+        </div>
+        <button class="btn-full btn-blue" onclick="goToStep(4)" style="margin-bottom:24px;">柔韧训练完成，开始呼吸训练 →</button>
+      </div>
+
+      <!-- ⑤ PLDB 呼吸训练 -->
+      <div class="panel" id="step-4">
+        <div class="page-header" style="position:sticky;top:0;z-index:10;margin:-16px -16px 16px;padding:0 16px;">
+          <span class="page-title">呼吸训练</span>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:8px;">
+          <div style="flex:1;height:6px;border-radius:3px;background:var(--green);"></div>
+          <div style="flex:1;height:6px;border-radius:3px;background:var(--blue);"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:20px;">
+          <span style="flex:1;text-align:center;color:var(--green-dark);">✓ 柔韧训练</span>
+          <span style="flex:1;text-align:center;color:var(--blue);font-weight:600;">💨 呼吸训练</span>
+        </div>
+        <div class="card">
+          <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px;">缩唇膈肌呼吸（PLDB）</div>
+          <div style="font-size:13px;color:var(--sub);margin-bottom:16px;line-height:1.5;">膈肌呼吸 + 缩唇呼气协同，降低心脏前负荷，改善通气效率</div>
+          <div class="breathing-demo">
+            <div style="font-size:12px;font-weight:600;color:var(--blue);text-align:center;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;">每次呼吸节奏</div>
+            <div class="breathing-cycle">
+              <div class="breath-phase breath-in">
+                <div class="breath-label">吸气</div>
+                <div class="breath-dur">2 秒</div>
+                <div class="breath-desc">经鼻腔缓慢吸气</div>
+              </div>
+              <div class="breath-arrow">→</div>
+              <div class="breath-phase breath-out">
+                <div class="breath-label">呼气</div>
+                <div class="breath-dur">4 秒</div>
+                <div class="breath-desc">缩唇，缓慢呼出</div>
+              </div>
+            </div>
+            <div class="posture-note">约 30 次 / 10 分钟 · 坐位或仰卧均可</div>
+          </div>
+          <div style="margin-bottom:14px;">
+            <div class="rx-instruction-row">
+              <div class="rx-num">1</div>
+              <div class="rx-instruction-text">找一个舒适的<strong>坐位或仰卧位</strong>，一手轻放胸部，一手轻放腹部</div>
+            </div>
+            <div class="rx-instruction-row">
+              <div class="rx-num">2</div>
+              <div class="rx-instruction-text"><strong>经鼻腔缓慢吸气 2 秒</strong>，感受腹部（膈肌）隆起，胸部保持相对静止</div>
+            </div>
+            <div class="rx-instruction-row">
+              <div class="rx-num">3</div>
+              <div class="rx-instruction-text"><strong>缩唇呈"吹口哨"状，缓慢呼气 4 秒</strong>，腹部自然回落，不用力</div>
+            </div>
+            <div class="rx-instruction-row">
+              <div class="rx-num">4</div>
+              <div class="rx-instruction-text">重复 30 次左右（约 10 分钟）。感到轻微头晕属正常，可稍作休息后继续</div>
+            </div>
+          </div>
+          <div style="background:var(--blue-light);border-radius:var(--r-btn);padding:10px 14px;font-size:13px;color:var(--blue);line-height:1.5;">
+            💡 心脏获益：缩唇 + 膈肌协同，可协同降低心脏前负荷，改善气体交换效率（AACVPR 2021 · ESC 2020）
+          </div>
+        </div>
+        <button class="btn-full btn-blue" onclick="goToStep(5)" style="margin-bottom:24px;">呼吸训练完成，记录反馈 →</button>
+      </div>
+
+      <!-- ⑥ 反馈记录 -->
+      <div class="panel" id="step-5">
+        <div class="page-header" style="position:sticky;top:0;z-index:10;margin:-16px -16px 16px;padding:0 16px;">
+          <span class="page-title">运动</span>
+        </div>
+        <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:16px;">记录本次训练</div>
+
+        <!-- 抗阻训练反馈（留力法） -->
+        <div id="feedback-resistance" style="display:none;">
+          <div class="section-label">留力感受（RIR）</div>
+          <div style="margin-bottom:4px;font-size:12px;color:var(--sub);margin-bottom:10px;">完成最后一组时，还感觉能再做几次？</div>
+          <div class="rpe-opt" onclick="selectRpe(this)"><div><div class="rpe-name">太轻松了</div><div class="rpe-hint">还能再做很多次（RIR 8+）</div></div></div>
+          <div class="rpe-opt target" onclick="selectRpe(this)"><div><div class="rpe-name" style="color:var(--green-dark);">刚好</div><div class="rpe-hint" style="color:var(--green-dark);">还能再做 3–6 次 ← 目标区间</div></div><span style="font-size:11px;font-weight:700;color:white;background:var(--green);padding:2px 8px;border-radius:var(--r-pill);">✓ 推荐</span></div>
+          <div class="rpe-opt" style="margin-bottom:16px;" onclick="selectRpe(this)"><div><div class="rpe-name">有点吃力</div><div class="rpe-hint">还能再做 1–2 次，下次降低</div></div></div>
+        </div>
+
+        <!-- 柔韧/呼吸反馈（通用） -->
+        <div id="feedback-general">
+          <div class="section-label">训练感受</div>
+          <div style="margin-bottom:16px;">
+            <div class="rpe-opt" onclick="selectRpe(this)"><div><div class="rpe-name">太轻松了</div><div class="rpe-hint">完全没有费力感</div></div></div>
+            <div class="rpe-opt target" onclick="selectRpe(this)"><div><div class="rpe-name" style="color:var(--green-dark);">适合我今天的状态</div><div class="rpe-hint" style="color:var(--green-dark);">舒缓但有效果</div></div><span style="font-size:11px;font-weight:700;color:white;background:var(--green);padding:2px 8px;border-radius:var(--r-pill);">✓ 推荐</span></div>
+            <div class="rpe-opt" style="margin-bottom:16px;" onclick="selectRpe(this)"><div><div class="rpe-name">还是太累了</div><div class="rpe-hint">感觉更疲惫了</div></div></div>
+          </div>
+        </div>
+
+        <div class="section-label">训练后是否有不适？</div>
+        <div style="margin-bottom:16px;">
+          <div style="min-height:52px;border-radius:var(--r-btn);border:1.5px solid var(--green);background:var(--green-light);padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <span style="font-size:16px;color:var(--green-dark);font-weight:600;">✓ 没有不适，状态有所好转</span>
+          </div>
+          <div style="min-height:52px;border-radius:var(--r-btn);border:1.5px solid var(--border);background:var(--card);padding:12px 16px;display:flex;align-items:center;gap:12px;">
+            <span style="font-size:16px;color:var(--text);">有些不适 →</span>
+          </div>
+        </div>
+        <div class="record-note">📝 本次记录类型：<strong id="feedback-type-label">抗阻训练</strong> · 不计入有氧打卡</div>
+        <button class="btn-full btn-blue" onclick="goToStep(6)" style="margin-top:8px;margin-bottom:24px;">提交 →</button>
+      </div>
+
+      <!-- ⑦ 训练摘要 -->
+      <div class="panel" id="step-6">
+        <div class="page-header" style="position:sticky;top:0;z-index:10;margin:-16px -16px 16px;padding:0 16px;">
+          <span class="page-title">运动</span>
+        </div>
+        <div class="sum-hero" id="sum-hero">
+          <div class="sum-icon" id="sum-icon">💪</div>
+          <div>
+            <div class="sum-hero-title" id="sum-title">抗阻训练完成</div>
+            <div class="sum-hero-sub" id="sum-sub">用留力法保护心脏，差状态也能保持训练。</div>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-cell"><div class="stat-val" id="sum-duration">20'</div><div class="stat-lbl">训练时长</div></div>
+          <div class="stat-cell"><div class="stat-val"><span class="pill pill-blue" id="sum-type-pill">抗阻</span></div><div class="stat-lbl">训练类型</div></div>
+          <div class="stat-cell"><div class="stat-val" id="sum-sets">6 组</div><div class="stat-lbl">完成组数</div></div>
+        </div>
+        <div style="background:var(--orange-light);border-radius:var(--r-card);padding:12px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:14px;color:var(--orange);">有氧打卡进度</span>
+          <span style="font-size:14px;font-weight:600;color:var(--orange);">不受影响 · 明天继续</span>
+        </div>
+        <div class="ai-block" id="sum-ai-block">
+          <div class="ai-header">✦ AI 康复助手</div>
+          <div class="ai-text" id="sum-ai-text">身体不佳时，留力法（RIR）是最适合的强度控制方式。今天选择了低强度抗阻训练，可以在维持肌肉刺激的同时避免过度消耗。研究显示，冠心病患者抗阻训练的肌肉适应效益并不依赖高强度，留力法与传统 %1RM 法的增益等效（Gismondi 2024）。明天有氧训练照常进行。</div>
+        </div>
+        <div style="background:var(--card);border-radius:var(--r-card);padding:16px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:600;color:var(--sub);text-transform:uppercase;margin-bottom:12px;">明天运动建议</div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:14px;color:var(--sub);">运动类型</span>
+            <span style="font-size:15px;font-weight:600;color:var(--text);">步行（有氧）</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;">
+            <span style="font-size:14px;color:var(--sub);">目标强度</span>
+            <span style="font-size:15px;font-weight:600;color:var(--text);"><span class="pill pill-blue">适中</span></span>
+          </div>
+        </div>
+        <div style="background:var(--blue-light);border:1.5px dashed var(--blue);border-radius:var(--r-card);padding:14px 16px;margin-bottom:12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">↵ 分支流程结束</div>
+          <div style="font-size:13px;color:var(--blue);line-height:1.55;margin-bottom:10px;">本路径在此结束。用户完成本日训练，次日回到主线继续有氧打卡。</div>
+          <a href="flow-golden-path.html" style="display:block;text-align:center;background:var(--blue);color:white;border-radius:var(--r-btn);padding:10px;font-size:14px;font-weight:600;text-decoration:none;">→ 回到主线流程</a>
+        </div>
+        <button class="btn-full btn-secondary" onclick="goToStep(0)" style="margin-bottom:24px;">← 重新演示分支流程</button>
+      </div>
+
+    </div><!-- end scroll-area -->
+
+    <div class="tab-bar">
+      <div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-label">首页</span></div>
+      <div class="tab-item active"><span class="tab-icon">🏃</span><span class="tab-label">运动</span></div>
+      <div class="tab-item"><span class="tab-icon">🥗</span><span class="tab-label">营养</span></div>
+      <div class="tab-item"><span class="tab-icon">🤖</span><span class="tab-label">助手</span></div>
+      <div class="tab-item"><span class="tab-icon">👤</span><span class="tab-label">我</span></div>
+    </div>
+  </div>
+
+  <div class="flow-footer">
+    <button class="nav-btn nav-prev" id="prevBtn" onclick="prev()" disabled>← 上一步</button>
+    <span id="stepLabel">步骤 1 / 7</span>
+    <button class="nav-btn nav-next" id="nextBtn" onclick="next()">下一步 →</button>
+  </div>
+  <a href="flow-golden-path.html" style="font-size:13px;color:var(--sub);text-decoration:none;">← 返回主线流程</a>
+</div>
+
+<script>
+const TOTAL = 7;
+let cur = 0;
+let selectedPlan = 'resistance';
+
+function goToStep(n) {
+  cur = Math.max(0, Math.min(TOTAL - 1, n));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('step-' + cur).classList.add('active');
+  document.querySelectorAll('.flow-step').forEach((el, i) => {
+    el.classList.remove('active', 'done');
+    if (i === cur) el.classList.add('active');
+    else if (i < cur) el.classList.add('done');
+  });
+  document.getElementById('stepLabel').textContent = `步骤 ${cur + 1} / ${TOTAL}`;
+  document.getElementById('prevBtn').disabled = cur === 0;
+  document.getElementById('nextBtn').disabled = cur === TOTAL - 1;
+  document.getElementById('nextBtn').textContent = cur === TOTAL - 1 ? '完成' : '下一步 →';
+  document.getElementById('scrollArea').scrollTop = 0;
+
+  if (cur === 2 && selectedPlan === 'resistance') {
+    rtReset();
+    rtRender();
+  }
+  if (cur === 5) updateFeedbackView();
+  if (cur === 6) updateSummaryView();
+}
+
+function next() { if (cur < TOTAL - 1) goToStep(cur + 1); }
+function prev() { if (cur > 0) goToStep(cur - 1); }
+
+function selectPlan(type) {
+  ['aerobic', 'resistance', 'flex', 'breath'].forEach(t => {
+    const el = document.getElementById('opt-' + t);
+    if (el) el.classList.remove('selected');
+  });
+  const sel = document.getElementById('opt-' + type);
+  if (sel) sel.classList.add('selected');
+  selectedPlan = type;
+}
+
+function startTraining() {
+  if (selectedPlan === 'resistance') {
+    rtReset();
+    goToStep(2);
+  } else if (selectedPlan === 'breath') {
+    goToStep(4);
+  } else {
+    goToStep(3);
+  }
+}
+
+function selectRpe(el) {
+  el.closest('.panel').querySelectorAll('.rpe-opt').forEach(o => o.classList.remove('selected-rpe'));
+  el.classList.add('selected-rpe');
+}
+
+function updateFeedbackView() {
+  const isResistance = selectedPlan === 'resistance';
+  document.getElementById('feedback-resistance').style.display = isResistance ? 'block' : 'none';
+  document.getElementById('feedback-general').style.display = isResistance ? 'none' : 'block';
+  const typeLabels = { resistance: '抗阻训练', flex: '柔韧训练', breath: 'PLDB 呼吸', aerobic: '有氧训练（降强）' };
+  document.getElementById('feedback-type-label').textContent = typeLabels[selectedPlan] || '舒缓训练';
+}
+
+function updateSummaryView() {
+  const configs = {
+    resistance: {
+      icon: '💪', title: '抗阻训练完成', sub: '用留力法保护心脏，差状态也能保持训练。',
+      duration: "20'", typePill: '抗阻', extra: '6 组',
+      aiText: '身体不佳时，留力法（RIR）是最适合的强度控制方式。今天选择了低强度抗阻训练，可以在维持肌肉刺激的同时避免过度消耗。研究显示，冠心病患者抗阻训练的肌肉适应效益并不依赖高强度，留力法与传统 %1RM 法的增益等效（Gismondi 2024）。明天有氧训练照常进行。'
+    },
+    flex: {
+      icon: '🌿', title: '柔韧训练完成', sub: '今天选择倾听身体，是明智的决定。',
+      duration: "25'", typePill: '柔韧', extra: '💨 PLDB',
+      aiText: '睡眠不足时，高强度运动会增加皮质醇分泌，反而延迟恢复。柔韧 + 呼吸训练能帮助神经系统放松，PLDB 呼吸对心脏前负荷也有积极作用。明天状态恢复后，有氧训练继续按原计划进行。'
+    },
+    breath: {
+      icon: '💨', title: 'PLDB 呼吸训练完成', sub: '呼吸是最简单的心脏保护动作。',
+      duration: "10'", typePill: '呼吸', extra: '30 次',
+      aiText: '缩唇膈肌呼吸通过降低呼吸频率、增加呼气阻力，协同降低心脏前负荷并改善通气效率。在身体不佳时，10 分钟 PLDB 是最温和也最有意义的坚持。'
+    },
+    aerobic: {
+      icon: '🚶', title: '有氧训练完成（降强）', sub: '调整强度继续坚持，进步就是这样来的。',
+      duration: "20'", typePill: '有氧', extra: 'RPE 轻松',
+      aiText: '在差状态日选择降低有氧强度继续训练，而不是完全跳过，体现了对康复计划的高依从性。今天的 20 分钟步行虽然强度低，但对心血管系统的基础刺激仍然有价值。'
+    }
+  };
+  const c = configs[selectedPlan] || configs.resistance;
+  document.getElementById('sum-icon').textContent = c.icon;
+  document.getElementById('sum-title').textContent = c.title;
+  document.getElementById('sum-sub').textContent = c.sub;
+  document.getElementById('sum-duration').textContent = c.duration;
+  document.getElementById('sum-type-pill').textContent = c.typePill;
+  document.getElementById('sum-sets').textContent = c.extra;
+  document.getElementById('sum-ai-text').textContent = c.aiText;
+}
+
+/* ── 抗阻训练状态机 ── */
+const RT_EXERCISES = [
+  {
+    name: '椅子站立',
+    target: '大腿前侧 · 臀部',
+    sets: 2,
+    reps: 10,
+    desc: '坐在椅子前沿，双脚平放于地面（与肩同宽）。双臂交叉于胸前或自然下垂。缓慢站起至完全直立，再缓慢坐回，控制在 2–3 秒，不借助冲劲。',
+    breath: '站起时呼气，坐下时吸气，全程不要屏气。',
+    search: '椅子站立 居家训练',
+    cabgWarn: false
+  },
+  {
+    name: '墙壁俯卧撑',
+    target: '胸部 · 肩部 · 手臂',
+    sets: 2,
+    reps: 8,
+    desc: '面对墙壁站立（手臂伸直约一步距离），双手与肩同高同宽撑于墙面。身体向墙靠近至鼻尖接近墙面，保持身体成一直线，再推回起始位置。',
+    breath: '靠近墙时吸气，推离时呼气。',
+    search: '墙壁俯卧撑 心脏康复',
+    cabgWarn: true
+  },
+  {
+    name: '小腿提踵',
+    target: '小腿（腓肠肌）',
+    sets: 2,
+    reps: 12,
+    desc: '扶椅背站立保持平衡，双脚并拢。脚跟缓慢抬高至最高点，保持 1–2 秒，再缓慢落回。动作全程保持平衡，避免晃动。',
+    breath: '脚跟抬起时呼气，落下时吸气。',
+    search: '小腿提踵 居家训练',
+    cabgWarn: false
+  }
+];
+
+let rtExIdx = 0;
+let rtSetIdx = 0;
+let rtMode = 'exercise';
+let rtCountdown = 60;
+let rtTimer = null;
+
+function rtReset() {
+  if (rtTimer) clearInterval(rtTimer);
+  rtTimer = null;
+  rtExIdx = 0;
+  rtSetIdx = 0;
+  rtMode = 'exercise';
+  rtCountdown = 60;
+}
+
+function rtRender() {
+  const ex = RT_EXERCISES[rtExIdx];
+
+  // 动作进度条
+  document.querySelectorAll('.rt-seg').forEach((seg, i) => {
+    seg.classList.remove('rt-done', 'rt-active');
+    if (i < rtExIdx) seg.classList.add('rt-done');
+    else if (i === rtExIdx) seg.classList.add('rt-active');
+  });
+
+  const exView = document.getElementById('rt-exercise-view');
+  const restView = document.getElementById('rt-rest-view');
+  const doneView = document.getElementById('rt-done-view');
+
+  if (rtMode === 'exercise') {
+    exView.style.display = 'block';
+    restView.style.display = 'none';
+    doneView.style.display = 'none';
+
+    document.getElementById('rt-ex-counter').textContent = `第 ${rtExIdx + 1} 个动作 / 共 ${RT_EXERCISES.length} 个`;
+    document.getElementById('rt-ex-name').textContent = ex.name;
+    document.getElementById('rt-ex-target').textContent = ex.target;
+    document.getElementById('rt-ex-sets-tag').textContent = `${ex.sets} 组`;
+    document.getElementById('rt-ex-reps-tag').textContent = `每组 ${ex.reps} 次`;
+    document.getElementById('rt-ex-desc').textContent = ex.desc;
+    document.getElementById('rt-ex-breath').textContent = ex.breath;
+    document.getElementById('rt-search-text').textContent = `建议搜索「${ex.search}」跟练视频`;
+    document.getElementById('rt-set-counter').textContent = `第 ${rtSetIdx + 1} 组 / 共 ${ex.sets} 组`;
+    document.getElementById('rt-set-reps').textContent = `目标 ${ex.reps} 次`;
+
+    // 组数圆点
+    const dotsContainer = document.getElementById('rt-set-dots');
+    dotsContainer.innerHTML = '';
+    for (let i = 0; i < ex.sets; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'rt-set-dot';
+      if (i < rtSetIdx) dot.classList.add('done');
+      else if (i === rtSetIdx) dot.classList.add('active');
+      dotsContainer.appendChild(dot);
+    }
+
+    // CABG警告
+    const cabgWarn = document.getElementById('rt-cabg-warn');
+    const cabgSkip = document.getElementById('rt-cabg-skip-wrap');
+    if (ex.cabgWarn) {
+      cabgWarn.style.display = 'block';
+      if (cabgSkip) cabgSkip.style.display = 'block';
+    } else {
+      cabgWarn.style.display = 'none';
+      if (cabgSkip) cabgSkip.style.display = 'none';
+    }
+
+  } else if (rtMode === 'rest') {
+    exView.style.display = 'none';
+    restView.style.display = 'block';
+    doneView.style.display = 'none';
+    document.getElementById('rt-rest-setdone').textContent = `✅ 第 ${rtSetIdx} 组完成`;
+    document.getElementById('rt-countdown-num').textContent = rtCountdown;
+
+  } else if (rtMode === 'done') {
+    exView.style.display = 'none';
+    restView.style.display = 'none';
+    doneView.style.display = 'block';
+    // 全部完成时把三段进度条都标绿
+    document.querySelectorAll('.rt-seg').forEach(seg => {
+      seg.classList.remove('rt-active');
+      seg.classList.add('rt-done');
+    });
+  }
+}
+
+function rtCompleteSet() {
+  if (rtTimer) clearInterval(rtTimer);
+  const ex = RT_EXERCISES[rtExIdx];
+  rtSetIdx++;
+  rtMode = 'rest';
+  rtCountdown = 60;
+  rtRender();
+
+  rtTimer = setInterval(() => {
+    rtCountdown--;
+    const el = document.getElementById('rt-countdown-num');
+    if (el) el.textContent = rtCountdown;
+    if (rtCountdown <= 0) {
+      clearInterval(rtTimer);
+      rtTimer = null;
+      rtAfterRest();
+    }
+  }, 1000);
+}
+
+function rtSkipRest() {
+  if (rtTimer) clearInterval(rtTimer);
+  rtTimer = null;
+  rtAfterRest();
+}
+
+function rtSkipExercise() {
+  rtExIdx++;
+  rtSetIdx = 0;
+  if (rtExIdx >= RT_EXERCISES.length) {
+    rtMode = 'done';
+  } else {
+    rtMode = 'exercise';
+  }
+  rtRender();
+}
+
+function rtAfterRest() {
+  const ex = RT_EXERCISES[rtExIdx];
+  if (rtSetIdx < ex.sets) {
+    rtMode = 'exercise';
+    rtRender();
+  } else {
+    rtExIdx++;
+    rtSetIdx = 0;
+    if (rtExIdx >= RT_EXERCISES.length) {
+      rtMode = 'done';
+      rtRender();
+    } else {
+      rtMode = 'exercise';
+      rtRender();
+    }
+  }
+}
+</script>
+</body>
+</html>

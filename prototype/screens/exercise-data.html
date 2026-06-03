@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 运动数据</title>
+<style>
+:root {
+  --bg:#F7F5F1; --card:#F0EDE8; --text:#2C2A26; --sub:#888780;
+  --blue:#185FA5; --blue-light:#E6F1FB;
+  --orange:#BA7517; --orange-light:#FAEEDA;
+  --red:#A32D2D; --red-light:#FCEBEB;
+  --green:#1D9E75; --green-light:#D4F2E7; --green-dark:#085041;
+  --border:#C8C5BE; --purple:#534AB7;
+  --r-card:12px; --r-btn:8px; --r-pill:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif}
+.phone{width:390px;min-height:100vh;background:var(--bg);display:flex;flex-direction:column}
+.status-bar{height:44px;background:var(--bg);display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex-shrink:0}
+.status-time{font-size:15px;font-weight:600;color:var(--text)}
+.status-icons{font-size:12px;color:var(--text)}
+.nav-bar{height:48px;display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid var(--border);position:relative}
+.nav-back{font-size:16px;color:var(--blue);text-decoration:none;height:44px;display:flex;align-items:center;gap:2px}
+.nav-title{font-size:17px;font-weight:600;color:var(--text);position:absolute;left:50%;transform:translateX(-50%)}
+
+/* Tab bar */
+.time-tab-bar{display:flex;padding:12px 16px 0;gap:0;flex-shrink:0;background:var(--bg)}
+.time-tab{flex:1;height:36px;border:1.5px solid var(--border);background:var(--card);font-size:13px;font-weight:500;color:var(--sub);cursor:pointer;font-family:inherit;transition:all .15s}
+.time-tab:first-child{border-radius:var(--r-pill) 0 0 var(--r-pill)}
+.time-tab:last-child{border-radius:0 var(--r-pill) var(--r-pill) 0}
+.time-tab+.time-tab{border-left:none}
+.time-tab.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700;z-index:1}
+
+/* Scroll */
+.scroll-area{flex:1;overflow-y:auto;padding:14px 16px 48px;-webkit-overflow-scrolling:touch}
+
+/* Section label */
+.sec-lbl{font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;margin-top:4px}
+
+/* Overview card */
+.overview-card{background:var(--card);border-radius:var(--r-card);padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:16px}
+.ov-right{flex:1;display:flex;flex-direction:column;gap:10px}
+.ov-stat{display:flex;flex-direction:column;gap:2px}
+.ov-stat-val{font-size:22px;font-weight:800;color:var(--text);line-height:1}
+.ov-stat-lbl{font-size:12px;color:var(--sub)}
+.compare-pill{display:inline-flex;align-items:center;font-size:13px;font-weight:600;padding:3px 10px;border-radius:var(--r-pill)}
+.c-up{background:var(--green-light);color:var(--green-dark)}
+.c-dn{background:var(--orange-light);color:var(--orange)}
+.c-eq{background:var(--card);color:var(--sub);border:1px solid var(--border)}
+
+/* Chart card */
+.chart-card{background:var(--card);border-radius:var(--r-card);padding:14px 14px 10px;margin-bottom:12px;overflow:hidden}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.chart-title{font-size:14px;font-weight:700;color:var(--text)}
+.chart-tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:var(--r-pill);background:var(--bg);color:var(--sub);border:1px solid var(--border)}
+
+/* SVG scroll wrapper */
+.svg-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.svg-wrap::-webkit-scrollbar{height:3px}
+.svg-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* RPE legend */
+.rpe-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--sub)}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.leg-rect{width:20px;height:10px;border-radius:2px;background:#E6F1FB;border:1px solid #B8D4EE;flex-shrink:0}
+
+/* Timeline — FIX-2: border-left pattern */
+.tl-list{display:flex;flex-direction:column}
+.tl-item{display:flex;gap:0}
+.tl-left{display:flex;flex-direction:column;align-items:center;width:28px;flex-shrink:0}
+.tl-dot{width:13px;height:13px;border-radius:50%;border:2.5px solid var(--bg);flex-shrink:0;margin-top:2px}
+/* FIX-2: line is a vertical element that auto-grows with content */
+.tl-line{width:2px;background:var(--border);flex:1;margin-top:3px;min-height:14px}
+.tl-item:last-child .tl-line{display:none}
+.tl-content{flex:1;padding-bottom:16px}
+.tl-date{font-size:12px;color:var(--sub);margin-bottom:3px}
+.tl-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:2px}
+.tl-type{font-size:15px;font-weight:600;color:var(--text)}
+.tl-dur{font-size:13px;color:var(--sub)}
+.tl-rpe{font-size:11px;font-weight:700;padding:2px 8px;border-radius:var(--r-pill)}
+.tl-adj{font-size:11px;font-weight:600;padding:2px 8px;border-radius:var(--r-pill);background:var(--orange-light);color:var(--orange)}
+
+/* Empty state */
+.empty-wrap{display:flex;flex-direction:column;align-items:center;padding:32px 24px;gap:10px}
+.empty-icon{font-size:36px}
+.empty-text{font-size:15px;color:var(--sub);text-align:center;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">●●● WiFi 🔋</div>
+  </div>
+  <div class="nav-bar">
+    <a href="exercise-index.html" class="nav-back">‹ 运动</a>
+    <span class="nav-title">运动数据</span>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="time-tab-bar">
+    <button class="time-tab active" id="t-2w"  onclick="switchTab('w2')">近 2 周</button>
+    <button class="time-tab"        id="t-1m"  onclick="switchTab('m1')">近 1 个月</button>
+    <button class="time-tab"        id="t-all" onclick="switchTab('all')">全程</button>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- OVERVIEW -->
+    <div class="sec-lbl" id="ovLabel" style="margin-top:2px">近 2 周概览</div>
+    <div class="overview-card">
+      <svg id="ringsvg" width="110" height="110" viewBox="0 0 110 110" style="flex-shrink:0"></svg>
+      <div class="ov-right">
+        <div class="ov-stat">
+          <div class="ov-stat-val" id="ovDur">—</div>
+          <div class="ov-stat-lbl">平均每次时长（分钟）</div>
+        </div>
+        <div class="ov-stat">
+          <div class="ov-stat-val" id="ovCount">—</div>
+          <div class="ov-stat-lbl">完成次数</div>
+        </div>
+        <div class="compare-pill" id="ovCompare"></div>
+      </div>
+    </div>
+
+    <!-- RPE CHART -->
+    <div class="sec-lbl">运动强度趋势（RPE）</div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">RPE 趋势</span>
+        <span class="chart-tag" id="rpeTag">近 2 周</span>
+      </div>
+      <div class="svg-wrap"><svg id="rpesvg"></svg></div>
+      <div class="rpe-legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>轻松</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#185FA5"></div>适中</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#BA7517"></div>较累</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#A32D2D"></div>很累</div>
+        <div class="leg-item" style="margin-left:auto"><div class="leg-rect"></div>目标区间</div>
+      </div>
+    </div>
+
+    <!-- HR CHART -->
+    <div class="sec-lbl">静息心率变化</div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">心率趋势</span>
+        <span class="chart-tag">来自手环</span>
+      </div>
+      <div class="svg-wrap"><svg id="hrsvg"></svg></div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="sec-lbl">运动记录</div>
+    <div id="tlContainer"></div>
+
+  </div>
+</div>
+
+<script>
+/* ═══════════════ MOCK DATA ═══════════════ */
+const TODAY = new Date('2026-05-29');
+function ago(n){const d=new Date(TODAY);d.setDate(d.getDate()-n);return d;}
+
+// rpe: 1=轻松 2=适中 3=较累 4=很累
+const RECORDS = [
+  {date:ago(1),  type:'步行',     dur:32, rpe:2, hr:68, adj:false},
+  {date:ago(3),  type:'步行',     dur:30, rpe:2, hr:69, adj:false},
+  {date:ago(5),  type:'居家拉伸', dur:28, rpe:1, hr:70, adj:false},
+  {date:ago(7),  type:'步行',     dur:35, rpe:3, hr:71, adj:false},
+  {date:ago(9),  type:'步行',     dur:30, rpe:2, hr:70, adj:false},
+  {date:ago(11), type:'居家拉伸', dur:25, rpe:1, hr:72, adj:false},
+  {date:ago(14), type:'步行',     dur:30, rpe:3, hr:73, adj:true },
+  {date:ago(16), type:'步行',     dur:30, rpe:3, hr:74, adj:false},
+  {date:ago(18), type:'步行',     dur:25, rpe:2, hr:73, adj:false},
+  {date:ago(20), type:'居家拉伸', dur:28, rpe:2, hr:75, adj:false},
+  {date:ago(23), type:'步行',     dur:30, rpe:4, hr:76, adj:true },
+  {date:ago(25), type:'步行',     dur:30, rpe:3, hr:76, adj:false},
+  {date:ago(28), type:'步行',     dur:20, rpe:2, hr:77, adj:false},
+  {date:ago(32), type:'步行',     dur:25, rpe:2, hr:78, adj:false},
+  {date:ago(36), type:'居家拉伸', dur:22, rpe:1, hr:79, adj:false},
+  {date:ago(40), type:'步行',     dur:20, rpe:2, hr:80, adj:false},
+  {date:ago(46), type:'步行',     dur:15, rpe:3, hr:81, adj:false},
+  {date:ago(52), type:'步行',     dur:15, rpe:2, hr:82, adj:false},
+];
+
+/* ═══════════════ TAB CONFIG ═══════════════ */
+const CFG = {
+  w2:  {days:14,  target:6,  label:'近 2 周',  gran:'day',   ovLabel:'近 2 周概览'},
+  m1:  {days:30,  target:12, label:'近 1 个月', gran:'week',  ovLabel:'近 1 个月概览'},
+  all: {days:9999,target:27, label:'全程',      gran:'month', ovLabel:'全程概览'},
+};
+
+const RPE_COLOR = {1:'#1D9E75',2:'#185FA5',3:'#BA7517',4:'#A32D2D'};
+const RPE_LBL   = {1:'轻松',   2:'适中',   3:'较累',   4:'很累'};
+const RPE_TSTYLE= {
+  1:'background:#D4F2E7;color:#085041',
+  2:'background:#E6F1FB;color:#185FA5',
+  3:'background:#FAEEDA;color:#BA7517',
+  4:'background:#FCEBEB;color:#A32D2D',
+};
+
+/* ═══════════════ HELPERS ═══════════════ */
+function fmtShort(d, gran) {
+  const m=d.getMonth()+1, day=d.getDate();
+  if(gran==='month') return m+'月';
+  return m+'/'+day;
+}
+function fmtFull(d) {
+  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
+}
+
+function filter(tab) {
+  const cfg = CFG[tab];
+  const cut = new Date(TODAY); cut.setDate(cut.getDate()-cfg.days);
+  return RECORDS.filter(r=>r.date>=cut);
+}
+
+function prevPeriod(tab) {
+  const cfg = CFG[tab];
+  const cut1 = new Date(TODAY); cut1.setDate(cut1.getDate()-cfg.days*2);
+  const cut2 = new Date(TODAY); cut2.setDate(cut2.getDate()-cfg.days);
+  return RECORDS.filter(r=>r.date>=cut1 && r.date<cut2);
+}
+
+/* ═══════════════ PROGRESS RING ═══════════════ */
+function drawRing(done, target) {
+  const svg = document.getElementById('ringsvg');
+  const cx=55,cy=55,r=42,sw=12,circ=2*Math.PI*r;
+  const pct=Math.min(done/target,1), dash=pct*circ;
+  svg.innerHTML=`
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#B4B2A9" stroke-width="${sw}"
+      stroke-dasharray="${circ}" transform="rotate(-90 ${cx} ${cy})"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#1D9E75" stroke-width="${sw}"
+      stroke-linecap="round" stroke-dasharray="${dash} ${circ-dash}" stroke-dashoffset="0"
+      transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="22" font-weight="800"
+      fill="#2C2A26" font-family="-apple-system,PingFang SC,sans-serif">${done}</text>
+    <text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="11" fill="#888780"
+      font-family="-apple-system,PingFang SC,sans-serif">/ 目标 ${target} 次</text>`;
+}
+
+/* ═══════════════ RPE CHART ═══════════════
+   FIX-1: fixed equal-tier Y mapping
+   chartH / 3 * (rpe-1) from bottom
+════════════════════════════════════════ */
+function drawRPE(pts) {
+  const svg=document.getElementById('rpesvg');
+  const n=pts.length;
+  const YAW=38, PSP=52, PL=YAW+8, PR=18, PT=14, PB=28;
+  const CH=130-PT-PB;                 // usable chart height = 88
+  const W=Math.max(330,n*PSP+PL+PR);
+
+  svg.setAttribute('width',W); svg.setAttribute('height','130');
+  svg.setAttribute('viewBox',`0 0 ${W} 130`);
+
+  // FIX-1: Y for rpe level — equal spacing, rpe1=bottom rpe4=top
+  const yRpe = rpe => PT + CH - ((rpe-1)/3)*CH;
+
+  let h='';
+
+  // Target zone band: centered on rpe=2, band height = 1 tier / 3
+  const BY = yRpe(2), BH = CH/3;
+  h+=`<rect x="${PL}" y="${BY-BH/2}" width="${W-PL-PR}" height="${BH}"
+    fill="#E6F1FB" opacity="0.65" rx="3"/>`;
+
+  // Grid lines (FIX-1: exactly on rpe coords)
+  [1,2,3,4].forEach(rpe=>{
+    const y=yRpe(rpe);
+    h+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}"
+      stroke="#C8C5BE" stroke-width="1" stroke-dasharray="4 3"/>`;
+    h+=`<text x="${YAW-3}" y="${y+4}" text-anchor="end" font-size="10" fill="#888780"
+      font-family="-apple-system,PingFang SC,sans-serif">${RPE_LBL[rpe]}</text>`;
+  });
+
+  if(n===0){
+    h+=`<text x="${W/2}" y="70" text-anchor="middle" font-size="13" fill="#888780"
+      font-family="-apple-system,PingFang SC,sans-serif">暂无数据</text>`;
+    svg.innerHTML=h; return;
+  }
+
+  const xOf=i=>PL+i*PSP+PSP/2;
+
+  // Polyline connecting dots
+  const poly=pts.map((p,i)=>`${xOf(i)},${yRpe(p.rpe)}`).join(' ');
+  h+=`<polyline points="${poly}" fill="none" stroke="#C8C5BE"
+    stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+
+  // Dots + X labels
+  pts.forEach((p,i)=>{
+    const x=xOf(i), y=yRpe(p.rpe), c=RPE_COLOR[p.rpe];
+    h+=`<circle cx="${x}" cy="${y}" r="6" fill="${c}" stroke="white" stroke-width="2"/>`;
+    h+=`<text x="${x}" y="127" text-anchor="middle" font-size="9" fill="#888780"
+      font-family="-apple-system,PingFang SC,sans-serif">${p.lbl}</text>`;
+  });
+  svg.innerHTML=h;
+}
+
+/* ═══════════════ HR CHART ═══════════════
+   FIX-3: yMin/yMax with ≥10 bpm guard
+════════════════════════════════════════ */
+function drawHR(pts) {
+  const svg=document.getElementById('hrsvg');
+  const n=pts.length;
+  const YAW=40, PSP=52, PL=YAW+4, PR=14, PT=12, PB=28;
+  const CH=100-PT-PB;                 // 60px
+  const W=Math.max(330,n*PSP+PL+PR);
+
+  svg.setAttribute('width',W); svg.setAttribute('height','100');
+  svg.setAttribute('viewBox',`0 0 ${W} 100`);
+
+  let h='';
+
+  if(n===0){
+    h+=`<text x="${W/2}" y="50" text-anchor="middle" font-size="13" fill="#888780"
+      font-family="-apple-system,PingFang SC,sans-serif">暂无数据</text>`;
+    svg.innerHTML=h; return;
+  }
+
+  // FIX-3
+  const vals=pts.map(p=>p.hr);
+  let yMin=Math.floor(Math.min(...vals)-5);
+  let yMax=Math.ceil(Math.max(...vals)+5);
+  if(yMax-yMin<10){const mid=(yMin+yMax)/2;yMin=Math.floor(mid-5);yMax=Math.ceil(mid+5);}
+  const yRng=yMax-yMin;
+  const yOf=hr=>PT+CH-((hr-yMin)/yRng)*CH;
+
+  // Grid (3 levels)
+  [yMin, Math.round((yMin+yMax)/2), yMax].forEach(v=>{
+    const y=yOf(v);
+    h+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}"
+      stroke="#C8C5BE" stroke-width="1" stroke-dasharray="3 3"/>`;
+    h+=`<text x="${YAW-2}" y="${y+4}" text-anchor="end" font-size="10" fill="#888780"
+      font-family="-apple-system,PingFang SC,sans-serif">${v}</text>`;
+  });
+
+  const xOf=i=>PL+i*PSP+PSP/2;
+  const poly=pts.map((p,i)=>`${xOf(i)},${yOf(p.hr)}`).join(' ');
+
+  // Area fill
+  const fx=xOf(0), lx=xOf(n-1), bot=PT+CH;
+  h+=`<polygon points="${fx},${bot} ${poly} ${lx},${bot}"
+    fill="#534AB7" opacity="0.1"/>`;
+
+  // Line
+  h+=`<polyline points="${poly}" fill="none" stroke="#534AB7"
+    stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+
+  // Dots + X labels
+  pts.forEach((p,i)=>{
+    const x=xOf(i),y=yOf(p.hr);
+    h+=`<circle cx="${x}" cy="${y}" r="4" fill="#534AB7" stroke="white" stroke-width="1.5"/>`;
+    h+=`<text x="${x}" y="97" text-anchor="middle" font-size="9" fill="#888780"
+      font-family="-apple-system,PingFang SC,sans-serif">${p.lbl}</text>`;
+  });
+
+  svg.innerHTML=h;
+}
+
+/* ═══════════════ TIMELINE ═══════════════
+   FIX-2: .tl-line is a div that grows with content
+════════════════════════════════════════ */
+function drawTimeline(recs) {
+  const c=document.getElementById('tlContainer');
+  if(!recs.length){
+    c.innerHTML=`<div class="empty-wrap">
+      <div class="empty-icon">📊</div>
+      <div class="empty-text">完成第一次运动后，<br>数据将显示在这里</div>
+    </div>`;
+    return;
+  }
+  let h='<div class="tl-list">';
+  recs.forEach(r=>{
+    const dc=RPE_COLOR[r.rpe];
+    const ts=RPE_TSTYLE[r.rpe];
+    const adj=r.adj?`<span class="tl-adj">强度已调整</span>`:'';
+    h+=`<div class="tl-item">
+      <div class="tl-left">
+        <div class="tl-dot" style="background:${dc};border-color:var(--bg)"></div>
+        <div class="tl-line"></div>
+      </div>
+      <div class="tl-content">
+        <div class="tl-date">${fmtFull(r.date)}</div>
+        <div class="tl-row">
+          <span class="tl-type">${r.type}</span>
+          <span class="tl-dur">${r.dur} 分钟</span>
+          <span class="tl-rpe" style="${ts}">${RPE_LBL[r.rpe]}</span>
+          ${adj}
+        </div>
+      </div>
+    </div>`;
+  });
+  h+='</div>';
+  c.innerHTML=h;
+}
+
+/* ═══════════════ MAIN SWITCH — FIX-4 ═══════════════
+   All numerics (ring, charts, timeline) recalculated
+   from scratch on every tab change.
+════════════════════════════════════════════════════ */
+function switchTab(tab) {
+  // Tab button styles
+  ['w2','m1','all'].forEach(t=>{
+    document.getElementById({w2:'t-2w',m1:'t-1m',all:'t-all'}[t])
+      .classList.toggle('active', t===tab);
+  });
+
+  const cfg = CFG[tab];
+  const recs = filter(tab);          // FIX-4: fresh filter
+  const prev = prevPeriod(tab);
+  const gran = cfg.gran;
+
+  // Stats
+  const n   = recs.length;
+  const avg = n ? Math.round(recs.reduce((s,r)=>s+r.dur,0)/n) : 0;
+  const diff= n - prev.length;
+
+  // Labels
+  document.getElementById('ovLabel').textContent  = cfg.ovLabel;
+  document.getElementById('ovCount').textContent  = n;
+  document.getElementById('ovDur').textContent    = avg || '—';
+  document.getElementById('rpeTag').textContent   = cfg.label;
+
+  // Progress ring — FIX-4: denominator = cfg.target
+  drawRing(n, cfg.target);
+
+  // Compare pill
+  const pill=document.getElementById('ovCompare');
+  if(diff>0){pill.className='compare-pill c-up';pill.textContent=`↑ ${diff} 次（较上期）`;}
+  else if(diff<0){pill.className='compare-pill c-dn';pill.textContent=`↓ ${Math.abs(diff)} 次（较上期）`;}
+  else{pill.className='compare-pill c-eq';pill.textContent='与上期持平';}
+
+  // RPE chart points (oldest→newest) — FIX-4: re-derived
+  const rpePts=[...recs].reverse().map(r=>({rpe:r.rpe, lbl:fmtShort(r.date,gran)}));
+  drawRPE(rpePts);    // FIX-1 inside
+
+  // HR chart points — FIX-4: re-derived
+  const hrPts=[...recs].reverse().map(r=>({hr:r.hr, lbl:fmtShort(r.date,gran)}));
+  drawHR(hrPts);      // FIX-3 inside
+
+  // Timeline — FIX-2 inside
+  drawTimeline(recs);
+}
+
+switchTab('w2');
+</script>
+</body>
+</html>

@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heart KG — F2 运动模块决策流程</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f0f4f8; --surface: #fff; --border: #e2e8f0;
+      --text: #1a202c; --muted: #718096;
+      --ok: #52b788; --review: #d97706; --none: #dc2626;
+      --r: 10px;
+    }
+    body { font-family:'PingFang SC','Microsoft YaHei',sans-serif;
+           background:var(--bg); color:var(--text); font-size:14px; line-height:1.6; }
+
+    /* ── layout ── */
+    .shell { display:grid; grid-template-rows:52px 1fr;
+             grid-template-columns:360px 1fr;
+             grid-template-areas:"hd hd""sb main"; min-height:100vh; }
+
+    /* ── header ── */
+    header { grid-area:hd; background:#1d3557; color:#fff;
+             display:flex; align-items:center; gap:16px; padding:0 22px; }
+    header h1 { font-size:15px; font-weight:700; }
+    header .sub { font-size:11px; color:#a8dadc; margin-left:6px; }
+    .hd-stats { margin-left:auto; display:flex; gap:14px; font-size:11px; }
+    .hd-stat { display:flex; align-items:center; gap:4px; }
+    .hd-dot { width:7px; height:7px; border-radius:50%; }
+
+    /* ── sidebar ── */
+    aside { grid-area:sb; background:var(--surface);
+            border-right:1px solid var(--border); overflow-y:auto;
+            display:flex; flex-direction:column; }
+
+    .sb-filter { padding:9px 14px; border-bottom:1px solid var(--border);
+                 display:flex; gap:5px; flex-wrap:wrap; background:#f8fafc; flex-shrink:0; }
+    .filter-btn { padding:3px 9px; border-radius:20px; border:1px solid var(--border);
+                  background:transparent; font-size:11px; cursor:pointer; color:var(--muted);
+                  font-family:inherit; transition:all .15s; }
+    .filter-btn:hover { border-color:#718096; color:var(--text); }
+    .filter-btn.active { background:#1d3557; color:#fff; border-color:#1d3557; }
+
+    /* ── tree ── */
+    .tree-wrap { flex:1; overflow-y:auto; padding:14px 12px 28px; }
+
+    /* start node */
+    .tree-start { display:flex; align-items:center; gap:9px;
+                  padding:9px 12px; background:#1d3557; border-radius:8px;
+                  color:#fff; font-weight:700; font-size:13px; margin-bottom:0; }
+    .start-arrow { font-size:11px; opacity:.7; }
+
+    /* phase block */
+    .phase-block { display:flex; align-items:stretch; margin-top:0; }
+    .phase-spine { display:flex; flex-direction:column; align-items:center;
+                   width:28px; flex-shrink:0; }
+    .spine-line { width:2px; background:#d1d9e6; flex:1; min-height:6px; }
+    .phase-num { width:22px; height:22px; border-radius:50%;
+                 background:#2d3748; border:2px solid #e2e8f0;
+                 display:flex; align-items:center; justify-content:center;
+                 font-size:10px; font-weight:700; color:#fff; flex-shrink:0; z-index:1; }
+    .phase-body { flex:1; padding-left:8px; padding-bottom:4px; min-width:0; }
+
+    .phase-hd { display:flex; align-items:center; gap:7px;
+                padding:5px 7px; border-radius:6px; cursor:pointer;
+                user-select:none; transition:background .15s; }
+    .phase-hd:hover { background:#f3f6fa; }
+    .phase-name { font-size:13px; font-weight:700; color:#2d3748; flex:1; }
+    .phase-desc { font-size:10px; color:var(--muted); margin-top:1px; }
+    .ph-chevron { font-size:9px; color:var(--muted); transition:transform .18s; flex-shrink:0; }
+    .ph-chevron.open { transform:rotate(90deg); }
+
+    /* branches */
+    .branches { display:none; padding-left:6px; padding-bottom:6px;
+                border-left:2px solid #e8edf2; margin-left:3px; }
+    .branches.open { display:block; }
+
+    /* branch */
+    .branch { margin-top:5px; }
+    .branch-hd { display:flex; align-items:center; gap:6px;
+                 padding:4px 8px 4px 12px; border-radius:5px;
+                 cursor:pointer; user-select:none; font-size:12px;
+                 font-weight:600; color:#4a5568; position:relative;
+                 transition:background .15s; }
+    .branch-hd::before { content:''; position:absolute; left:-2px; top:50%;
+                          width:10px; height:2px; background:#d1d9e6; }
+    .branch-hd:hover { background:#f3f6fa; color:#1a202c; }
+    .branch-hd.reduce { color:#c53030; }
+    .branch-hd.increase { color:#276749; }
+    .branch-hd.reduce:hover { background:#fff5f5; }
+    .branch-hd.increase:hover { background:#f0fff4; }
+    .br-chevron { font-size:9px; transition:transform .18s; margin-left:auto; flex-shrink:0; }
+    .br-chevron.open { transform:rotate(90deg); }
+    .br-count { font-size:10px; font-weight:400; color:var(--muted); }
+
+    /* rule list */
+    .rule-list { display:none; padding-left:14px; margin-top:2px;
+                 border-left:1px dashed #d1d9e6; margin-left:8px; }
+    .rule-list.open { display:block; }
+
+    .rule-btn { display:flex; align-items:flex-start; gap:6px;
+                width:100%; padding:4px 6px; border:none; background:transparent;
+                cursor:pointer; text-align:left; border-radius:4px;
+                font-size:11.5px; color:#4a5568; line-height:1.4;
+                font-family:inherit; margin-top:2px;
+                transition:background .12s; position:relative; }
+    .rule-btn::before { content:''; position:absolute; left:-8px; top:10px;
+                        width:7px; height:1px; background:#d1d9e6; }
+    .rule-btn:hover { background:#f3f6fa; color:#1a202c; }
+    .rule-btn.active { background:#ebf8ff; color:#2b6cb0; font-weight:600; }
+    .rule-btn.hidden { display:none; }
+    .r-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+
+    /* ── main panel ── */
+    main { grid-area:main; padding:26px; overflow-y:auto; }
+
+    .card { background:var(--surface); border:1px solid var(--border);
+            border-radius:var(--r); overflow:hidden; margin-bottom:20px; }
+    .card-hd { padding:13px 18px; border-bottom:1px solid var(--border);
+               display:flex; align-items:center; gap:10px; }
+    .card-title { font-size:11px; font-weight:700; text-transform:uppercase;
+                  letter-spacing:.8px; color:var(--muted); }
+    .card-body { padding:18px; }
+
+    .meta-bar { display:flex; flex-wrap:wrap; align-items:flex-start;
+                gap:10px; margin-bottom:20px; }
+    .rule-title { font-size:17px; font-weight:700; flex:1 1 280px; }
+    .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px;
+             border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; }
+    .badge-group  { background:#faf5ff; color:#553c9a; }
+    .badge-module { background:#ebf8ff; color:#2b6cb0; }
+    .badge-ok     { background:#c6f6d5; color:#276749; }
+    .badge-review { background:#fef3c7; color:#92400e; }
+    .badge-none   { background:#fee2e2; color:#991b1b; }
+
+    .graph-wrap { overflow-x:auto; padding:8px 0 4px; }
+    svg.graph { display:block; min-width:780px; }
+
+    .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    @media(max-width:1060px){ .detail-grid{grid-template-columns:1fr;} }
+
+    .field-group { margin-bottom:13px; }
+    .field-label { font-size:11px; font-weight:700; text-transform:uppercase;
+                   letter-spacing:.8px; color:var(--muted); margin-bottom:4px; }
+    .field-value { font-size:14px; }
+    .field-pre { font-size:13px; color:#4a5568; white-space:pre-wrap; line-height:1.7; }
+    .field-tag { display:inline-block; background:#edf2f7; color:#4a5568;
+                 border-radius:4px; padding:2px 8px; font-size:12px; margin:2px 2px 2px 0; }
+    .affects-list { list-style:none; }
+    .affects-list li { padding:5px 0 5px 16px; border-bottom:1px dashed var(--border);
+                       position:relative; font-size:13px; color:#4a5568; }
+    .affects-list li::before { content:'→'; position:absolute; left:0; color:#276749; }
+
+    .ev-item { padding:13px; border:1px solid var(--border); border-radius:8px;
+               margin-bottom:9px; position:relative; }
+    .ev-item:last-child { margin-bottom:0; }
+    .ev-cite { font-weight:600; font-size:13px; margin-bottom:5px; padding-right:68px; line-height:1.4; }
+    .ev-find { font-size:13px; color:#4a5568; line-height:1.65; }
+    .ev-conf { position:absolute; top:13px; right:13px; font-size:11px; font-weight:700;
+               padding:2px 8px; border-radius:20px; }
+    .ev-conf-high   { background:#c6f6d5; color:#276749; }
+    .ev-conf-medium { background:#fef3c7; color:#92400e; }
+    .ev-conf-low    { background:#fee2e2; color:#991b1b; }
+
+    .notes-box { background:#fffbeb; border:1px solid #fcd34d; border-radius:8px;
+                 padding:12px 16px; font-size:13px; color:#78350f; line-height:1.7; }
+    .notes-empty { color:var(--muted); font-style:italic; font-size:13px; }
+
+    .empty-state { display:flex; flex-direction:column; align-items:center;
+                   justify-content:center; min-height:60vh; color:var(--muted); }
+    .empty-state .arrow { font-size:40px; opacity:.3; }
+    .empty-state p { margin-top:10px; font-size:15px; }
+    .empty-state small { margin-top:6px; font-size:12px; opacity:.7; }
+
+    .legend { display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--muted); }
+    .legend-item { display:flex; align-items:center; gap:5px; }
+    .legend-dot { width:10px; height:10px; border-radius:3px; }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <h1>Heart 决策知识图谱<span class="sub">F2 运动模块 · KG v0.3</span></h1>
+    <div class="hd-stats" id="hd-stats"></div>
+  </header>
+
+  <aside>
+    <div class="sb-filter">
+      <button class="filter-btn active" data-filter="all">全部</button>
+      <button class="filter-btn" data-filter="evidence_ok">✓ 依据充分</button>
+      <button class="filter-btn" data-filter="needs_review">⚠ 待补充</button>
+      <button class="filter-btn" data-filter="no_evidence">✗ 无依据</button>
+    </div>
+    <div class="tree-wrap" id="tree-wrap"></div>
+  </aside>
+
+  <main id="main-content">
+    <div class="empty-state">
+      <div class="arrow">←</div>
+      <p>从左侧流程树选择一条规则</p>
+      <small>展开分支节点，点击叶子规则查看详情</small>
+    </div>
+  </main>
+
+</div>
+<script>
+// ── 规则数据 ──────────────────────────────────────────────────────────────────
+const RULES = [
+  {
+    id:"f2-a1-karvonen-standard",
+    label:"标准有手环用户使用Karvonen法计算靶心率",
+    group:"A. 强度计算与评估方法",
+    module:"F2-运动模块",
+    phase:"问卷录入时（F3完成后）→ 持续影响整个F2",
+    trigger:{type:"composite",condition:"有手环数据 AND β受体阻滞剂 = 否",source:"F3 慢病与用药字段 + 手环连接状态"},
+    action:{type:"behavior_override",
+      description:"使用心率储备法（Karvonen公式）计算靶心率。靶心率 = (最大心率 - 静息心率) × 目标强度% + 静息心率。最大心率优先用手环实测峰值，无数据时用220-年龄估算。起始强度40%~60% HRR，目标逐步达到70%~85%。",
+      affects:["F2 运动处方展示：主展示心率目标区间（如95~115次/分）","F2 运动处方展示：同时展示对应RPE感受描述（双重表达）","F2 强度调整触发层2/层3：心率相关条件全部生效"]},
+    evidence:[
+      {citation:"中国心脏康复与二级预防指南（2018），第4章·有氧运动处方",key_finding:"推荐使用心率储备法（Karvonen法）制定冠心病患者居家康复运动强度。起始强度40%~60%，目标逐步达到70%~85%。靶心率 = (最大心率 - 静息心率) × 目标强度% + 静息心率。",confidence:"high"},
+      {citation:"冠心病患者运动治疗中国专家共识（2015），运动处方制定",key_finding:"心率储备法是冠心病III期居家康复中推荐的运动强度评估方法，需结合实测最大心率或估算最大心率使用。",confidence:"high"},
+      {citation:"02_文献总结_产品设计价值提炼.md §III 有氧运动处方",key_finding:"最大心率优先使用导入数据中的实测峰值心率；无数据时用220-年龄估算；静息心率使用导入数据中的7天清晨均值。",confidence:"high"}
+    ],status:"evidence_ok",notes:""
+  },
+  {
+    id:"f2-a2-rpe-only-beta-blocker",
+    label:"β受体阻滞剂用户切换为RPE主导评估",
+    group:"A. 强度计算与评估方法",
+    module:"F2-运动模块",
+    phase:"问卷录入时（F3慢病与用药）→ 持续影响整个F2",
+    trigger:{type:"patient_attribute",condition:"用药记录中 β受体阻滞剂 = 是",source:"F3 第三组·慢病与用药·β受体阻滞剂字段"},
+    action:{type:"behavior_override",
+      description:"将运动强度评估主导指标从靶心率（Karvonen法）切换为RPE（体感劳累度）。靶心率数据仍可计算和展示，但仅作参考，不参与任何触发逻辑。",
+      affects:["F2 运动处方展示：主展示RPE目标区间，心率区间标注「仅参考，因用药影响」","F2 强度调整触发层2/层3：禁用心率恢复和次日心跳条件，仅保留RPE + 6MWT","F2 运动后问卷：移除基于心率数值的硬性阈值判断，改为主观感受选项"]},
+    evidence:[
+      {citation:"ACSM's Guidelines for Exercise Testing and Prescription, 11th Ed. (2022), Ch.6",key_finding:"β受体阻滞剂使最大心率和亚最大运动心率显著降低（10–30 bpm），导致Karvonen法靶心率计算严重失准。指南明确推荐此类患者使用RPE作为运动强度监控的主要指标。",confidence:"high"},
+      {citation:"ESC Guidelines on Cardiovascular Disease Prevention (2021), §6.4",key_finding:"对服用β受体阻滞剂的心血管病患者，应以感知劳累度（RPE, Borg 6–20量表）替代心率作为运动强度监测的主要参考指标。",confidence:"high"},
+      {citation:"中国心脏康复与二级预防指南（2018），第4章·运动处方制定",key_finding:"对服用β受体阻滞剂的患者，靶心率计算需修正，或直接改用RPE量表（Borg 6–20），建议靶RPE为11–16。",confidence:"high"}
+    ],status:"evidence_ok",notes:""
+  },
+  {
+    id:"f2-a3-rpe-primary-no-wearable",
+    label:"无手环用户RPE为主、心率估算仅参考",
+    group:"A. 强度计算与评估方法",
+    module:"F2-运动模块",
+    phase:"问卷录入时（设备状态评估）→ 持续影响F2",
+    trigger:{type:"patient_attribute",condition:"手环连接状态 = 无手环 AND β受体阻滞剂 = 否",source:"F3 设备信息 or 初始设置页"},
+    action:{type:"behavior_override",
+      description:"无实时心率数据时，RPE作为运动强度的主要参考指标。同时展示基于220-年龄估算的目标心率区间，标注「估算，仅参考」。",
+      affects:["F2 运动处方展示：主展示RPE目标区间，心率区间标注「估算参考」","F2 强度调整层2/层3：心率相关条件降级为可选参考，不作为硬性触发","F2 运动后问卷：心率数值字段改为可选填，RPE问卷为必填"]},
+    evidence:[
+      {citation:"02_文献总结_产品设计价值提炼.md §XI 关键结论2",key_finding:"「RPE量表是最适合居家场景的强度监测工具：不依赖设备、与心率高度相关、用户学习成本低，应作为产品的核心强度表达方式。」",confidence:"high"},
+      {citation:"Pelliccia A et al. (2022). European Journal of Preventive Cardiology, 29(1), 230–245.",key_finding:"EAPC立场声明：RPE量表（Borg 6–20）在无监测设备时是可靠的运动强度替代指标，在心脏康复居家场景中具有良好实用性。",confidence:"high"}
+    ],status:"evidence_ok",notes:""
+  },
+  {
+    id:"f2-b1-high-risk-lock",
+    label:"高危用户运动模块锁定，进入只读模式",
+    group:"B. 危险分层 → 功能访问控制",
+    module:"F2-运动模块 / 全产品",
+    phase:"F3首次评估完成后立即生效",
+    trigger:{type:"composite",condition:"满足以下任一：LVEF<40% / 静息胸痛心绞痛 / 近期晕厥史 / 充血性心力衰竭（NYHA III~IV级）/ 静息复杂室性心律失常 / PHQ-9或GAD-7≥15分",source:"F3 第二组·高危三问 + 心脏功能字段 + F3 第五组心理初筛"},
+    action:{type:"lock",
+      description:"用户进入只读模式。运动模块（F2）、AI反馈引擎（F4）、饮食个性化（F5）全部不可见。界面固定提示：「你目前的情况建议在医生指导下开始康复，本产品可以帮你了解心脏康复的相关知识。」",
+      affects:["F2 运动模块：不可见/不可访问","F4 AI反馈引擎：不可见","F5 饮食模块：只开放通用科普，不展示个性化方案","F1 康复助手：限制为知识问答，不给行为建议","可访问：F1科普内容、F5饮食推荐（简化）、F9心理模块练习"]},
+    evidence:[
+      {citation:"中国心血管疾病患者居家康复专家共识（中国循环杂志，2022），危险分层部分",key_finding:"高危患者（LVEF<40%、静息心绞痛、近期晕厥、严重心律失常、心力衰竭）不建议在无医疗监督的情况下进行居家运动康复，需转介至医院监督下康复。",confidence:"high"},
+      {citation:"02_文献总结_产品设计价值提炼.md §II 危险分层标准",key_finding:"高危标准包括：LVEF<40%、心力衰竭、复杂室性心律失常、静息心绞痛（<5METs时）、ST段下移≥2mm、血流动力学异常。高危患者居家康复安全性不可保障。",confidence:"high"},
+      {citation:"心脏康复分级诊疗中国专家共识（中国介入心脏病学杂志，2022）",key_finding:"高危患者应在具备心肺复苏能力的II期心脏康复中心进行，不建议直接进行无监督的居家III期康复。",confidence:"high"}
+    ],status:"evidence_ok",
+    notes:"PHQ-9/GAD-7重度（≥15分）触发高危降级为产品设计决策（安全考量），非运动能力分层。需核查该阈值是否有直接文献支持。"
+  },
+  {
+    id:"f2-b2-medium-risk-enhanced-followup",
+    label:"中危用户同等运动路径 + 前18次额外心率恢复询问",
+    group:"B. 危险分层 → 功能访问控制",
+    module:"F2-运动模块",
+    phase:"F3首次评估完成后生效，持续至第18次运动完成",
+    trigger:{type:"patient_attribute",condition:"危险分层 = 中危（LVEF 40~50%，或METs 5~7，或运动时心绞痛≥5METs时，或ST段下移<2mm）",source:"F3 第二组·心脏功能字段 + VSAQ评分"},
+    action:{type:"behavior_override",
+      description:"中危用户进入与低危相同的运动路径，但前18次运动后额外增加：「运动结束后心跳是否已恢复正常？」（三选项）。第3次拒绝降档建议时触发强制降低（见规则F2-f2）。",
+      affects:["F2 运动后问卷：前18次运动额外追加心跳恢复主观询问","F2 强度调整触发层2：中危额外敏感于心跳恢复异常信号","F8 随访：第12/18次运动有额外强度重评"]},
+    evidence:[
+      {citation:"02_文献总结_产品设计价值提炼.md §II 危险分层标准",key_finding:"中危患者危险分层标准（LVEF 40~50%，METs 5~7，可有心绞痛但≥5METs时）。文献建议中危患者居家康复需比低危患者更密集的随访监测。",confidence:"high"},
+      {citation:"心率恢复在心血管疾病评估的应用价值及进展（article文件夹PDF）",key_finding:"心率恢复（HRR）是心血管疾病预后的独立预测指标。运动后1分钟心率下降<12次/分是自主神经功能异常的信号。居家场景以主观感受替代精确测量。",confidence:"medium"}
+    ],status:"evidence_ok",
+    notes:"「前18次」截止数量为产品设计决策，对应约6周（3次/周×6周）。需确认是否有文献支持该时间窗长度。"
+  },
+  {
+    id:"f2-b3-low-risk-standard",
+    label:"低危用户标准流程，无额外限制",
+    group:"B. 危险分层 → 功能访问控制",
+    module:"F2-运动模块",
+    phase:"F3首次评估完成后生效",
+    trigger:{type:"patient_attribute",condition:"危险分层 = 低危（所有指标均满足：LVEF≥50% + METs≥7 + 无运动心绞痛 + 无ST段改变 + 无复杂室性心律失常 + 血流动力学正常）",source:"F3 第二组·心脏功能字段 + VSAQ评分 + PHQ-2/GAD-2初筛"},
+    action:{type:"behavior_override",
+      description:"用户进入完整运动模块，全部功能可用，无额外限制。强度调整建议为「用户确认制」（接受/暂时保持），不强制执行。",
+      affects:["F2 全部功能正常开放","F2 强度调整：用户确认制，不强制"]},
+    evidence:[
+      {citation:"02_文献总结_产品设计价值提炼.md §II 危险分层标准",key_finding:"低危患者（LVEF≥50%，METs≥7，无心绞痛，无ST段改变，血流动力学正常）是无监督居家康复的适宜人群。",confidence:"high"}
+    ],status:"evidence_ok",notes:""
+  },
+  {
+    id:"f2-c1-presymptom-lock",
+    label:"运动前症状筛查阳性 → 预警 + 当日锁定",
+    group:"C. 运动前筛查",
+    module:"F2-运动模块",
+    phase:"用户点击「开始运动」前",
+    trigger:{type:"patient_attribute",condition:"运动前症状筛查：以下任一为「是」：胸痛 / 胸闷 / 心慌 / 头晕或眼前发黑 / 呼吸困难（明显气促）",source:"F2 运动前二步筛查第一步·症状问卷"},
+    action:{type:"alert",
+      description:"弹出预警卡片：「今天出现了这些症状，暂时不适合运动。如果症状持续或加重，请尽快联系医生或拨打120。」当日运动模块锁定，次日自动解锁。",
+      affects:["F2 当日运动：锁定，次日自动解锁","F1 科普/F5饮食/F9心理：不受影响，正常可用"]},
+    evidence:[
+      {citation:"02_文献总结_产品设计价值提炼.md §IV 应立即停止运动的症状",key_finding:"文献高度一致：胸痛/胸闷、头晕/黑矇、严重气促、心跳明显异常是运动禁忌症状，出现时应立即停止运动并寻求医疗帮助。",confidence:"high"},
+      {citation:"冠心病患者运动治疗中国专家共识（2015），运动安全部分",key_finding:"运动前询问症状是冠心病运动康复安全保障的核心环节。静息状态下出现心绞痛、严重气促、头晕等是当日运动的绝对禁忌。",confidence:"high"}
+    ],status:"evidence_ok",notes:""
+  },
+  {
+    id:"f2-c2-medium-risk-poor-state-adjust",
+    label:"中危 + 状态差 → 调整为柔韧/呼吸训练",
+    group:"C. 运动前筛查",
+    module:"F2-运动模块",
+    phase:"运动前二步筛查第二步·状态评估",
+    trigger:{type:"composite",condition:"危险分层 = 中危 AND 状态评估结果为「差」（明显疲倦 or 睡眠很差/几乎没睡）",source:"F3危险分层结果 + F2运动前状态评估问卷"},
+    action:{type:"behavior_override",
+      description:"当日运动方案调整为仅柔韧/呼吸训练，取消有氧和抗阻。提示：「今天身体状态不太好，我们来做一些轻松的拉伸和呼吸练习。」",
+      affects:["F2 当日运动方案：替换为柔韧训练（5~10分钟）+ 呼吸训练（5分钟）","F2 强度调整计数：本次不计入连续3次触发计数"]},
+    evidence:[
+      {citation:"ACSM's Guidelines for Exercise Testing and Prescription, 11th Ed. (2022)",key_finding:"明显疲劳、睡眠不足是降低运动强度或暂停有氧训练的适应性调整信号，对中高风险心血管患者尤其重要。",confidence:"medium"},
+      {citation:"cardiac_rehab_exercise_evidence_summary.md §IV 柔韧性训练",key_finding:"柔韧性训练在心脏康复中帮助血流动力学平稳过渡，对各种身体状态均适用，安全性高。",confidence:"high"}
+    ],status:"evidence_ok",notes:""
+  },
+  {
+    id:"f2-c3-low-risk-poor-state-reduce",
+    label:"低危 + 状态差 → 降强度有氧",
+    group:"C. 运动前筛查",
+    module:"F2-运动模块",
+    phase:"运动前二步筛查第二步·状态评估",
+    trigger:{type:"composite",condition:"危险分层 = 低危 AND 状态评估结果为「差」（同 f2-c2 定义）",source:"F3危险分层结果 + F2运动前状态评估问卷"},
+    action:{type:"behavior_override",
+      description:"当日有氧训练强度降一档（RPE目标下调2档，心率目标区间下移）。抗阻训练次数减少1/3。提示：「今天状态不太好，我们把强度调低一点。」",
+      affects:["F2 当日运动处方：强度降一档，不取消训练","F2 运动强度计数：本次按实际RPE记录，不触发调整计数"]},
+    evidence:[
+      {citation:"ACSM's Guidelines for Exercise Testing and Prescription, 11th Ed. (2022)",key_finding:"身体状态不佳时，推荐降低运动强度而非完全停止以维持康复连续性。低危患者保留有氧但减量，优于完全停训（停训会打断康复节奏，增加重启阻力）。",confidence:"medium"}
+    ],status:"evidence_ok",
+    notes:"低危「降强度」与中危「换柔韧/呼吸」的差异来自breath.md状态分级表的逻辑推论，差异化处理由危险分层决定。"
+  },
+  {
+    id:"f2-d1-post-warning-symptom-lock",
+    label:"运动后预警症状快筛阳性 → 就医提示 + 当日锁定",
+    group:"D. 运动后问卷响应",
+    module:"F2-运动模块",
+    phase:"用户点击「结束运动」后",
+    trigger:{type:"patient_attribute",condition:"运动后问卷层1：以下任一被选中：胸痛/胸闷 / 头晕/眼前发黑 / 严重气促 / 心跳明显异常 / 出冷汗/恶心/面色苍白",source:"F2 运动后问卷·层1预警症状快筛"},
+    action:{type:"alert",
+      description:"1秒内显示红色警示卡：「请立即停止运动并坐下休息。如症状持续超过5分钟，或伴随其他不适，请立即拨打120。」当日运动模块锁定。次日运动前增加确认弹窗。",
+      affects:["F2 当日运动：锁定","F2 次日运动前：增加症状确认弹窗","F8 随访：触发额外随访提醒（72小时内）"]},
+    evidence:[
+      {citation:"02_文献总结_产品设计价值提炼.md §IV 应立即停止运动并显示警示的症状",key_finding:"列出应立即停止运动的症状：胸痛/胸闷、头晕/眼前发黑、严重气促、心跳明显异常、出冷汗/恶心/面色苍白。",confidence:"high"},
+      {citation:"冠心病患者运动治疗中国专家共识（2015），紧急处理部分",key_finding:"运动中或运动后出现心绞痛症状，须立即停止运动、休息，必要时舌下含服硝酸甘油。5分钟内未缓解须拨打急救电话。",confidence:"high"}
+    ],status:"evidence_ok",
+    notes:"「5分钟」时限来自硝酸甘油使用指南，适用于胸痛/胸闷场景。其他症状适用同样规则是产品一致性设计决策。"
+  },
+  {
+    id:"f2-d2-post-hr-recovery-abnormal-record",
+    label:"运动后心率恢复异常 → 记录并计入强度调整触发计数",
+    group:"D. 运动后问卷响应",
+    module:"F2-运动模块",
+    phase:"运动后问卷·层2 RPE + 恢复期记录",
+    trigger:{type:"threshold",condition:"(A) 主观：「心跳是否恢复正常？」→「还没有恢复」（运动结束5分钟后），或 (B) 有手环：运动结束30分钟后心率仍高于静息均值+20次/分",source:"F2 运动后问卷·恢复期记录（主观问卷 or 手环数据）"},
+    action:{type:"behavior_override",
+      description:"本次运动标记为「心率恢复异常」，写入运动记录。计入层2强度调整触发条件计数（连续3次中≥2次异常→触发降低强度建议）。单次不直接弹出调整建议。",
+      affects:["F2 运动记录：标记该次恢复异常","F2 强度调整层2触发：计入条件计数"]},
+    evidence:[
+      {citation:"心率恢复在心血管疾病评估的应用价值及进展（article文件夹PDF）",key_finding:"运动后HRR是自主神经功能和心血管健康的重要指标。运动后1分钟心率下降<12次/分、或心率长时间不恢复，与不良心血管事件风险独立相关。HRR异常是运动强度过高的信号之一。",confidence:"high"},
+      {citation:"02_文献总结_产品设计价值提炼.md §IV 次日暂停/减量的信号",key_finding:"「运动结束30分钟后心率仍未恢复正常」是次日运动需要减量的信号之一。",confidence:"high"}
+    ],status:"evidence_ok",
+    notes:"「30分钟」阈值来自文献，「主观感受5分钟后仍未恢复」是产品的居家替代方案。两者触发同一规则的逻辑需要临床确认。"
+  },
+  {
+    id:"f2-e1-intensity-reduce-l2",
+    label:"层2触发 — 推送强度降低建议（连续3次条件）",
+    group:"E. 强度调整触发逻辑",
+    module:"F2-运动模块",
+    phase:"运动后评估完成后，系统后台分析",
+    trigger:{type:"sequence",condition:"最近3次运动（含完整后问卷，14天内），满足以下任一：(1)≥2次RPE≥15  (2)≥2次心率恢复异常  (3)≥2次次日心跳比平时快  (4)≥1次运动中轻微不适。跳过问卷的运动不计入。",source:"F2 运动记录 + 运动后问卷数据 + 每日check-in心跳感受"},
+    action:{type:"suggest",
+      description:"推送强度降低建议卡片：「根据你最近的运动情况，建议稍微降低一下运动强度。」用户选：「好的，调整一下」或「暂时保持」。推出后计数器重置；14天内未完成3次则计数器重置并推送依从性提醒。下限：不低于首次处方起始强度。",
+      affects:["F2 运动处方：用户确认后降一个强度档位","F2 强度调整计数器：重置"]},
+    evidence:[
+      {citation:"ACSM's Guidelines for Exercise Testing and Prescription, 11th Ed. (2022), 运动强度进展章节",key_finding:"RPE持续偏高（≥15，「有点吃力」以上）是运动强度超出当前适应范围的信号，是调整运动强度的依据。连续多次出现时，推荐降低运动强度以避免过度训练和不良事件。",confidence:"high"},
+      {citation:"中国心脏康复与二级预防指南（2018），强度调整原则",key_finding:"居家康复运动强度应根据患者反应动态调整，出现运动耐受不佳信号（心率恢复差、自觉劳累明显）时应及时下调强度。",confidence:"high"}
+    ],status:"needs_review",
+    notes:"「连续3次」「14天内」「≥2次满足」等具体阈值为产品设计决策，无直接文献支持精确数值。核心原则（多次RPE偏高→降强度）有文献支持，但量化标准需临床专家评审。"
+  },
+  {
+    id:"f2-e2-intensity-increase-l2",
+    label:"层2触发 — 推送强度提升建议（连续3次四项全满足）",
+    group:"E. 强度调整触发逻辑",
+    module:"F2-运动模块",
+    phase:"运动后评估完成后，系统后台分析",
+    trigger:{type:"sequence",condition:"最近3次运动（14天内），以下四项全满足（缺一不可）：(1)3次RPE≤11  (2)3次无运动不适  (3)3次心率恢复正常  (4)距上次强度调整>2周",source:"F2 运动记录 + 运动后问卷数据 + 强度调整历史记录"},
+    action:{type:"suggest",
+      description:"推送强度提升建议：「你最近运动完成得很好，身体已经适应了当前强度，建议适当提高一点。」用户可选「好的，提升一下」或「我还想保持这个强度」。",
+      affects:["F2 运动处方：用户确认后提升一个强度档位","F2 强度调整计数器：重置"]},
+    evidence:[
+      {citation:"article/up.md §二·进阶的前提（来源：AACVPR Phase I；ACSM 2022；GVSU临床教材）",key_finding:"明确规定进阶须同时满足四条：(1)心率响应正常 (2)收缩压随负荷上升10–40mmHg (3)无新发心律失常/ST改变 (4)无心绞痛、无明显呼吸困难、无过度疲劳。四条全满足才可进阶。",confidence:"high"},
+      {citation:"article/up.md §四 §4.1（来源：EAPC立场声明 EJPC 2022）",key_finding:"「强度和时长的增加幅度为每周5–10%，在心血管患者中通常耐受良好。」「距上次调整>2周」对应约10–14%的累积增幅，处于推荐范围内。",confidence:"high"},
+      {citation:"ACSM's Guidelines for Exercise Testing and Prescription, 11th Ed. (2022)",key_finding:"当患者能够轻松完成当前处方（RPE持续偏低，无不适，恢复良好）时，是进一步提高运动刺激的时机。",confidence:"high"}
+    ],status:"evidence_ok",
+    notes:"up.md提供的「四条全满足」临床标准与本规则触发逻辑高度吻合，证据充分。「升档四项全满足 vs 降档满足其一」的不对称设计体现安全优先，有充分依据。"
+  },
+  {
+    id:"f2-e3-conflict-safety-first",
+    label:"层2/层3冲突 — 降档信号覆盖升档建议",
+    group:"E. 强度调整触发逻辑",
+    module:"F2-运动模块",
+    phase:"运动后分析 or 随访评估时",
+    trigger:{type:"composite",condition:"层2分析推出「升档建议」 AND 层3随访同时检测到「降档信号」（多数天check-in心跳比平时快，或6MWT趋势下降）",source:"F2层2分析结果 + F8每周随访数据 + 每日check-in记录"},
+    action:{type:"behavior_override",
+      description:"层3降档信号覆盖层2升档建议：不推送升档，改为降档建议或「先维持当前强度，下周再评估」提示。原则：任何降低安全信号的触发，优先于任何提升强度的建议。",
+      affects:["F2 当次调整建议：升档建议取消，改为降档或维持"]},
+    evidence:[
+      {citation:"产品安全性原则（PRD v2.0 非功能性需求·安全性）",key_finding:"「运动模块症状预警触发后，强制终止运动建议直至用户确认症状缓解。」安全优先于进展是产品核心设计原则。",confidence:"high"}
+    ],status:"needs_review",
+    notes:"安全信号优先的底层逻辑充分，但「冲突解决机制」（两者同时触发时的优先级）是产品设计决策，无直接文献。建议请临床专家评审。"
+  },
+  {
+    id:"f2-e4-beta-blocker-intensity-rule-override",
+    label:"β受体阻滞剂用户层2/层3触发条件修正",
+    group:"E. 强度调整触发逻辑",
+    module:"F2-运动模块",
+    phase:"强度调整触发分析时",
+    trigger:{type:"composite",condition:"β受体阻滞剂 = 是 AND 层2 or 层3强度调整逻辑触发",source:"F3慢病与用药字段 + F2强度调整系统"},
+    action:{type:"behavior_override",
+      description:"移除层2/层3中所有心率相关条件：「次日心跳比平时快」「心率恢复>30min」「手环心率超过目标区间」均不参与计数和触发。仅保留：RPE评分 + 6MWT趋势（随访时）。",
+      affects:["F2 强度调整层2/层3：心率条件全部禁用，只用RPE + 6MWT"]},
+    evidence:[
+      {citation:"同规则 f2-a2-rpe-only-beta-blocker（β受体阻滞剂 RPE主导）",key_finding:"β受体阻滞剂使最大心率显著降低（10–30 bpm），导致所有基于心率的评估指标（包括心率恢复评估）均不可靠。RPE是该类患者唯一可靠的主观运动强度指标。",confidence:"high"}
+    ],status:"evidence_ok",notes:"此规则是 f2-a2 在强度调整逻辑中的延伸，证据体系相同。"
+  },
+  {
+    id:"f2-f1-cabg-upper-limb-filter",
+    label:"CABG术后3个月内过滤上肢中高强度抗阻",
+    group:"F. 特殊情况处理",
+    module:"F2-运动模块",
+    phase:"问卷录入时（F3诊断+手术时间）→ 持续至手术满3个月",
+    trigger:{type:"composite",condition:"诊断类型 = CABG（冠状动脉旁路移植术）AND 手术距今 < 3个月",source:"F3 第一组·诊断类型 + 手术距今时间字段"},
+    action:{type:"behavior_override",
+      description:"运动处方生成时，自动过滤所有上肢中到高强度抗阻运动（器械推胸/划船/肩推，弹力带胸前推/肩外展，哑铃上肢动作）。仅保留：下肢抗阻、柔韧训练、低强度有氧。3个月后自动解锁并推送「可以开始上肢训练了」提示。",
+      affects:["F2 运动处方生成：过滤上肢中高强度抗阻","F2 运动库：CABG<3月标签的运动不出现在推荐列表","3个月后：自动解除过滤，系统推送上肢训练启用提示"]},
+    evidence:[
+      {citation:"02_文献总结_产品设计价值提炼.md §III 抗阻运动处方注意事项",key_finding:"「上肢训练禁忌：CABG术后3个月内不进行中到高强度上肢力量训练。」",confidence:"high"},
+      {citation:"稳定性冠心病康复治疗与护理实践中国专家共识（中华内科杂志，2023），CABG术后康复",key_finding:"CABG术后胸骨需要至少3个月愈合，期间中到高强度上肢活动产生胸骨剪切力，增加切口并发症风险。术后3个月内应限制上肢负重。",confidence:"high"},
+      {citation:"cardiac_rehab_exercise_evidence_summary.md §IV 柔韧性训练",key_finding:"对CABG术后患者：胸廓和肩部活动度恢复是柔韧训练的重点目标。",confidence:"medium"}
+    ],status:"evidence_ok",
+    notes:"⚠️ 文献差异：中国指南（中华内科杂志2023）= 3个月；AHA/AACVPR 2024 + ACSM 2022（经up.md和breath.md引用）= 8–10周。产品采用3个月（中国指南保守值）。建议请临床专家确认适用于中国居家患者的合理时间窗。"
+  },
+  {
+    id:"f2-f2-medium-risk-force-reduction",
+    label:"中危第3次拒绝降档 → 强制小幅降低",
+    group:"F. 特殊情况处理",
+    module:"F2-运动模块",
+    phase:"用户拒绝层2降档建议时",
+    trigger:{type:"sequence",condition:"危险分层 = 中危 AND 用户对同一轮强度降低建议已选择「暂时保持」3次",source:"F2 强度调整建议·用户响应记录"},
+    action:{type:"force",
+      description:"强制执行小幅降低（下调一个强度档位），不再询问用户确认。同时触发随访提醒：「根据你近期的运动情况，我们已帮你调低了运动强度，如有疑问建议联系主治医生。」强制执行后数据正常（连续3次RPE达标）→ 恢复用户选择权。",
+      affects:["F2 运动处方：强制降一档，不经用户确认","F8 随访：触发额外随访提示「建议联系医生」","强制后数据正常（连续3次RPE达标）→ 恢复用户选择权"]},
+    evidence:[
+      {citation:"中国心血管疾病患者居家康复专家共识（2022），中危患者随访管理",key_finding:"中危患者居家康复期间需要比低危患者更密集的医疗监督。连续出现运动过量信号而用户未响应时，应触发更积极的干预措施以确保患者安全。",confidence:"medium"}
+    ],status:"needs_review",
+    notes:"「3次拒绝触发强制」是产品安全设计决策，无直接文献量化该阈值。建议请临床医生审核该逻辑是否合理。低危患者不触发此规则，因其安全边际更大。"
+  },
+  {
+    id:"f2-g1-progression-order",
+    label:"进阶顺序原则：时长优先 → 频率 → 强度",
+    group:"G. 进阶节奏原则",
+    module:"F2-运动模块",
+    phase:"持续适用于整个康复过程的进阶决策",
+    trigger:{type:"composite",condition:"层2升档条件满足时，先判断时长是否≥30分钟/次、频率是否≥4次/周。两者未达目标时优先推进对应维度，而非直接提升强度。",source:"F2 运动记录·每次时长 + 每周次数 + 层2升档触发结果"},
+    action:{type:"behavior_override",
+      description:"进阶推送内容根据当前短板维度自动调整：短板在时长→建议延长时长5~10分钟；短板在频率→建议增加一次运动；时长和频率均达标→推送强度提升建议。每次只调整一个维度。",
+      affects:["F2 层2升档建议内容：三选一（时长/频率/强度）","F2 运动处方：根据用户确认的维度更新"]},
+    evidence:[
+      {citation:"article/up.md §三 进阶的顺序原则（来源：EAPC立场声明 EJPC 2022；Frontiers Cardiovasc Med综述 2021）",key_finding:"「正确的进阶顺序：时长先增加→频率再增加→强度最后增加。先达到每次运动≥30分钟、每周≥4天，再考虑提升强度。三个维度不应同时调整，每次只调整一个。」",confidence:"high"},
+      {citation:"EAPC立场声明（European Journal of Preventive Cardiology, 2022）",key_finding:"EAPC明确建议：在心脏康复强度进阶之前，应先确保运动时长和频率达到目标值。过早提升强度而忽视时长/频率基础积累，是常见的进阶错误。",confidence:"high"}
+    ],status:"evidence_ok",notes:""
+  },
+  {
+    id:"f2-g2-weekly-progression-cap",
+    label:"有氧强度每周进阶上限：单次增幅不超过5~10%",
+    group:"G. 进阶节奏原则",
+    module:"F2-运动模块",
+    phase:"强度上调时的执行约束",
+    trigger:{type:"threshold",condition:"用户确认接受强度提升建议（层2升档）时，系统计算新处方强度与当前处方强度的差值",source:"F2 层2升档确认事件 + 当前处方强度数据"},
+    action:{type:"behavior_override",
+      description:"单次强度提升幅度上限为当前强度的5~10%。若算法计算出的升幅超过10%，系统自动缩减至10%并提示：「为让身体平稳适应，这次我们只小幅提升一点。」阻力训练负荷提升上限：一次约+5%（或换下一级弹力带）。",
+      affects:["F2 新运动处方：强度增量上限钳制在5~10%","F2 阻力训练：负荷+~5%或换更大张力弹力带"]},
+    evidence:[
+      {citation:"article/up.md §四 §4.1（来源：EAPC立场声明 EJPC 2022）",key_finding:"「强度和时长的增加幅度为每周5–10%，在心血管患者中通常耐受良好。」",confidence:"high"},
+      {citation:"article/up.md §五 §5.1（来源：AHA/AACVPR 2024核心组件声明）",key_finding:"「当患者能够以适当姿势舒适完成目标重复次数上限（10–15次）时，负荷增加约5%；或换用张力更大的弹力带。」",confidence:"high"}
+    ],status:"evidence_ok",notes:""
+  },
+  {
+    id:"f2-g3-talk-test-dyspnea-reduce",
+    label:"Talk Test失败（无法说完整句子）→ 立即降低运动强度",
+    group:"G. 进阶节奏原则",
+    module:"F2-运动模块",
+    phase:"运动执行中（用户主动上报 or 有氧训练期间）",
+    trigger:{type:"patient_attribute",condition:"用户在运动中报告或选择：「说话明显费力，说不完整的句子」（通过运动中询问或运动后问卷第一层采集）",source:"F2 运动中状态询问 or 运动后问卷·呼吸困难项"},
+    action:{type:"alert",
+      description:"提示用户：「你现在的强度有点偏高，建议放慢节奏，直到你能轻松说完一句话再继续。」本次运动RPE标记为偏高，计入层2降档触发计数。若合并胸痛/头晕等预警症状，升级为f2-d1（就医提示+锁定）。",
+      affects:["F2 运动中：提示降速/降强度","F2 运动后问卷：本次RPE标记为偏高，计入层2降档计数"]},
+    evidence:[
+      {citation:"article/low.md §2.4（来源：AHA/AACVPR 2024；EAPC EJPC 2022）",key_finding:"「Talk Test原则：患者能够用完整句子说话 = 处于通气阈以下，强度安全；无法说完整句子 = 超过通气阈，需降低强度至可舒适交谈的水平。AHA/AACVPR 2024明确将Talk Test列为无GXT数据时的替代强度指导工具。」",confidence:"high"},
+      {citation:"EAPC立场声明（European Journal of Preventive Cardiology, 2022）",key_finding:"Talk Test是主观运动强度评估的有效工具，推荐用于无法进行实验室测试的居家康复场景。能舒适交谈 = 第一通气阈以下，是居家有氧训练的安全区域。",confidence:"high"}
+    ],status:"evidence_ok",notes:"Talk Test是RPE的互补工具，两者共同构成居家无设备强度监测的主观双通道。β受体阻滞剂用户同样适用（不依赖心率）。"
+  }
+];
+
+// ── 树结构定义 ────────────────────────────────────────────────────────────────
+const TREE = [
+  { id:'setup', num:'1', label:'一次性设置', desc:'F3评估完成后生效',
+    branches:[
+      { id:'b-intensity', label:'强度计算方法选择',
+        ruleIds:['f2-a1-karvonen-standard','f2-a2-rpe-only-beta-blocker','f2-a3-rpe-primary-no-wearable'] },
+      { id:'b-risk', label:'危险分层 → 功能权限',
+        ruleIds:['f2-b1-high-risk-lock','f2-b2-medium-risk-enhanced-followup','f2-b3-low-risk-standard'] }
+    ]
+  },
+  { id:'pre', num:'2', label:'每次运动前', desc:'点击「开始运动」前',
+    branches:[
+      { id:'b-symp', label:'症状筛查',
+        ruleIds:['f2-c1-presymptom-lock'] },
+      { id:'b-state', label:'今日状态评估',
+        ruleIds:['f2-c2-medium-risk-poor-state-adjust','f2-c3-low-risk-poor-state-reduce'] }
+    ]
+  },
+  { id:'during', num:'3', label:'运动执行中', desc:'实时监测',
+    branches:[
+      { id:'b-talk', label:'Talk Test 强度监测',
+        ruleIds:['f2-g3-talk-test-dyspnea-reduce'] }
+    ]
+  },
+  { id:'post', num:'4', label:'运动后', desc:'运动结束后',
+    branches:[
+      { id:'b-warn', label:'预警症状快筛',
+        ruleIds:['f2-d1-post-warning-symptom-lock'] },
+      { id:'b-hrr', label:'心率恢复记录',
+        ruleIds:['f2-d2-post-hr-recovery-abnormal-record'] }
+    ]
+  },
+  { id:'adjust', num:'5', label:'强度调整', desc:'系统后台长期分析', defaultOpen:true,
+    branches:[
+      { id:'b-reduce', label:'↓  降低强度', type:'reduce', defaultOpen:true,
+        ruleIds:['f2-e1-intensity-reduce-l2','f2-e4-beta-blocker-intensity-rule-override','f2-f2-medium-risk-force-reduction'] },
+      { id:'b-increase', label:'↑  提高强度', type:'increase', defaultOpen:true,
+        ruleIds:['f2-e2-intensity-increase-l2','f2-g1-progression-order','f2-g2-weekly-progression-cap'] },
+      { id:'b-conflict', label:'升降档冲突解决',
+        ruleIds:['f2-e3-conflict-safety-first'] }
+    ]
+  },
+  { id:'special', num:'6', label:'特殊情况处理', desc:'按患者属性常驻',
+    branches:[
+      { id:'b-cabg', label:'CABG 术后限制',
+        ruleIds:['f2-f1-cabg-upper-limb-filter'] }
+    ]
+  }
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const STATUS_MAP = {
+  evidence_ok:  { cls:'badge-ok',    dot:'#52b788', label:'✓ 依据充分' },
+  needs_review: { cls:'badge-review',dot:'#d97706', label:'⚠ 待补充'  },
+  no_evidence:  { cls:'badge-none',  dot:'#dc2626', label:'✗ 无依据'  }
+};
+const CONF_MAP = { high:'高置信', medium:'中置信', low:'低置信' };
+const TYPE_LABEL = { patient_attribute:'患者属性', threshold:'数值阈值', sequence:'连续事件', composite:'复合条件' };
+const ACTION_LABEL = { behavior_override:'行为覆盖', lock:'功能锁定', alert:'弹出预警', suggest:'推送建议', force:'强制执行' };
+
+let currentFilter = 'all';
+let currentId     = null;
+const phaseOpen   = {};
+const branchOpen  = {};
+TREE.forEach(p => {
+  phaseOpen[p.id] = !!p.defaultOpen;
+  p.branches.forEach(b => { branchOpen[b.id] = !!b.defaultOpen; });
+});
+
+const ruleMap = {};
+RULES.forEach(r => ruleMap[r.id] = r);
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const c = { evidence_ok:0, needs_review:0, no_evidence:0 };
+  RULES.forEach(r => c[r.status] = (c[r.status]||0) + 1);
+  document.getElementById('hd-stats').innerHTML =
+    `<div class="hd-stat"><div class="hd-dot" style="background:#52b788"></div>依据充分 ${c.evidence_ok}</div>`+
+    `<div class="hd-stat"><div class="hd-dot" style="background:#d97706"></div>待补充 ${c.needs_review}</div>`+
+    `<div class="hd-stat"><div class="hd-dot" style="background:#a0aec0"></div>共 ${RULES.length} 条规则</div>`;
+}
+
+// ── Tree render ───────────────────────────────────────────────────────────────
+function renderTree() {
+  let html = `<div class="tree-start"><span class="start-arrow">▶</span>用户开始运动</div>`;
+
+  TREE.forEach((phase, pi) => {
+    const pOpen = phaseOpen[phase.id];
+    const isLast = pi === TREE.length - 1;
+
+    html += `
+      <div class="phase-block">
+        <div class="phase-spine">
+          <div class="spine-line"></div>
+          <div class="phase-num">${phase.num}</div>
+          ${!isLast || pOpen ? `<div class="spine-line"></div>` : ''}
+        </div>
+        <div class="phase-body">
+          <div class="phase-hd" onclick="togglePhase('${phase.id}')">
+            <div>
+              <div class="phase-name">${phase.label}</div>
+              <div class="phase-desc">${phase.desc}</div>
+            </div>
+            <span class="ph-chevron ${pOpen?'open':''}">▶</span>
+          </div>
+          <div class="branches ${pOpen?'open':''}" id="phase-${phase.id}">
+    `;
+
+    phase.branches.forEach(branch => {
+      const bOpen = branchOpen[branch.id];
+      const visible = branch.ruleIds.filter(id => {
+        const r = ruleMap[id];
+        return r && (currentFilter === 'all' || r.status === currentFilter);
+      });
+      const total = branch.ruleIds.length;
+      const typeClass = branch.type ? branch.type : '';
+
+      html += `
+        <div class="branch">
+          <div class="branch-hd ${typeClass}" onclick="toggleBranch('${branch.id}')">
+            <span>${branch.label}</span>
+            <span class="br-count">${visible.length}/${total}</span>
+            <span class="br-chevron ${bOpen?'open':''}">▶</span>
+          </div>
+          <div class="rule-list ${bOpen?'open':''}" id="branch-${branch.id}">
+      `;
+
+      branch.ruleIds.forEach(rid => {
+        const r = ruleMap[rid];
+        if (!r) return;
+        const s = STATUS_MAP[r.status] || STATUS_MAP.needs_review;
+        const isFiltered = currentFilter !== 'all' && r.status !== currentFilter;
+        const isActive = currentId === rid;
+        html += `
+          <button class="rule-btn ${isActive?'active':''} ${isFiltered?'hidden':''}"
+                  onclick="showRule('${rid}')">
+            <span class="r-dot" style="background:${s.dot}"></span>
+            <span>${r.label}</span>
+          </button>
+        `;
+      });
+
+      html += `</div></div>`;
+    });
+
+    html += `</div></div></div>`;
+  });
+
+  document.getElementById('tree-wrap').innerHTML = html;
+}
+
+function togglePhase(id) {
+  phaseOpen[id] = !phaseOpen[id];
+  renderTree();
+}
+
+function toggleBranch(id) {
+  branchOpen[id] = !branchOpen[id];
+  renderTree();
+}
+
+// ── Filter ────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderTree();
+  });
+});
+
+// ── Graph ─────────────────────────────────────────────────────────────────────
+function drawGraph(r) {
+  const W=820,H=180,TW=230,TH=64,AW=280,AH=64;
+  const TX=24,TY=(H-TH)/2,AX=W-AW-24,AY=(H-AH)/2;
+  const midX=(TX+TW+AX)/2;
+  const edgeLabel = ACTION_LABEL[r.action.type]||r.action.type;
+  return `<svg class="graph" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <defs>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0,10 3.5,0 7" fill="#718096"/>
+    </marker>
+    <filter id="sh"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,.08)"/></filter>
+  </defs>
+  <rect x="${TX}" y="${TY}" width="${TW}" height="${TH}" rx="10" fill="#2b6cb0" filter="url(#sh)"/>
+  <text x="${TX+TW/2}" y="${TY+18}" text-anchor="middle"
+        font-family="PingFang SC,Microsoft YaHei,sans-serif" font-size="10" fill="rgba(255,255,255,.7)" font-weight="600" letter-spacing="1">触发条件 · ${TYPE_LABEL[r.trigger.type]||r.trigger.type}</text>
+  <foreignObject x="${TX+8}" y="${TY+24}" width="${TW-16}" height="36">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:PingFang SC,Microsoft YaHei,sans-serif;font-size:12px;color:#fff;line-height:1.4;font-weight:600;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${r.trigger.condition}</div>
+  </foreignObject>
+  <text x="${TX+TW/2}" y="${TY+TH+15}" text-anchor="middle"
+        font-family="PingFang SC,Microsoft YaHei,sans-serif" font-size="11" fill="#718096">来源：${r.trigger.source}</text>
+  <line x1="${TX+TW+8}" y1="${H/2}" x2="${AX-8}" y2="${H/2}" stroke="#718096" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="${midX-55}" y="${H/2-20}" width="110" height="22" rx="11" fill="#edf2f7"/>
+  <text x="${midX}" y="${H/2-5}" text-anchor="middle"
+        font-family="PingFang SC,Microsoft YaHei,sans-serif" font-size="12" fill="#4a5568" font-weight="600">${edgeLabel}</text>
+  <rect x="${AX}" y="${AY}" width="${AW}" height="${AH}" rx="10" fill="#276749" filter="url(#sh)"/>
+  <text x="${AX+AW/2}" y="${AY+18}" text-anchor="middle"
+        font-family="PingFang SC,Microsoft YaHei,sans-serif" font-size="10" fill="rgba(255,255,255,.7)" font-weight="600" letter-spacing="1">执行动作</text>
+  <foreignObject x="${AX+8}" y="${AY+24}" width="${AW-16}" height="36">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:PingFang SC,Microsoft YaHei,sans-serif;font-size:12px;color:#fff;line-height:1.4;font-weight:600;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${r.action.description.substring(0,60)}…</div>
+  </foreignObject>
+</svg>`;
+}
+
+// ── Rule detail ───────────────────────────────────────────────────────────────
+function showRule(id) {
+  currentId = id;
+  renderTree();
+  const r = RULES.find(x => x.id === id);
+  if (!r) return;
+  const s = STATUS_MAP[r.status] || STATUS_MAP.needs_review;
+  const affectsHTML = r.action.affects.map(a => `<li>${a}</li>`).join('');
+  const evHTML = r.evidence.map(ev => `<div class="ev-item">
+    <div class="ev-cite">${ev.citation}</div>
+    <div class="ev-find">${ev.key_finding}</div>
+    <span class="ev-conf ev-conf-${ev.confidence}">${CONF_MAP[ev.confidence]||ev.confidence}</span>
+  </div>`).join('');
+  const notesHTML = r.notes
+    ? `<div class="notes-box">${r.notes}</div>`
+    : `<span class="notes-empty">（暂无备注）</span>`;
+
+  document.getElementById('main-content').innerHTML = `
+    <div class="meta-bar">
+      <div class="rule-title">${r.label}</div>
+      <span class="badge badge-group">${r.group}</span>
+      <span class="badge badge-module">${r.module}</span>
+      <span class="badge ${s.cls}">${s.label}</span>
+    </div>
+    <div class="card">
+      <div class="card-hd"><span class="card-title">规则图</span></div>
+      <div class="card-body">
+        <div class="graph-wrap">${drawGraph(r)}</div>
+        <div class="legend" style="margin-top:10px">
+          <div class="legend-item"><div class="legend-dot" style="background:#2b6cb0"></div>触发条件节点</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#276749"></div>执行动作节点</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#edf2f7;border:1px solid #cbd5e0"></div>关系类型（边标签）</div>
+        </div>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">触发条件</span></div>
+          <div class="card-body">
+            <div class="field-group"><div class="field-label">类型</div><span class="field-tag">${TYPE_LABEL[r.trigger.type]||r.trigger.type}</span></div>
+            <div class="field-group"><div class="field-label">条件</div><div class="field-pre">${r.trigger.condition}</div></div>
+            <div class="field-group"><div class="field-label">数据来源</div><div class="field-value" style="color:#2b6cb0">${r.trigger.source}</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">执行动作</span></div>
+          <div class="card-body">
+            <div class="field-group"><div class="field-label">类型</div><span class="field-tag">${ACTION_LABEL[r.action.type]||r.action.type}</span></div>
+            <div class="field-group"><div class="field-label">动作描述</div><div class="field-pre">${r.action.description}</div></div>
+            <div class="field-group"><div class="field-label">影响范围</div><ul class="affects-list">${affectsHTML}</ul></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">文献依据</span><span style="margin-left:auto;font-size:12px;color:var(--muted)">${r.evidence.length} 条</span></div>
+          <div class="card-body">${evHTML}</div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">PM 备注</span></div>
+          <div class="card-body">${notesHTML}</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);padding:6px 4px;">规则 ID：${r.id}</div>
+      </div>
+    </div>`;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderStats();
+renderTree();
+</script>
+</body>
+</html>

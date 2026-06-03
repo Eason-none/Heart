@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 知情同意</title>
+<style>
+  :root {
+    --bg: #F7F5F1;
+    --card: #F0EDE8;
+    --text: #2C2A26;
+    --text-sub: #888780;
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --orange: #BA7517;
+    --orange-light: #FAEEDA;
+    --red: #A32D2D;
+    --red-light: #FCEBEB;
+    --green: #1D9E75;
+    --border: #C8C5BE;
+    --r-card: 12px;
+    --r-btn: 8px;
+    --r-pill: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #E8E4DE;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
+  }
+
+  .phone {
+    width: 390px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .status-bar {
+    height: 44px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .status-time { font-size: 15px; font-weight: 600; color: var(--text); }
+  .status-icons { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--text); }
+
+  /* Nav */
+  .nav-bar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .nav-back {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 16px;
+    color: var(--blue);
+    text-decoration: none;
+    height: 44px;
+  }
+  .nav-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Content */
+  .page-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    padding: 16px 16px 8px;
+    line-height: 1.3;
+  }
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text-sub);
+    padding: 0 16px 16px;
+    line-height: 1.6;
+  }
+
+  /* Scroll area */
+  .consent-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .consent-card {
+    background: var(--card);
+    border-radius: var(--r-card);
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+  }
+
+  .consent-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-sub);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .consent-text { flex: 1; }
+  .consent-heading {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 5px;
+    line-height: 1.4;
+  }
+  .consent-body {
+    font-size: 14px;
+    color: var(--text-sub);
+    line-height: 1.65;
+  }
+
+  /* Footer */
+  .consent-footer {
+    flex-shrink: 0;
+    padding: 16px 16px 32px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .checkbox-box {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .checkbox-box.checked {
+    background: var(--blue);
+    border-color: var(--blue);
+  }
+
+  .checkbox-box.checked::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+    transform: rotate(45deg) translate(-1px, -1px);
+    display: block;
+  }
+
+  .checkbox-label {
+    font-size: 16px;
+    color: var(--text);
+    line-height: 1.5;
+    user-select: none;
+  }
+
+  .btn-start {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+    border-radius: var(--r-btn);
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 4px;
+    transition: opacity 0.15s, background 0.15s;
+  }
+
+  .btn-start.disabled {
+    background: var(--border);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .btn-start:active { opacity: 0.85; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+  </div>
+
+  <div class="nav-bar" style="position:relative;">
+    <a href="onboarding-welcome.html" class="nav-back">‹ 返回</a>
+    <span class="nav-title">使用前请阅读</span>
+  </div>
+
+  <div class="page-title">使用前，请仔细阅读以下内容</div>
+  <div class="page-subtitle">Heart 是一款辅助工具，不能替代医生的专业判断与医疗服务。</div>
+
+  <div class="consent-scroll" id="scrollArea">
+
+    <div class="consent-card">
+      <div class="consent-num">1</div>
+      <div class="consent-text">
+        <div class="consent-heading">本应用仅供参考，不构成医疗诊断</div>
+        <div class="consent-body">Heart 提供的运动计划、营养建议、科普内容均基于普遍性指导原则，不能替代主治医生的个性化诊疗方案。请在医生知情的情况下使用本应用。</div>
+      </div>
+    </div>
+
+    <div class="consent-card">
+      <div class="consent-num">2</div>
+      <div class="consent-text">
+        <div class="consent-heading">运动中请量力而行，遇不适立即停止</div>
+        <div class="consent-body">如在运动过程中出现胸痛、胸闷、心慌、头晕、呼吸困难等症状，请立即停止活动并就医。应用提供的运动计划不能保证对所有个体绝对安全。</div>
+      </div>
+    </div>
+
+    <div class="consent-card">
+      <div class="consent-num">3</div>
+      <div class="consent-text">
+        <div class="consent-heading">评估数据用于个性化方案生成</div>
+        <div class="consent-body">你填写的评估信息（年龄、心脏功能、用药情况等）将用于生成个性化运动处方。数据储存于本地，不会在未经你授权的情况下传输至第三方。</div>
+      </div>
+    </div>
+
+    <div class="consent-card" style="margin-bottom:24px;">
+      <div class="consent-num">4</div>
+      <div class="consent-text">
+        <div class="consent-heading">高风险情况将提示暂缓运动</div>
+        <div class="consent-body">若评估结果提示你目前暂不适合独立进行运动康复，应用将锁定运动功能，并建议你先寻求医生明确许可。这是为了保护你的安全，不代表永久限制。</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="consent-footer">
+    <div class="checkbox-row" id="checkboxRow" onclick="toggleCheck()">
+      <div class="checkbox-box" id="checkboxBox"></div>
+      <span class="checkbox-label">我已阅读并同意以上内容</span>
+    </div>
+    <a href="assessment-index.html" class="btn-start disabled" id="startBtn">开始评估 →</a>
+  </div>
+</div>
+
+<script>
+  let checked = false;
+
+  function toggleCheck() {
+    checked = !checked;
+    const box = document.getElementById('checkboxBox');
+    const btn = document.getElementById('startBtn');
+    if (checked) {
+      box.classList.add('checked');
+      btn.classList.remove('disabled');
+    } else {
+      box.classList.remove('checked');
+      btn.classList.add('disabled');
+    }
+  }
+</script>
+</body>
+</html>

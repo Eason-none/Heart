@@ -1,0 +1,2371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 运动</title>
+<style>
+/* ═══════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════ */
+:root {
+  --bg:           #F7F5F1;
+  --card:         #F0EDE8;
+  --text:         #2C2A26;
+  --sub:          #888780;
+  --blue:         #185FA5;
+  --blue-light:   #E6F1FB;
+  --orange:       #BA7517;
+  --orange-light: #FAEEDA;
+  --red:          #A32D2D;
+  --red-light:    #FCEBEB;
+  --green:        #1D9E75;
+  --green-light:  #D4F2E7;
+  --green-dark:   #085041;
+  --border:       #C8C5BE;
+  --r-card: 12px;
+  --r-btn:  8px;
+  --r-pill: 16px;
+}
+
+/* ═══════════════════════════════════════
+   RESET & SHELL
+═══════════════════════════════════════ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #E8E4DE;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
+}
+.phone {
+  width: 390px;
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════
+   STATUS + HEADER
+═══════════════════════════════════════ */
+.status-bar {
+  height: 44px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 20;
+}
+.status-time { font-size: 15px; font-weight: 600; color: var(--text); }
+.status-icons { font-size: 12px; color: var(--text); }
+
+.page-header {
+  height: 48px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  justify-content: space-between;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  z-index: 20;
+}
+.page-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+.header-link {
+  font-size: 14px;
+  color: var(--blue);
+  text-decoration: none;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+/* ═══════════════════════════════════════
+   DEMO CONTROLS
+═══════════════════════════════════════ */
+.demo-controls {
+  padding: 8px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.demo-label { font-size: 11px; color: var(--sub); width: 100%; margin-bottom: 2px; }
+.demo-btn {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--sub);
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.demo-btn.active { background: var(--blue); border-color: var(--blue); color: white; font-weight: 600; }
+
+/* ═══════════════════════════════════════
+   SCROLL AREA
+═══════════════════════════════════════ */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ═══════════════════════════════════════
+   PANELS — show/hide
+═══════════════════════════════════════ */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ═══════════════════════════════════════
+   SHARED COMPONENTS
+═══════════════════════════════════════ */
+
+/* Section label */
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sub);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* Card base */
+.card {
+  background: var(--card);
+  border-radius: var(--r-card);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+/* Pill tag */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+}
+.pill-green { background: var(--green-light); color: var(--green-dark); }
+.pill-blue  { background: var(--blue-light);  color: var(--blue); }
+.pill-orange{ background: var(--orange-light); color: var(--orange); }
+.pill-red   { background: var(--red-light);   color: var(--red); }
+
+/* Buttons */
+.btn-full {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: none;
+  border-radius: var(--r-btn);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+.btn-full:active { opacity: 0.82; }
+.btn-full:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-blue  { height: 56px; background: var(--blue);  color: white; }
+.btn-green { height: 56px; background: var(--green); color: white; }
+.btn-gray  { height: 48px; background: var(--card);  color: var(--sub); border: 1.5px solid var(--border) !important; }
+
+/* Step indicator */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.step-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s;
+}
+.step-dot.done  { background: var(--blue); }
+.step-dot.active { background: var(--blue); }
+.step-label { font-size: 13px; color: var(--sub); }
+
+/* Checkbox rows */
+.check-option {
+  min-height: 52px;
+  background: var(--bg);
+  border-radius: var(--r-btn);
+  border: 1.5px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: all 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.check-option.checked {
+  background: var(--blue-light);
+  border-color: var(--blue);
+}
+.check-option.checked-none {
+  background: var(--green-light);
+  border-color: var(--green);
+}
+.check-box {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  border: 2px solid var(--border);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.12s;
+}
+.check-option.checked .check-box {
+  background: var(--blue);
+  border-color: var(--blue);
+}
+.check-option.checked .check-box::after {
+  content: '';
+  width: 4px; height: 8px;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(45deg) translate(-1px, -1px);
+  display: block;
+}
+.check-option.checked-none .check-box {
+  background: var(--green);
+  border-color: var(--green);
+}
+.check-option.checked-none .check-box::after {
+  content: '';
+  width: 4px; height: 8px;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(45deg) translate(-1px, -1px);
+  display: block;
+}
+.check-label { font-size: 16px; color: var(--text); }
+
+/* ── SYMPTOM WARNING CARD ── */
+.symptom-warning-card {
+  border-radius: var(--r-card);
+  background: var(--red-light);
+  border-left: 4px solid var(--red);
+  padding: 16px;
+  margin: 12px 0;
+  display: none;
+}
+.symptom-warning-card.show { display: block; }
+.sw-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.sw-icon {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--red);
+  color: var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.sw-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--red);
+  line-height: 1.3;
+}
+.sw-body {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.65;
+  margin-bottom: 14px;
+}
+.sw-dismiss {
+  height: 44px;
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-btn);
+  color: var(--sub);
+  font-size: 15px;
+  cursor: pointer;
+  width: 100%;
+  font-family: inherit;
+}
+
+/* Next-day recovery check */
+.recovery-check-card {
+  border-radius: var(--r-card);
+  background: var(--orange-light);
+  border-left: 4px solid var(--orange);
+  padding: 16px;
+  margin-bottom: 12px;
+  display: none;
+}
+.recovery-check-card.show { display: block; }
+.recovery-title { font-size: 16px; font-weight: 700; color: var(--orange); margin-bottom: 12px; }
+.recovery-btn-row { display: flex; gap: 8px; }
+.btn-recovered {
+  flex: 1; height: 48px;
+  background: var(--green);
+  color: white;
+  border: none;
+  border-radius: var(--r-btn);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-still-bad {
+  flex: 1; height: 48px;
+  background: var(--card);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-btn);
+  font-size: 15px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ── STATE ASSESSMENT (step 2) ── */
+.rating-card {
+  border-radius: var(--r-btn);
+  border: 2px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  cursor: pointer;
+  background: var(--bg);
+  transition: all 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.rating-card.selected { border-color: var(--blue); background: var(--blue-light); }
+.rating-card.selected .rating-label { color: var(--blue); }
+.rating-card.selected .rating-emoji { transform: scale(1.15); }
+.rating-label { font-size: 16px; font-weight: 600; color: var(--text); }
+.rating-sub { font-size: 13px; color: var(--sub); margin-top: 2px; }
+.rating-emoji { font-size: 24px; transition: transform 0.15s; }
+
+/* Confirm button hint */
+.confirm-hint {
+  font-size: 13px;
+  color: var(--sub);
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* ── PRESCRIPTION ── */
+.adjustment-card {
+  border-radius: var(--r-card);
+  background: var(--orange-light);
+  border: 1.5px solid #E0AC50;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  display: none;
+}
+.adjustment-card.show { display: block; }
+.adj-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.adj-text { font-size: 15px; font-weight: 600; color: var(--orange); }
+.adj-reason-link {
+  font-size: 14px;
+  color: var(--blue);
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: inherit;
+  padding: 0;
+}
+.adj-reason-body {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.6;
+  background: rgba(255,255,255,0.5);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: none;
+}
+.adj-reason-body.show { display: block; }
+.adj-btn-row { display: flex; gap: 8px; }
+.btn-accept {
+  flex: 1; height: 52px;
+  background: var(--blue);
+  color: white;
+  border: none;
+  border-radius: var(--r-btn);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+.btn-keep {
+  height: 44px;
+  padding: 0 16px;
+  background: none;
+  border: none;
+  color: var(--sub);
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  align-self: center;
+}
+
+.rx-card {
+  border-radius: var(--r-card);
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.rx-header {
+  background: var(--blue);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rx-type-badge {
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rx-stage-badge {
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+}
+.rx-rows { padding: 0 16px; }
+.rx-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.rx-row:last-child { border-bottom: none; }
+.rx-row-label { font-size: 14px; color: var(--sub); }
+.rx-row-value { font-size: 15px; font-weight: 600; color: var(--text); }
+
+/* Expand toggle rows */
+.expand-row {
+  border-bottom: 1px solid var(--border);
+}
+.expand-row:last-child { border-bottom: none; }
+.expand-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.expand-toggle-label { font-size: 14px; color: var(--sub); }
+.expand-toggle-arrow {
+  font-size: 14px;
+  color: var(--sub);
+  transition: transform 0.2s;
+}
+.expand-toggle-arrow.open { transform: rotate(180deg); }
+.expand-content {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.6;
+  padding-bottom: 12px;
+  display: none;
+}
+.expand-content.show { display: block; }
+
+/* Offline banner */
+.offline-banner {
+  background: var(--card);
+  border-radius: var(--r-btn);
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: var(--sub);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  display: none;
+}
+.offline-banner.show { display: flex; }
+
+/* ── ACTIVE TIMER PANEL ── */
+.timer-display {
+  text-align: center;
+  padding: 32px 0 28px;
+}
+.timer-type {
+  font-size: 15px;
+  color: var(--sub);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.timer-clock {
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -2px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.timer-phase {
+  font-size: 13px;
+  color: var(--sub);
+  margin-bottom: 24px;
+}
+.timer-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.timer-btn {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.timer-btn-pause  { background: var(--card); border: 2px solid var(--border); }
+.timer-btn-stop   { background: var(--red-light); border: 2px solid var(--red); }
+.timer-btn:active { transform: scale(0.92); }
+
+/* RPE reminder */
+.rpe-reminder {
+  border-radius: var(--r-card);
+  background: var(--blue-light);
+  border: 1px solid #B8D4EE;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--blue);
+  line-height: 1.5;
+  margin-bottom: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* Phase progress */
+.phase-bars {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.phase-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+}
+.phase-bar.active { background: var(--blue); }
+.phase-bar.done   { background: var(--green); }
+.phase-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--sub);
+  margin-bottom: 16px;
+}
+.phase-label-row span { flex: 1; text-align: center; }
+
+/* ── RPE SELECTOR ── */
+.rpe-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.rpe-card {
+  border-radius: var(--r-btn);
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  padding: 0 16px;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.12s;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+/* DEFAULT HIGH-WEIGHT: 适中 */
+.rpe-card[data-rpe="moderate"] {
+  border: 2px solid var(--blue);
+  background: var(--blue-light);
+}
+.rpe-card[data-rpe="moderate"] .rpe-name { color: var(--blue); font-weight: 700; }
+.rpe-card[data-rpe="moderate"] .rpe-hint { color: var(--blue); opacity: 0.7; }
+
+/* Selected: non-moderate */
+.rpe-card.selected-other {
+  border: 2px solid var(--text) !important;
+  background: var(--card) !important;
+}
+/* Selected: moderate */
+.rpe-card[data-rpe="moderate"].selected-moderate {
+  border: 2.5px solid var(--blue) !important;
+  box-shadow: 0 0 0 2px var(--blue-light);
+}
+
+.rpe-left { flex: 1; }
+.rpe-name { font-size: 16px; font-weight: 600; color: var(--text); }
+.rpe-hint { font-size: 13px; color: var(--sub); margin-top: 2px; }
+.rpe-target-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  background: var(--blue);
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+
+/* ── POST-SYMPTOM MULTI SELECT ── */
+.multi-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.multi-option {
+  min-height: 52px;
+  border-radius: var(--r-btn);
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.multi-option.selected { background: var(--blue-light); border-color: var(--blue); }
+.multi-option.selected-none { background: var(--green-light); border-color: var(--green); }
+.multi-check {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  border: 2px solid var(--border);
+  background: white;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.multi-option.selected .multi-check {
+  background: var(--blue); border-color: var(--blue);
+}
+.multi-option.selected .multi-check::after,
+.multi-option.selected-none .multi-check::after {
+  content: '';
+  width: 4px; height: 8px;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(45deg) translate(-1px, -1px);
+  display: block;
+}
+.multi-option.selected-none .multi-check { background: var(--green); border-color: var(--green); }
+.multi-label { font-size: 16px; color: var(--text); }
+.multi-option.selected .multi-label { color: var(--blue); }
+.multi-option.selected-none .multi-label { color: var(--green-dark); font-weight: 600; }
+
+/* HR Recovery */
+.hr-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sub);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hr-path-toggle {
+  display: flex;
+  background: var(--card);
+  border-radius: var(--r-pill);
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+.hr-path-btn {
+  flex: 1;
+  height: 30px;
+  border-radius: 12px;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--sub);
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.hr-path-btn.active {
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+.hr-option {
+  min-height: 52px;
+  border-radius: var(--r-btn);
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: all 0.12s;
+}
+.hr-option.selected { background: var(--blue-light); border-color: var(--blue); }
+.hr-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+.hr-option.selected .hr-dot { background: var(--blue); border-color: var(--blue); }
+.hr-label { font-size: 15px; color: var(--text); }
+.hr-option.selected .hr-label { color: var(--blue); }
+
+/* Submit button states */
+.submit-btn-wrap { margin-top: 8px; }
+
+/* ── SUMMARY CARD ── */
+.summary-hero {
+  background: var(--green-light);
+  border-radius: var(--r-card);
+  padding: 20px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.summary-hero-icon {
+  font-size: 44px;
+  flex-shrink: 0;
+}
+.summary-hero-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--green-dark);
+  margin-bottom: 4px;
+}
+.summary-hero-sub { font-size: 14px; color: var(--green-dark); opacity: 0.75; }
+
+.summary-stats-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.stat-cell {
+  flex: 1;
+  background: var(--card);
+  border-radius: var(--r-card);
+  padding: 14px 12px;
+  text-align: center;
+}
+.stat-value { font-size: 20px; font-weight: 700; color: var(--text); }
+.stat-label { font-size: 12px; color: var(--sub); margin-top: 3px; }
+
+.cumulative-row {
+  background: var(--card);
+  border-radius: var(--r-card);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.cumulative-text { font-size: 15px; color: var(--text); }
+.cumulative-badge {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green-dark);
+  background: var(--green-light);
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+}
+
+/* Adjustment notice */
+.adjustment-notice {
+  border-radius: var(--r-card);
+  background: var(--orange-light);
+  border-left: 4px solid var(--orange);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: var(--orange);
+  display: none;
+}
+.adjustment-notice.show { display: block; }
+.adjustment-notice a { color: var(--blue); }
+
+/* AI text block */
+.ai-block {
+  background: white;
+  border-radius: var(--r-card);
+  border: 1px solid var(--border);
+  padding: 16px;
+  margin-bottom: 12px;
+  min-height: 80px;
+}
+.ai-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sub);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ai-loading { font-size: 15px; color: var(--sub); }
+.ai-text    { font-size: 16px; color: var(--text); line-height: 1.7; }
+.ai-fallback{ font-size: 15px; color: var(--sub); }
+
+/* Next session block */
+.next-session {
+  background: var(--card);
+  border-radius: var(--r-card);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.next-session-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sub);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.next-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.next-row:last-child { border-bottom: none; }
+.next-row-label { font-size: 14px; color: var(--sub); }
+.next-row-value { font-size: 15px; font-weight: 600; color: var(--text); }
+
+.restart-btn {
+  width: 100%;
+  height: 48px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-btn);
+  font-size: 15px;
+  color: var(--sub);
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+/* ── EXERCISE LOCK STATE ── */
+.lock-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+.lock-icon {
+  font-size: 56px;
+  color: var(--sub);
+  margin-bottom: 20px;
+  line-height: 1;
+}
+.lock-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+  line-height: 1.35;
+}
+.lock-subtitle {
+  font-size: 16px;
+  color: var(--sub);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.lock-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin-bottom: 20px;
+}
+.lock-available-title {
+  font-size: 15px;
+  color: var(--sub);
+  margin-bottom: 14px;
+  align-self: flex-start;
+}
+.lock-feature-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lock-feature-item {
+  background: var(--card);
+  border-radius: var(--r-card);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.lock-feature-icon {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.lock-feature-text { flex: 1; text-align: left; }
+.lock-feature-name { font-size: 15px; font-weight: 600; color: var(--text); }
+.lock-feature-sub  { font-size: 13px; color: var(--sub); margin-top: 2px; }
+.lock-feature-arrow{ font-size: 18px; color: var(--sub); }
+
+/* ── SYMPTOM LOCKED (next-day) ── */
+.locked-banner {
+  background: var(--card);
+  border-radius: var(--r-card);
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--sub);
+  text-align: center;
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+/* ── TAB BAR ── */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  width: 390px;
+  height: 68px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  padding-top: 8px;
+  z-index: 50;
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.tab-icon  { font-size: 22px; line-height: 1; }
+.tab-label { font-size: 10px; color: var(--sub); font-weight: 500; }
+.tab-item.active .tab-label { color: var(--blue); font-weight: 700; }
+
+/* Hidden util */
+.hidden { display: none !important; }
+
+/* ── WEEKLY PLAN SECTION ── */
+.weekly-plan-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.weekly-plan-title {
+  font-size: 16px;
+  color: var(--sub);
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.wp-item {
+  background: var(--card);
+  border-radius: var(--r-card);
+  margin-bottom: 8px;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  transition: border-color .15s;
+}
+.wp-item.today { border-color: var(--blue); }
+.wp-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.wp-date {
+  font-size: 15px;
+  color: var(--text);
+  font-weight: 600;
+  min-width: 64px;
+  flex-shrink: 0;
+}
+.wp-today-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: var(--blue);
+  color: #fff;
+  flex-shrink: 0;
+}
+.wp-done-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: var(--green-light);
+  color: var(--green-dark);
+  flex-shrink: 0;
+}
+.wp-tags {
+  display: flex;
+  gap: 5px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+.wp-type-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+}
+.wt-aerobic   { background: var(--blue-light);   color: var(--blue); }
+.wt-stretch   { background: var(--green-light);  color: var(--green-dark); }
+.wt-rest      { background: var(--card);          color: var(--sub); border: 1px solid var(--border); }
+.wp-venue-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: var(--orange-light);
+  color: var(--orange);
+}
+.wp-dur { font-size: 13px; color: var(--sub); flex-shrink: 0; }
+.wp-arrow {
+  font-size: 14px;
+  color: var(--sub);
+  flex-shrink: 0;
+  transition: transform .2s;
+}
+.wp-arrow.open { transform: rotate(180deg); }
+
+/* Detail block (collapsed by default) */
+.wp-detail {
+  display: none;
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--border);
+}
+.wp-detail.show { display: block; }
+.wp-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.wp-detail-row:last-child { border-bottom: none; padding-bottom: 0; }
+.wp-detail-label { color: var(--sub); }
+.wp-detail-value { color: var(--text); font-weight: 600; }
+.wp-detail-note {
+  font-size: 13px;
+  color: var(--sub);
+  line-height: 1.55;
+  padding: 8px 0 2px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- ── STATUS BAR ── -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">●●● WiFi 🔋</div>
+  </div>
+
+  <!-- ── PAGE HEADER ── -->
+  <div class="page-header">
+    <span class="page-title">运动</span>
+    <a href="exercise-data.html" class="header-link">查看数据 ›</a>
+  </div>
+
+  <!-- ── DEMO CONTROLS ── -->
+  <div class="demo-controls">
+    <div class="demo-label">🎛 演示跳转（状态机节点 / 特殊状态）</div>
+    <button class="demo-btn active" id="d_checkin"      onclick="jumpTo('checkin')">① Check-in</button>
+    <button class="demo-btn"        id="d_prescription" onclick="jumpTo('prescription')">② 处方</button>
+    <button class="demo-btn"        id="d_active"       onclick="jumpTo('active')">③ 执行中</button>
+    <button class="demo-btn"        id="d_feedback"     onclick="jumpTo('feedback')">④ 反馈</button>
+    <button class="demo-btn"        id="d_summary"      onclick="jumpTo('summary')">⑤ 摘要</button>
+    <button class="demo-btn"        id="d_locked"       onclick="jumpTo('locked')">🔒 高危锁</button>
+    <button class="demo-btn"        id="d_adj"          onclick="toggleAdjustment()">调整建议</button>
+    <button class="demo-btn"        id="d_adj_summary"  onclick="toggleAdjustmentSummary()">调整摘要</button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SCROLL AREA — all panels live here
+  ══════════════════════════════════════ -->
+  <div class="scroll-area" id="scrollArea">
+
+    <!-- ══════════════════════════════════
+         PANEL: HIGH-RISK LOCK
+    ══════════════════════════════════ -->
+    <div class="panel" id="panel-locked">
+      <div class="lock-panel">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-title">运动功能暂时不可用</div>
+        <div class="lock-subtitle">等获得医生明确许可后，此功能将为你解锁。</div>
+        <div class="lock-divider"></div>
+        <div class="lock-available-title">目前你可以：</div>
+        <div class="lock-feature-list">
+          <a href="home-index.html" class="lock-feature-item">
+            <div class="lock-feature-icon" style="background:var(--blue-light);">📖</div>
+            <div class="lock-feature-text">
+              <div class="lock-feature-name">查看每日科普</div>
+              <div class="lock-feature-sub">首页 · 12 大健康主题</div>
+            </div>
+            <div class="lock-feature-arrow">›</div>
+          </a>
+          <a href="nutrition-index.html" class="lock-feature-item">
+            <div class="lock-feature-icon" style="background:var(--green-light);">🥗</div>
+            <div class="lock-feature-text">
+              <div class="lock-feature-name">学习饮食知识</div>
+              <div class="lock-feature-sub">营养 · 选购 &amp; 替换指南</div>
+            </div>
+            <div class="lock-feature-arrow">›</div>
+          </a>
+          <a href="assistant-index.html" class="lock-feature-item">
+            <div class="lock-feature-icon" style="background:#EDE8F5;">🤖</div>
+            <div class="lock-feature-text">
+              <div class="lock-feature-name">向康复助手提问</div>
+              <div class="lock-feature-sub">助手 · 循证知识库</div>
+            </div>
+            <div class="lock-feature-arrow">›</div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         PANEL: CHECK-IN (State 1)
+    ══════════════════════════════════ -->
+    <div class="panel active" id="panel-checkin">
+
+      <!-- Step indicator -->
+      <div class="step-indicator">
+        <div class="step-dot active" id="si-dot-1"></div>
+        <div class="step-dot"        id="si-dot-2"></div>
+        <span class="step-label" id="si-label">步骤 1 / 2 · 症状确认</span>
+      </div>
+
+      <!-- ── STEP 1: 症状筛查 ── -->
+      <div id="checkin-step1">
+        <div class="card">
+          <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:14px;">运动前，请确认以下情况</div>
+
+          <!-- Next-day recovery card (conditional) -->
+          <div class="recovery-check-card" id="recoveryCheckCard">
+            <div class="recovery-title">昨天的不适感是否已缓解？</div>
+            <div class="recovery-btn-row">
+              <button class="btn-recovered" onclick="handleRecovered()">✓ 已缓解，感觉好多了</button>
+              <button class="btn-still-bad" onclick="handleStillBad()">仍有不适感</button>
+            </div>
+          </div>
+
+          <div id="symptomChecklist">
+            <div class="check-option" id="sym-0" onclick="toggleSymptom(0)">
+              <div class="check-box"></div>
+              <span class="check-label">胸痛 / 胸闷</span>
+            </div>
+            <div class="check-option" id="sym-1" onclick="toggleSymptom(1)">
+              <div class="check-box"></div>
+              <span class="check-label">心慌 / 心悸</span>
+            </div>
+            <div class="check-option" id="sym-2" onclick="toggleSymptom(2)">
+              <div class="check-box"></div>
+              <span class="check-label">头晕 / 头痛</span>
+            </div>
+            <div class="check-option" id="sym-3" onclick="toggleSymptom(3)">
+              <div class="check-box"></div>
+              <span class="check-label">呼吸困难</span>
+            </div>
+            <div class="check-option" id="sym-4" onclick="toggleSymptom(4)">
+              <div class="check-box"></div>
+              <span class="check-label">发热 / 感冒</span>
+            </div>
+            <div class="check-option" id="sym-5" onclick="toggleSymptom(5)">
+              <div class="check-box"></div>
+              <span class="check-label">肌肉关节严重疼痛</span>
+            </div>
+            <div class="check-option" id="sym-none" onclick="selectNoneSymptom()" style="margin-top:6px;border-style:dashed;">
+              <div class="check-box"></div>
+              <span class="check-label" style="font-weight:600;">以上都没有</span>
+            </div>
+          </div>
+
+          <!-- Symptom Warning Card -->
+          <div class="symptom-warning-card" id="symptomWarning">
+            <div class="sw-header">
+              <div class="sw-icon">!</div>
+              <div class="sw-title">今日建议停止运动</div>
+            </div>
+            <div class="sw-body" id="swBody">
+              您勾选了相关症状，建议今日休息。如症状持续或加重，请及时就医。
+            </div>
+            <button class="sw-dismiss" onclick="dismissWarning()">我知道了</button>
+          </div>
+
+          <div id="step1NextBtn" style="margin-top:12px;">
+            <button class="btn-full btn-blue" id="toStep2Btn" onclick="goToStep2()" disabled>
+              下一步：评估今日状态 →
+            </button>
+          </div>
+        </div>
+        <div class="locked-banner hidden" id="symptomLockedBanner">
+          明天进入运动页时，将询问您的状态是否已缓解
+        </div>
+      </div>
+
+      <!-- ── STEP 2: 状态评估 ── -->
+      <div id="checkin-step2" class="hidden">
+        <div class="card">
+          <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px;">今天的状态怎么样？</div>
+
+          <!-- 睡眠 -->
+          <div class="section-label" style="margin-bottom:8px;">昨晚睡眠</div>
+          <div id="sleepSelector" style="margin-bottom:16px;">
+            <div class="rating-card" onclick="selectRating('sleep','good',this)">
+              <div><div class="rating-label">好</div><div class="rating-sub">睡眠充足，感觉休息好了</div></div>
+              <div class="rating-emoji">😴</div>
+            </div>
+            <div class="rating-card" onclick="selectRating('sleep','ok',this)">
+              <div><div class="rating-label">一般</div><div class="rating-sub">稍有不足，但还行</div></div>
+              <div class="rating-emoji">😐</div>
+            </div>
+            <div class="rating-card" onclick="selectRating('sleep','bad',this)">
+              <div><div class="rating-label">很差</div><div class="rating-sub">没睡好，感觉疲惫</div></div>
+              <div class="rating-emoji">😞</div>
+            </div>
+          </div>
+
+          <!-- 疲劳 -->
+          <div class="section-label" style="margin-bottom:8px;">今日精力</div>
+          <div id="fatigueSelector" style="margin-bottom:16px;">
+            <div class="rating-card" onclick="selectRating('fatigue','great',this)">
+              <div><div class="rating-label">精力好</div><div class="rating-sub">状态不错，准备好了</div></div>
+              <div class="rating-emoji">💪</div>
+            </div>
+            <div class="rating-card" onclick="selectRating('fatigue','ok',this)">
+              <div><div class="rating-label">还可以</div><div class="rating-sub">一般般，可以试试</div></div>
+              <div class="rating-emoji">🙂</div>
+            </div>
+            <div class="rating-card" onclick="selectRating('fatigue','tired',this)">
+              <div><div class="rating-label">比较累</div><div class="rating-sub">有些疲惫，考虑减量</div></div>
+              <div class="rating-emoji">😪</div>
+            </div>
+            <div class="rating-card" onclick="selectRating('fatigue','very_tired',this)">
+              <div><div class="rating-label">很累</div><div class="rating-sub">明显疲劳，建议休息</div></div>
+              <div class="rating-emoji">😩</div>
+            </div>
+          </div>
+
+          <!-- Hint -->
+          <div style="background:var(--orange-light);border-radius:var(--r-btn);padding:10px 14px;font-size:13px;color:var(--orange);margin-bottom:14px;display:none;" id="fatigueHint">
+            睡眠很差 + 精力很低时，系统会建议降低运动强度。
+          </div>
+
+          <button class="btn-full btn-blue" id="confirmStateBtn" onclick="confirmState()" disabled>
+            确认状态，查看处方 →
+          </button>
+          <div class="confirm-hint" id="confirmHint">请先完成睡眠和精力评估</div>
+        </div>
+      </div>
+
+    </div><!-- end panel-checkin -->
+
+    <!-- ══════════════════════════════════
+         PANEL: PRESCRIPTION (State 2)
+    ══════════════════════════════════ -->
+    <div class="panel" id="panel-prescription">
+
+      <!-- Offline banner -->
+      <div class="offline-banner" id="offlineBanner">
+        📴 离线模式，数据来自上次同步
+      </div>
+
+      <!-- Adjustment suggestion card -->
+      <div class="adjustment-card" id="adjustmentCard">
+        <div class="adj-top">
+          <span class="adj-text">📊 根据近期数据，建议降低运动强度 ↓</span>
+        </div>
+        <button class="adj-reason-link" onclick="toggleAdjReason()">查看原因 →</button>
+        <div class="adj-reason-body" id="adjReasonBody">
+          近 3 次运动中有 2 次 RPE 评分为「较累」，且心率恢复时间超过 30 分钟。系统建议本次将目标强度从「适中」降至「轻松～适中」。
+        </div>
+        <div class="adj-btn-row" style="margin-top:10px;">
+          <button class="btn-accept" id="adjAcceptBtn" onclick="acceptAdjustment()">接受调整</button>
+          <button class="btn-keep" onclick="keepCurrent()">暂时保持</button>
+        </div>
+      </div>
+
+      <!-- Prescription card -->
+      <div class="rx-card" id="rxCard">
+        <div class="rx-header">
+          <div class="rx-type-badge">
+            <span>🚶</span>
+            <span id="rxType">步行（户外 / 跑步机）</span>
+          </div>
+          <span class="rx-stage-badge">适应期 · 第 3 次</span>
+        </div>
+        <div class="rx-rows">
+          <div class="rx-row">
+            <span class="rx-row-label">总时长</span>
+            <span class="rx-row-value">30 分钟</span>
+          </div>
+          <div class="rx-row">
+            <span class="rx-row-label">结构</span>
+            <span class="rx-row-value">热身 5 + 主体 20 + 冷身 5</span>
+          </div>
+          <div class="rx-row">
+            <span class="rx-row-label">目标强度</span>
+            <span class="rx-row-value" id="rxIntensity">
+              <span class="pill pill-blue" id="rxIntensityPill">适中</span>
+            </span>
+          </div>
+          <div class="rx-row">
+            <span class="rx-row-label">频率</span>
+            <span class="rx-row-value">每周 3 次</span>
+          </div>
+
+          <!-- Warmup expand -->
+          <div class="expand-row">
+            <div class="expand-toggle" onclick="toggleExpand('warmup')">
+              <span class="expand-toggle-label">🔥 热身说明</span>
+              <span class="expand-toggle-arrow" id="warmup-arrow">∨</span>
+            </div>
+            <div class="expand-content" id="warmup-content">
+              以慢于正常步速行走，逐渐加速至目标节奏。可做原地踏步、摆臂活动。热身期间保持呼吸顺畅，心率缓慢上升。
+            </div>
+          </div>
+
+          <!-- Cooldown expand -->
+          <div class="expand-row" style="border-bottom:none;">
+            <div class="expand-toggle" onclick="toggleExpand('cooldown')">
+              <span class="expand-toggle-label">❄️ 冷身说明</span>
+              <span class="expand-toggle-arrow" id="cooldown-arrow">∨</span>
+            </div>
+            <div class="expand-content" id="cooldown-content">
+              逐渐减慢步速，最后 2 分钟以最慢速行走或原地踏步结束。心率恢复至 100 次/分以下后方可坐下休息。切勿突然停止运动。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-full btn-green" onclick="transitionTo('active')" style="margin-top:4px;">
+        开始运动 ▶
+      </button>
+    </div>
+
+    <!-- ══════════════════════════════════
+         PANEL: ACTIVE TIMER (State 3)
+    ══════════════════════════════════ -->
+    <div class="panel" id="panel-active">
+
+      <!-- Phase indicator -->
+      <div class="phase-bars">
+        <div class="phase-bar done"   id="phase-warmup"></div>
+        <div class="phase-bar active" id="phase-main"></div>
+        <div class="phase-bar"        id="phase-cool"></div>
+      </div>
+      <div class="phase-label-row">
+        <span>热身</span>
+        <span>主体运动</span>
+        <span>冷身</span>
+      </div>
+
+      <!-- Timer -->
+      <div class="timer-display">
+        <div class="timer-type">
+          <span class="pill pill-green">🚶 步行</span>
+        </div>
+        <div class="timer-clock" id="timerDisplay">00:00</div>
+        <div class="timer-phase" id="timerPhaseLabel">主体运动中</div>
+        <div class="timer-controls">
+          <button class="timer-btn timer-btn-pause" id="pauseBtn" onclick="toggleTimer()" title="暂停">⏸</button>
+          <button class="timer-btn timer-btn-stop"  onclick="stopEarly()"             title="提前结束">⏹</button>
+        </div>
+      </div>
+
+      <!-- RPE reminder -->
+      <div class="rpe-reminder">
+        <span>💡</span>
+        <span>注意感受运动强度——保持能说话、但不能唱歌的节奏，这就是「适中」区间。</span>
+      </div>
+
+      <!-- Paused info -->
+      <div style="display:none;background:var(--orange-light);border-radius:var(--r-card);padding:12px 16px;margin-bottom:12px;font-size:14px;color:var(--orange);" id="pausedInfo">
+        ⏸ 计时已暂停
+      </div>
+
+      <button class="btn-full btn-green" onclick="transitionTo('feedback')">
+        完成运动，记录反馈 ✓
+      </button>
+
+    </div>
+
+    <!-- ══════════════════════════════════
+         PANEL: FEEDBACK FORM (State 4)
+    ══════════════════════════════════ -->
+    <div class="panel" id="panel-feedback">
+
+      <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:16px;">记录本次运动</div>
+
+      <!-- RPE Selector -->
+      <div class="section-label">运动强度感受（RPE）</div>
+      <div class="rpe-selector" style="margin-bottom:16px;">
+
+        <div class="rpe-card" data-rpe="easy" onclick="selectRPE('easy',this)">
+          <div class="rpe-left">
+            <div class="rpe-name">轻松</div>
+            <div class="rpe-hint">还能再做 6+ 次</div>
+          </div>
+        </div>
+
+        <div class="rpe-card" data-rpe="moderate" onclick="selectRPE('moderate',this)">
+          <div class="rpe-left">
+            <div class="rpe-name">适中</div>
+            <div class="rpe-hint">还能再做 3–5 次</div>
+          </div>
+          <span class="rpe-target-badge">✓ 目标区间</span>
+        </div>
+
+        <div class="rpe-card" data-rpe="hard" onclick="selectRPE('hard',this)">
+          <div class="rpe-left">
+            <div class="rpe-name">较累</div>
+            <div class="rpe-hint">还能再做 1–2 次</div>
+          </div>
+        </div>
+
+        <div class="rpe-card" data-rpe="very_hard" onclick="selectRPE('very_hard',this)">
+          <div class="rpe-left">
+            <div class="rpe-name">很累</div>
+            <div class="rpe-hint">几乎无法再做</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Post-exercise symptoms -->
+      <div class="section-label">运动后是否有不适？</div>
+      <div class="multi-select-list" style="margin-bottom:16px;" id="postSymptoms">
+        <div class="multi-option" onclick="togglePostSymptom(this,'none')">
+          <div class="multi-check"></div>
+          <span class="multi-label" style="font-weight:600;">没有不适</span>
+        </div>
+        <div class="multi-option" onclick="togglePostSymptom(this,'chest')">
+          <div class="multi-check"></div>
+          <span class="multi-label">胸痛 / 胸闷</span>
+        </div>
+        <div class="multi-option" onclick="togglePostSymptom(this,'dizzy')">
+          <div class="multi-check"></div>
+          <span class="multi-label">头晕 / 心慌</span>
+        </div>
+        <div class="multi-option" onclick="togglePostSymptom(this,'breathless')">
+          <div class="multi-check"></div>
+          <span class="multi-label">气喘 / 呼吸不畅</span>
+        </div>
+        <div class="multi-option" onclick="togglePostSymptom(this,'muscle')">
+          <div class="multi-check"></div>
+          <span class="multi-label">肌肉酸痛（正常范围）</span>
+        </div>
+      </div>
+
+      <!-- HR Recovery -->
+      <div class="section-label">心率恢复情况</div>
+      <div class="hr-path-toggle">
+        <button class="hr-path-btn active" id="hrBtnNoDevice" onclick="setHRPath('no_device')">无手环</button>
+        <button class="hr-path-btn"        id="hrBtnDevice"   onclick="setHRPath('device')">有手环</button>
+      </div>
+
+      <!-- No-device path -->
+      <div id="hrNoDevice">
+        <div class="hr-option" onclick="selectHR(this,'lt10')">
+          <div class="hr-dot"></div>
+          <span class="hr-label">停止运动后，10 分钟内心跳恢复正常</span>
+        </div>
+        <div class="hr-option" onclick="selectHR(this,'10to30')">
+          <div class="hr-dot"></div>
+          <span class="hr-label">10–30 分钟才恢复正常</span>
+        </div>
+        <div class="hr-option" onclick="selectHR(this,'gt30')">
+          <div class="hr-dot"></div>
+          <span class="hr-label">超过 30 分钟仍感觉心跳偏快</span>
+        </div>
+        <div class="hr-option" onclick="selectHR(this,'skip')">
+          <div class="hr-dot"></div>
+          <span class="hr-label">没有特别注意</span>
+        </div>
+      </div>
+
+      <!-- Device path -->
+      <div id="hrDevice" class="hidden">
+        <div class="hr-option" onclick="selectHR(this,'recovered')">
+          <div class="hr-dot"></div>
+          <span class="hr-label">✅ 已恢复至静息水平</span>
+        </div>
+        <div class="hr-option" onclick="selectHR(this,'high')">
+          <div class="hr-dot"></div>
+          <span class="hr-label">⚠ 心率仍偏高（超出 20 bpm）</span>
+        </div>
+        <div class="hr-option" onclick="selectHR(this,'skip_device')">
+          <div class="hr-dot"></div>
+          <span class="hr-label">未记录，跳过</span>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="submit-btn-wrap" style="margin-top:20px;">
+        <button class="btn-full btn-blue" id="submitBtn" onclick="submitFeedback()">
+          提交 →
+        </button>
+      </div>
+
+    </div><!-- end panel-feedback -->
+
+    <!-- ══════════════════════════════════
+         PANEL: SUMMARY (State 5)
+    ══════════════════════════════════ -->
+    <div class="panel" id="panel-summary">
+
+      <!-- Hero -->
+      <div class="summary-hero">
+        <div class="summary-hero-icon">🎉</div>
+        <div>
+          <div class="summary-hero-title">运动完成！</div>
+          <div class="summary-hero-sub">今天做得很好，坚持就是进步。</div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="summary-stats-row">
+        <div class="stat-cell">
+          <div class="stat-value">30'</div>
+          <div class="stat-label">运动时长</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-value">
+            <span class="pill pill-blue" id="summaryRpePill" style="font-size:14px;">适中</span>
+          </div>
+          <div class="stat-label">强度感受</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-value">🚶</div>
+          <div class="stat-label">步行</div>
+        </div>
+      </div>
+
+      <div class="cumulative-row">
+        <span class="cumulative-text">本次为你的累计第 <strong id="cumulativeCount">3</strong> 次运动</span>
+        <span class="cumulative-badge">🏅 适应期</span>
+      </div>
+
+      <!-- Adjustment notice (conditional) -->
+      <div class="adjustment-notice" id="adjSummaryNotice">
+        📉 下次运动强度已小幅降低 &nbsp;<a href="#" onclick="return false;">查看原因</a>
+      </div>
+
+      <!-- AI Text Block -->
+      <div class="ai-block">
+        <div class="ai-header">✦ AI 康复助手</div>
+        <div class="ai-loading" id="aiLoading">✦ 正在生成…</div>
+        <div class="ai-text hidden" id="aiText"></div>
+        <div class="ai-fallback hidden" id="aiFallback">今日运动记录已保存。</div>
+      </div>
+
+      <!-- Next session -->
+      <div class="next-session">
+        <div class="next-session-title">下次运动建议</div>
+        <div class="next-row">
+          <span class="next-row-label">建议日期</span>
+          <span class="next-row-value">明天</span>
+        </div>
+        <div class="next-row">
+          <span class="next-row-label">运动类型</span>
+          <span class="next-row-value">步行 / 居家有氧</span>
+        </div>
+        <div class="next-row">
+          <span class="next-row-label">目标强度</span>
+          <span class="next-row-value">
+            <span class="pill pill-blue" id="nextIntensityPill">适中</span>
+          </span>
+        </div>
+      </div>
+
+      <button class="restart-btn" onclick="restartSession()">← 重置演示（返回 Check-in）</button>
+
+    </div><!-- end panel-summary -->
+
+    <!-- ══════════════════════════════════
+         WEEKLY PLAN SECTION (始终可见)
+    ══════════════════════════════════ -->
+    <div class="weekly-plan-section" id="weeklyPlanSection">
+      <div class="weekly-plan-title">本周计划</div>
+
+      <!-- 周一 — 今日 (步行有氧) -->
+      <div class="wp-item today" id="wpItem0">
+        <div class="wp-item-header" onclick="toggleWP(0)">
+          <span class="wp-date">周一</span>
+          <span class="wp-today-badge">今日</span>
+          <div class="wp-tags">
+            <span class="wp-type-tag wt-aerobic">有氧</span>
+          </div>
+          <span class="wp-dur">30 分钟</span>
+          <span class="wp-arrow" id="wpa0">∨</span>
+        </div>
+        <div class="wp-detail" id="wpd0">
+          <div class="wp-detail-row"><span class="wp-detail-label">运动类型</span><span class="wp-detail-value">步行（户外 / 跑步机）</span></div>
+          <div class="wp-detail-row"><span class="wp-detail-label">总时长</span><span class="wp-detail-value">30 分钟</span></div>
+          <div class="wp-detail-row"><span class="wp-detail-label">结构</span><span class="wp-detail-value">热身 5′ + 主体 20′ + 冷身 5′</span></div>
+          <div class="wp-detail-row"><span class="wp-detail-label">目标强度</span><span class="wp-detail-value"><span class="pill pill-blue" style="font-size:12px">适中</span></span></div>
+          <div class="wp-detail-note">热身：慢于目标步速行走，逐渐加速；冷身：逐渐减速至原地踏步，心率恢复至 100 次/分以下方可休息。</div>
+        </div>
+      </div>
+
+      <!-- 周二 — 休息 -->
+      <div class="wp-item" id="wpItem1">
+        <div class="wp-item-header" onclick="toggleWP(1)">
+          <span class="wp-date">周二</span>
+          <div class="wp-tags">
+            <span class="wp-type-tag wt-rest">休息</span>
+          </div>
+          <span class="wp-dur">—</span>
+          <span class="wp-arrow" id="wpa1">∨</span>
+        </div>
+        <div class="wp-detail" id="wpd1">
+          <div class="wp-detail-row"><span class="wp-detail-label">安排</span><span class="wp-detail-value">今日充分休息</span></div>
+          <div class="wp-detail-note">可进行散步等非结构性轻度活动，注意补充水分和保证睡眠。</div>
+        </div>
+      </div>
+
+      <!-- 周三 — 居家拉伸柔韧 -->
+      <div class="wp-item" id="wpItem2">
+        <div class="wp-item-header" onclick="toggleWP(2)">
+          <span class="wp-date">周三</span>
+          <div class="wp-tags">
+            <span class="wp-type-tag wt-stretch">柔韧</span>
+          </div>
+          <span class="wp-dur">25 分钟</span>
+          <span class="wp-arrow" id="wpa2">∨</span>
+        </div>
+        <div class="wp-detail" id="wpd2">
+          <div class="wp-detail-row"><span class="wp-detail-label">运动类型</span><span class="wp-detail-value">居家拉伸</span></div>
+          <div class="wp-detail-row"><span class="wp-detail-label">总时长</span><span class="wp-detail-value">25 分钟</span></div>
+          <div class="wp-detail-row"><span class="wp-detail-label">结构</span><span class="wp-detail-value">热身 5′ + 拉伸 15′ + 冷身 5′</span></div>
+          <div class="wp-detail-row"><span class="wp-detail-label">目标强度</span><span class="wp-detail-value"><span class="pill pill-green" style="font-size:12px">轻松</span></span></div>
+          <div class="wp-detail-note">居家即可完成，无需器械。重点关注肩颈、背部和下肢大肌群的静态拉伸，每个动作保持 20–30 秒。</div>
+        </div>
+      </div>
+
+      <!-- 周四 — 休息 -->
+      <div class="wp-item" id="wpItem3">
+        <div class="wp-item-header" onclick="toggleWP(3)">
+          <span class="wp-date">周四</span>
+          <div class="wp-tags">
+            <span class="wp-type-tag wt-rest">休息</span>
+          </div>
+          <span class="wp-dur">—</span>
+          <span class="wp-arrow" id="wpa3">∨</span>
+        </div>
+        <div class="wp-detail" id="wpd3">
+          <div class="wp-detail-row"><span class="wp-detail-label">安排</span><span class="wp-detail-value">今日充分休息</span></div>
+          <div class="wp-detail-note">明天是本周第三次运动日，提前保证充足睡眠。</div>
+        </div>
+      </div>
+
+      <!-- 周五 — 步行有氧（需记录） -->
+      <div class="wp-item" id="wpItem4">
+        <div class="wp-item-header" onclick="toggleWP(4)">
+          <span class="wp-date">周五</span>
+          <div class="wp-tags">
+            <span class="wp-type-tag wt-aerobic">有氧</span>
+          </div>
+          <span class="wp-dur">30 分钟</span>
+          <span class="wp-arrow" id="wpa4">∨</span>
+        </div>
+        <div class="wp-detail" id="wpd4">
+          <div class="wp-detail-row"><span class="wp-detail-label">运动类型</span><span class="wp-detail-value">步行（户外 / 跑步机）</span></div>
+          <div class="wp-detail-row"><span class="wp-detail-label">总时长</span><span class="wp-detail-value">30 分钟</span></div>
+          <div class="wp-detail-row"><span class="wp-detail-label">结构</span><span class="wp-detail-value">热身 5′ + 主体 20′ + 冷身 5′</span></div>
+          <div class="wp-detail-row"><span class="wp-detail-label">目标强度</span><span class="wp-detail-value"><span class="pill pill-blue" style="font-size:12px">适中</span></span></div>
+        </div>
+      </div>
+
+      <!-- 周六/日 — 休息 -->
+      <div class="wp-item" id="wpItem5">
+        <div class="wp-item-header" onclick="toggleWP(5)">
+          <span class="wp-date">周六 / 日</span>
+          <div class="wp-tags">
+            <span class="wp-type-tag wt-rest">休息</span>
+          </div>
+          <span class="wp-dur">—</span>
+          <span class="wp-arrow" id="wpa5">∨</span>
+        </div>
+        <div class="wp-detail" id="wpd5">
+          <div class="wp-detail-note">周末充分休息，为下周新一轮运动做好准备。可进行轻松散步或家庭活动。</div>
+        </div>
+      </div>
+
+    </div><!-- end weekly-plan-section -->
+
+  </div><!-- end scroll-area -->
+
+  <!-- ── TAB BAR ── -->
+  <div class="tab-bar">
+    <a class="tab-item" href="home-index.html">
+      <span class="tab-icon">🏠</span><span class="tab-label">首页</span>
+    </a>
+    <a class="tab-item active" href="exercise-index.html">
+      <span class="tab-icon">🏃</span><span class="tab-label">运动</span>
+    </a>
+    <a class="tab-item" href="nutrition-index.html">
+      <span class="tab-icon">🥗</span><span class="tab-label">营养</span>
+    </a>
+    <a class="tab-item" href="assistant-index.html">
+      <span class="tab-icon">🤖</span><span class="tab-label">助手</span>
+    </a>
+    <a class="tab-item" href="profile-index.html">
+      <span class="tab-icon">👤</span><span class="tab-label">我</span>
+    </a>
+  </div>
+
+</div><!-- end phone -->
+
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT — STATE MACHINE
+═══════════════════════════════════════════ -->
+<script>
+/* ════════════════════════════════
+   STATE
+════════════════════════════════ */
+const STATE = {
+  CHECKIN:      'checkin',
+  PRESCRIPTION: 'prescription',
+  ACTIVE:       'active',
+  FEEDBACK:     'feedback',
+  SUMMARY:      'summary',
+  LOCKED:       'locked',
+};
+
+let currentState   = STATE.CHECKIN;
+let checkinStep    = 1;        // 1 or 2
+let symptomChecked = [];       // indices of checked symptoms
+let noneSelected   = false;
+let sleepRating    = null;
+let fatigueRating  = null;
+let rpeSelected    = null;
+let postSympSelected = [];
+let hrSelected     = null;
+let hrPath         = 'no_device';
+let adjustmentOn   = false;    // show adjustment card in prescription
+let adjustmentSummaryOn = false;
+let adjustmentAccepted  = false;
+let timerInterval  = null;
+let timerSeconds   = 0;
+let timerRunning   = false;
+let nextDayLocked  = false;    // simulate symptom-lock from yesterday
+
+/* ════════════════════════════════
+   PANEL ROUTING
+════════════════════════════════ */
+const PANEL_IDS = {
+  [STATE.CHECKIN]:      'panel-checkin',
+  [STATE.PRESCRIPTION]: 'panel-prescription',
+  [STATE.ACTIVE]:       'panel-active',
+  [STATE.FEEDBACK]:     'panel-feedback',
+  [STATE.SUMMARY]:      'panel-summary',
+  [STATE.LOCKED]:       'panel-locked',
+};
+
+const DEMO_BTN_IDS = {
+  [STATE.CHECKIN]:      'd_checkin',
+  [STATE.PRESCRIPTION]: 'd_prescription',
+  [STATE.ACTIVE]:       'd_active',
+  [STATE.FEEDBACK]:     'd_feedback',
+  [STATE.SUMMARY]:      'd_summary',
+  [STATE.LOCKED]:       'd_locked',
+};
+
+function transitionTo(state) {
+  // Stop timer if leaving active
+  if (currentState === STATE.ACTIVE) stopTimer();
+
+  currentState = state;
+  showPanel(state);
+  document.getElementById('scrollArea').scrollTop = 0;
+  updateDemoBtns(state);
+
+  if (state === STATE.SUMMARY) initSummary();
+  if (state === STATE.ACTIVE)  startTimer();
+}
+
+function showPanel(state) {
+  Object.values(PANEL_IDS).forEach(id => {
+    document.getElementById(id).classList.remove('active');
+  });
+  document.getElementById(PANEL_IDS[state]).classList.add('active');
+}
+
+function updateDemoBtns(state) {
+  Object.entries(DEMO_BTN_IDS).forEach(([s, id]) => {
+    document.getElementById(id).classList.toggle('active', s === state);
+  });
+}
+
+/* ════════════════════════════════
+   DEMO JUMP (bypass normal flow)
+════════════════════════════════ */
+function jumpTo(state) {
+  // Pre-fill some data for later states so they display sensibly
+  if (state === STATE.FEEDBACK || state === STATE.SUMMARY) {
+    rpeSelected = 'moderate';
+    hrSelected  = 'lt10';
+  }
+  if (state === STATE.ACTIVE) stopTimer();
+  transitionTo(state);
+  if (state === STATE.ACTIVE) startTimer();
+}
+
+/* ════════════════════════════════
+   CHECK-IN — STEP 1 (Symptoms)
+════════════════════════════════ */
+function toggleSymptom(idx) {
+  if (noneSelected) {
+    // clear none
+    noneSelected = false;
+    document.getElementById('sym-none').classList.remove('checked-none');
+    document.querySelector('#sym-none .check-box').classList.remove('checked-none');
+  }
+
+  const el = document.getElementById('sym-' + idx);
+  const isChecked = el.classList.contains('checked');
+
+  if (isChecked) {
+    el.classList.remove('checked');
+    symptomChecked = symptomChecked.filter(i => i !== idx);
+  } else {
+    el.classList.add('checked');
+    symptomChecked.push(idx);
+  }
+
+  evaluateSymptoms();
+}
+
+function selectNoneSymptom() {
+  // Clear all symptoms
+  symptomChecked = [];
+  for (let i = 0; i < 6; i++) {
+    document.getElementById('sym-' + i).classList.remove('checked');
+  }
+  // Toggle none
+  noneSelected = !noneSelected;
+  const noneEl = document.getElementById('sym-none');
+  noneEl.classList.toggle('checked-none', noneSelected);
+
+  evaluateSymptoms();
+}
+
+function evaluateSymptoms() {
+  const warningCard = document.getElementById('symptomWarning');
+  const toStep2Btn  = document.getElementById('toStep2Btn');
+  const lockedBanner= document.getElementById('symptomLockedBanner');
+  const step1NextBtnEl = document.getElementById('step1NextBtn');
+
+  if (symptomChecked.length > 0) {
+    // Show warning
+    const symNames = ['胸痛/胸闷','心慌/心悸','头晕/头痛','呼吸困难','发热/感冒','肌肉关节严重疼痛'];
+    const names = symptomChecked.map(i => symNames[i]).join('、');
+    document.getElementById('swBody').textContent =
+      `您勾选了「${names}」，建议今日休息。如症状持续或加重，请及时就医。`;
+    warningCard.classList.add('show');
+    step1NextBtnEl.classList.add('hidden');
+    lockedBanner.classList.remove('hidden');
+  } else if (noneSelected) {
+    warningCard.classList.remove('show');
+    lockedBanner.classList.add('hidden');
+    step1NextBtnEl.classList.remove('hidden');
+    toStep2Btn.disabled = false;
+  } else {
+    warningCard.classList.remove('show');
+    lockedBanner.classList.add('hidden');
+    step1NextBtnEl.classList.remove('hidden');
+    toStep2Btn.disabled = true;
+  }
+}
+
+function dismissWarning() {
+  // Keep the warning card collapsed; locked banner persists
+  document.getElementById('symptomWarning').classList.remove('show');
+}
+
+/* ── Next-day recovery check ── */
+function handleRecovered() {
+  document.getElementById('recoveryCheckCard').classList.remove('show');
+  // Re-show normal checklist
+  document.getElementById('symptomChecklist').style.display = '';
+  document.getElementById('step1NextBtn').style.display = '';
+  nextDayLocked = false;
+}
+function handleStillBad() {
+  document.getElementById('recoveryCheckCard').classList.remove('show');
+  // Show warning card with "仍有不适" content
+  const wc = document.getElementById('symptomWarning');
+  document.getElementById('swBody').textContent =
+    '建议继续休息。如有需要请就医，待症状缓解后再开始运动。';
+  wc.classList.add('show');
+  document.getElementById('symptomLockedBanner').classList.remove('hidden');
+  document.getElementById('step1NextBtn').classList.add('hidden');
+}
+
+/* ════════════════════════════════
+   CHECK-IN — STEP 2 (State)
+════════════════════════════════ */
+function goToStep2() {
+  checkinStep = 2;
+  document.getElementById('checkin-step1').classList.add('hidden');
+  document.getElementById('checkin-step2').classList.remove('hidden');
+
+  // Update step indicator
+  document.getElementById('si-dot-1').classList.add('done');
+  document.getElementById('si-dot-2').classList.add('active');
+  document.getElementById('si-label').textContent = '步骤 2 / 2 · 状态评估';
+}
+
+function selectRating(type, val, el) {
+  const parentId = type === 'sleep' ? 'sleepSelector' : 'fatigueSelector';
+  document.querySelectorAll('#' + parentId + ' .rating-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+
+  if (type === 'sleep')   sleepRating   = val;
+  if (type === 'fatigue') fatigueRating = val;
+
+  // Show fatigue hint
+  if (sleepRating === 'bad' && fatigueRating === 'very_tired') {
+    document.getElementById('fatigueHint').style.display = 'block';
+  } else {
+    document.getElementById('fatigueHint').style.display = 'none';
+  }
+
+  updateConfirmBtn();
+}
+
+function updateConfirmBtn() {
+  const ready = sleepRating !== null && fatigueRating !== null;
+  document.getElementById('confirmStateBtn').disabled = !ready;
+  document.getElementById('confirmHint').textContent = ready
+    ? '✓ 状态已确认，点击查看处方'
+    : '请先完成睡眠和精力评估';
+}
+
+function confirmState() {
+  transitionTo(STATE.PRESCRIPTION);
+}
+
+/* ════════════════════════════════
+   PRESCRIPTION
+════════════════════════════════ */
+function toggleExpand(id) {
+  const content = document.getElementById(id + '-content');
+  const arrow   = document.getElementById(id + '-arrow');
+  const isOpen  = content.classList.contains('show');
+  content.classList.toggle('show', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+  arrow.textContent = isOpen ? '∨' : '∧';
+}
+
+function toggleAdjReason() {
+  document.getElementById('adjReasonBody').classList.toggle('show');
+}
+
+function acceptAdjustment() {
+  adjustmentAccepted = true;
+  // Update prescription card
+  document.getElementById('rxIntensityPill').textContent = '轻松 → 适中';
+  document.getElementById('rxIntensityPill').className = 'pill pill-orange';
+  // Collapse card
+  document.getElementById('adjustmentCard').style.display = 'none';
+}
+
+function keepCurrent() {
+  document.getElementById('adjustmentCard').style.display = 'none';
+}
+
+/* ════════════════════════════════
+   TIMER
+════════════════════════════════ */
+function startTimer() {
+  timerRunning = true;
+  timerSeconds = 0;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    if (timerRunning) {
+      timerSeconds++;
+      updateTimerDisplay();
+      updatePhase();
+    }
+  }, 1000);
+  document.getElementById('pauseBtn').textContent = '⏸';
+  document.getElementById('pausedInfo').style.display = 'none';
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  timerRunning  = false;
+}
+
+function toggleTimer() {
+  timerRunning = !timerRunning;
+  const btn = document.getElementById('pauseBtn');
+  const info = document.getElementById('pausedInfo');
+  if (timerRunning) {
+    btn.textContent = '⏸';
+    info.style.display = 'none';
+  } else {
+    btn.textContent = '▶';
+    info.style.display = 'block';
+  }
+}
+
+function stopEarly() {
+  stopTimer();
+  transitionTo(STATE.FEEDBACK);
+}
+
+function updateTimerDisplay() {
+  const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+  const s = String(timerSeconds % 60).padStart(2, '0');
+  document.getElementById('timerDisplay').textContent = m + ':' + s;
+}
+
+function updatePhase() {
+  const totalSec = 30 * 60; // 30 min total
+  const warmupEnd  = 5 * 60;
+  const mainEnd    = 25 * 60;
+
+  const w = document.getElementById('phase-warmup');
+  const m = document.getElementById('phase-main');
+  const c = document.getElementById('phase-cool');
+  const lbl = document.getElementById('timerPhaseLabel');
+
+  if (timerSeconds < warmupEnd) {
+    w.className = 'phase-bar active'; m.className = 'phase-bar'; c.className = 'phase-bar';
+    lbl.textContent = '热身阶段 · 放慢步速起步';
+  } else if (timerSeconds < mainEnd) {
+    w.className = 'phase-bar done'; m.className = 'phase-bar active'; c.className = 'phase-bar';
+    lbl.textContent = '主体运动中 · 保持稳定节奏';
+  } else {
+    w.className = 'phase-bar done'; m.className = 'phase-bar done'; c.className = 'phase-bar active';
+    lbl.textContent = '冷身阶段 · 逐渐放慢步速';
+  }
+}
+
+/* ════════════════════════════════
+   FEEDBACK
+════════════════════════════════ */
+function selectRPE(val, el) {
+  rpeSelected = val;
+  // Reset all cards
+  document.querySelectorAll('.rpe-card').forEach(c => {
+    c.classList.remove('selected-other', 'selected-moderate');
+  });
+  if (val === 'moderate') {
+    el.classList.add('selected-moderate');
+  } else {
+    el.classList.add('selected-other');
+  }
+}
+
+function togglePostSymptom(el, val) {
+  if (val === 'none') {
+    // Clear all others
+    document.querySelectorAll('#postSymptoms .multi-option').forEach(o => {
+      o.classList.remove('selected','selected-none');
+    });
+    const wasSelected = postSympSelected.includes('none');
+    postSympSelected = wasSelected ? [] : ['none'];
+    if (!wasSelected) el.classList.add('selected-none');
+    return;
+  }
+  // Remove none
+  document.querySelectorAll('#postSymptoms .multi-option').forEach(o => {
+    if (o.querySelector('.multi-label').textContent.includes('没有不适')) {
+      o.classList.remove('selected-none');
+    }
+  });
+  postSympSelected = postSympSelected.filter(v => v !== 'none');
+
+  const isSelected = el.classList.contains('selected');
+  if (isSelected) {
+    el.classList.remove('selected');
+    postSympSelected = postSympSelected.filter(v => v !== val);
+  } else {
+    el.classList.add('selected');
+    postSympSelected.push(val);
+  }
+}
+
+function setHRPath(path) {
+  hrPath = path;
+  document.getElementById('hrBtnNoDevice').classList.toggle('active', path === 'no_device');
+  document.getElementById('hrBtnDevice').classList.toggle('active', path === 'device');
+  document.getElementById('hrNoDevice').classList.toggle('hidden', path !== 'no_device');
+  document.getElementById('hrDevice').classList.toggle('hidden', path !== 'device');
+  // Clear selection when switching
+  document.querySelectorAll('.hr-option').forEach(o => o.classList.remove('selected'));
+  hrSelected = null;
+}
+
+function selectHR(el, val) {
+  hrSelected = val;
+  const parent = el.closest('#hrNoDevice, #hrDevice');
+  parent.querySelectorAll('.hr-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function submitFeedback() {
+  const btn = document.getElementById('submitBtn');
+  btn.disabled   = true;
+  btn.textContent = '提交中…';
+  btn.style.background = 'var(--border)';
+
+  setTimeout(() => {
+    transitionTo(STATE.SUMMARY);
+  }, 500);
+}
+
+/* ════════════════════════════════
+   SUMMARY + AI TEXT STREAM
+════════════════════════════════ */
+function initSummary() {
+  // Update RPE label in summary
+  const rpeMap = {
+    easy: '轻松', moderate: '适中', hard: '较累', very_hard: '很累'
+  };
+  const rpeLabel = rpeMap[rpeSelected] || '适中';
+  const rpePill  = document.getElementById('summaryRpePill');
+  rpePill.textContent = rpeLabel;
+  rpePill.className = 'pill ' + (rpeSelected === 'moderate' ? 'pill-blue' : rpeSelected === 'hard' || rpeSelected === 'very_hard' ? 'pill-orange' : 'pill-green');
+
+  // Next intensity: if user was very tired or hard, downgrade
+  const nextPill = document.getElementById('nextIntensityPill');
+  if (rpeSelected === 'very_hard' || rpeSelected === 'hard') {
+    nextPill.textContent = '轻松 → 适中';
+    nextPill.className = 'pill pill-orange';
+    if (adjustmentSummaryOn) {
+      document.getElementById('adjSummaryNotice').classList.add('show');
+    }
+  } else {
+    nextPill.textContent = '适中';
+    nextPill.className = 'pill pill-blue';
+  }
+
+  // AI streaming simulation
+  streamAIText();
+}
+
+const AI_TEXTS = [
+  '今天完成了一次很扎实的步行训练！保持「适中」的强度意味着你的心肺系统在有效地被刺激，又不会造成过度负担——这正是心脏康复最理想的运动区间。',
+  '记录显示你的运动后感受良好。冷身结束后心率能在 10 分钟内恢复，说明心脏对今天运动强度的适应性不错，继续保持这个节奏。',
+  '你已经连续完成第 3 次运动了。研究表明，规律性（每周 3 次以上）对心脏康复的效果贡献超过强度本身。你正在走在正确的路上。',
+];
+
+function streamAIText() {
+  const aiLoading  = document.getElementById('aiLoading');
+  const aiText     = document.getElementById('aiText');
+  const aiFallback = document.getElementById('aiFallback');
+
+  // Show loading first
+  aiLoading.classList.remove('hidden');
+  aiText.classList.add('hidden');
+  aiFallback.classList.add('hidden');
+
+  const full = AI_TEXTS[Math.floor(Math.random() * AI_TEXTS.length)];
+  let idx = 0;
+
+  // Start "streaming" after 1s
+  setTimeout(() => {
+    aiLoading.classList.add('hidden');
+    aiText.textContent = '';
+    aiText.classList.remove('hidden');
+
+    const interval = setInterval(() => {
+      // Add 2-3 chars per tick to simulate ~30 chars/sec
+      const chunk = full.slice(idx, idx + 2);
+      aiText.textContent += chunk;
+      idx += 2;
+      if (idx >= full.length) {
+        clearInterval(interval);
+      }
+    }, 65);
+
+    // 5s timeout fallback (won't fire in demo since text is short, but wire it up)
+    setTimeout(() => {
+      if (idx < full.length) {
+        clearInterval(interval);
+        aiText.classList.add('hidden');
+        aiFallback.classList.remove('hidden');
+      }
+    }, 5000);
+
+  }, 1000);
+}
+
+/* ════════════════════════════════
+   DEMO HELPERS (toggle from demo bar)
+════════════════════════════════ */
+function toggleAdjustment() {
+  adjustmentOn = !adjustmentOn;
+  document.getElementById('adjustmentCard').classList.toggle('show', adjustmentOn);
+  document.getElementById('d_adj').classList.toggle('active', adjustmentOn);
+  // Make sure we're on prescription panel
+  if (adjustmentOn) jumpTo(STATE.PRESCRIPTION);
+}
+
+function toggleAdjustmentSummary() {
+  adjustmentSummaryOn = !adjustmentSummaryOn;
+  document.getElementById('d_adj_summary').classList.toggle('active', adjustmentSummaryOn);
+  document.getElementById('adjSummaryNotice').classList.toggle('show', adjustmentSummaryOn);
+  if (adjustmentSummaryOn) jumpTo(STATE.SUMMARY);
+}
+
+function restartSession() {
+  // Reset all state
+  checkinStep     = 1;
+  symptomChecked  = [];
+  noneSelected    = false;
+  sleepRating     = null;
+  fatigueRating   = null;
+  rpeSelected     = null;
+  postSympSelected= [];
+  hrSelected      = null;
+  adjustmentAccepted = false;
+
+  // Reset DOM
+  document.getElementById('checkin-step1').classList.remove('hidden');
+  document.getElementById('checkin-step2').classList.add('hidden');
+  document.getElementById('si-dot-1').classList.remove('done');
+  document.getElementById('si-dot-2').classList.remove('active');
+  document.getElementById('si-label').textContent = '步骤 1 / 2 · 症状确认';
+
+  for (let i = 0; i < 6; i++) document.getElementById('sym-'+i).classList.remove('checked');
+  document.getElementById('sym-none').classList.remove('checked-none');
+  document.getElementById('symptomWarning').classList.remove('show');
+  document.getElementById('symptomLockedBanner').classList.add('hidden');
+  document.getElementById('step1NextBtn').classList.remove('hidden');
+  document.getElementById('toStep2Btn').disabled = true;
+
+  document.querySelectorAll('#sleepSelector .rating-card, #fatigueSelector .rating-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('confirmStateBtn').disabled = true;
+  document.getElementById('confirmHint').textContent = '请先完成睡眠和精力评估';
+  document.getElementById('fatigueHint').style.display = 'none';
+
+  document.getElementById('rxIntensityPill').textContent = '适中';
+  document.getElementById('rxIntensityPill').className = 'pill pill-blue';
+  document.getElementById('adjustmentCard').classList.remove('show');
+
+  document.querySelectorAll('.rpe-card').forEach(c => c.classList.remove('selected-other','selected-moderate'));
+  document.querySelectorAll('#postSymptoms .multi-option').forEach(o => o.classList.remove('selected','selected-none'));
+  document.querySelectorAll('.hr-option').forEach(o => o.classList.remove('selected'));
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('submitBtn').textContent = '提交 →';
+  document.getElementById('submitBtn').style.background = '';
+
+  transitionTo(STATE.CHECKIN);
+}
+
+/* ════════════════════════════════
+   WEEKLY PLAN — toggle item detail
+════════════════════════════════ */
+function toggleWP(idx) {
+  const detail = document.getElementById('wpd' + idx);
+  const arrow  = document.getElementById('wpa' + idx);
+  const isOpen = detail.classList.contains('show');
+  detail.classList.toggle('show', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+  arrow.textContent = isOpen ? '∨' : '∧';
+}
+
+/* ════════════════════════════════
+   INIT
+════════════════════════════════ */
+showPanel(STATE.CHECKIN);
+updateDemoBtns(STATE.CHECKIN);
+</script>
+</body>
+</html>

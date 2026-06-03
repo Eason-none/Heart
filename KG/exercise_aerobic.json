@@ -1,0 +1,345 @@
+{
+  "_meta": {
+    "source": "article/up.md",
+    "version": "1.0",
+    "created": "2026-06-01",
+    "description": "有氧训练处方内容库：三阶段渐进方案 + HIIT方案。每个条目含用户展示字段和F2路由逻辑字段。",
+    "notes": "阻力训练进阶参数（组数/负荷/频率）见 KG/rules.yaml Group G，无具体动作描述故不单独建JSON。"
+  },
+
+  "programs": [
+
+    {
+      "id": "aerobic-stage1",
+      "category": "aerobic",
+      "name": "有氧训练 · 建立基础",
+      "name_clinical": "Phase II 有氧训练第一阶段（50–60% HRmax）",
+      "stage_label": "第1–4周",
+      "summary": "用轻松到适度的节奏建立运动习惯，心脏逐步适应规律锻炼。",
+      "params": {
+        "weeks": "第1–4周",
+        "hr_target": "最大心率的50–60%",
+        "rpe_target": "12–13（有点费力，能正常说话）",
+        "duration_per_session_min": "20–30分钟（逐步延长）",
+        "frequency_per_week": 3,
+        "progression_unit": "每次增加5–10分钟时长，不加强度"
+      },
+      "description": "选择你能持续完成的有氧活动，比如平地快走、室内功率自行车或椭圆机。整个过程中你应该感觉「有点费力」，但可以用完整的句子说话。这个阶段的目标是让身体适应规律运动，不需要追求速度或强度。",
+      "activity_examples": [
+        "平地快走（室内走廊、操场或跑步机）",
+        "室内固定自行车（阻力调低，保持匀速踩踏）",
+        "椭圆机（无上肢施力，适合CABG术后早期）"
+      ],
+      "session_structure": [
+        {
+          "phase": "热身",
+          "duration_min": 5,
+          "intensity": "非常轻松，RPE 10–11",
+          "instruction": "慢走或低阻力踩踏，让心率和血压缓慢上升。"
+        },
+        {
+          "phase": "主训练",
+          "duration_min": "20–30（目标，逐步达到）",
+          "intensity": "RPE 12–13，能说完整句子",
+          "instruction": "保持稳定节奏。心率应在最大心率的50–60%左右。如果感到气喘或说话困难，立即降低速度或阻力。"
+        },
+        {
+          "phase": "整理放松",
+          "duration_min": 5,
+          "intensity": "逐步降低，RPE降回11以下",
+          "instruction": "放慢速度，让心率慢慢回落，不要突然停止。"
+        }
+      ],
+      "how_to_know_intensity_is_right": [
+        "能说完整的句子但不会轻松唱歌 → 强度合适",
+        "说话费力、喘不过气 → 降低速度/阻力",
+        "感觉非常轻松、完全不费力 → 可以稍微加快（但本阶段不必急于进阶）"
+      ],
+      "safety_notes": [
+        "运动前测量静息心率，如果比平时高10次以上，今天改为散步或休息",
+        "胸口发紧、头晕、下颌或手臂疼痛：立即停下来坐下",
+        "天气炎热或饭后1小时内：减少运动时长，或换室内进行",
+        "如果当天状态不好（睡眠差、情绪低落），可以缩短为15分钟散步"
+      ],
+      "stop_if": "出现胸痛、胸闷、明显气短、头晕、心跳异常（过快或不规则），立即停止并休息。症状不缓解请联系医生。",
+      "_logic": {
+        "stage": 1,
+        "hr_pct_hrmax_range": [50, 60],
+        "rpe_range": [12, 13],
+        "duration_target_min": [20, 30],
+        "frequency_per_week_target": 3,
+        "appropriate_for_poor_state": false,
+        "appropriate_for_high_risk": false,
+        "appropriate_for_medium_risk": true,
+        "appropriate_for_low_risk": true,
+        "progression_trigger": "舒适完成30分钟 × 每周3次，持续2周",
+        "cabg_restriction": "无氧训练限制，但避免引起胸骨区域不适",
+        "linked_rules": ["f2-g1-progression-order", "f2-g2-weekly-cap", "f2-g3-talk-test", "f2-d1-symptom-stop-criteria"]
+      }
+    },
+
+    {
+      "id": "aerobic-stage2",
+      "category": "aerobic",
+      "name": "有氧训练 · 稳步提升",
+      "name_clinical": "Phase II 有氧训练第二阶段（60–70% HRmax）",
+      "stage_label": "第5–8周",
+      "summary": "在已建立基础后，适度提升运动强度，心肺耐力开始明显改善。",
+      "params": {
+        "weeks": "第5–8周（完成第一阶段后进入）",
+        "hr_target": "最大心率的60–70%",
+        "rpe_target": "13–14（费力，但还能说几个字）",
+        "duration_per_session_min": "30–40分钟（目标逐步达到）",
+        "frequency_per_week": "3–4",
+        "progression_unit": "每次增加5–10分钟，或每周强度提升5–10%，二选一"
+      },
+      "description": "你已经能轻松完成20–30分钟运动了，现在可以适当提速。这个阶段的感受是「比较费力」，说话需要稍微停顿，但不会喘不过气。每次增加时长或强度，不要同时调整两个。",
+      "activity_examples": [
+        "快走加坡度（跑步机坡度1–3度）",
+        "室内固定自行车（适当增加阻力）",
+        "游泳（注意水温适宜，避免剧烈蹬腿导致血压骤升）",
+        "椭圆机（可逐步加入上肢推拉，CABG术后需胸骨愈合确认）"
+      ],
+      "session_structure": [
+        {
+          "phase": "热身",
+          "duration_min": 5,
+          "intensity": "轻松，RPE 11–12",
+          "instruction": "第一阶段的节奏热身，让关节和心肺预热。"
+        },
+        {
+          "phase": "主训练",
+          "duration_min": "30–40（逐步延长）",
+          "intensity": "RPE 13–14，说话需要稍停顿",
+          "instruction": "保持稳定节奏，心率在最大心率的60–70%。如果说话很困难，稍微降速。"
+        },
+        {
+          "phase": "整理放松",
+          "duration_min": 5,
+          "intensity": "逐步放缓至RPE 11以下",
+          "instruction": "最后5分钟减速放松，配合腹式呼吸调整。"
+        }
+      ],
+      "how_to_know_intensity_is_right": [
+        "说话时需要稍停顿喘口气，但能断断续续说话 → 强度合适",
+        "完全无法说话 → 立即降速",
+        "感觉轻松毫不费力 → 可以提速，但每次只调整一个维度"
+      ],
+      "safety_notes": [
+        "每次运动后心率应在停止后10分钟内降至100次以下，否则下次降低强度",
+        "不要空腹运动，也不要在饱饭后1.5小时内运动",
+        "天气高温或湿度高时，换室内或缩短时长",
+        "出汗增多后注意补水（小口多次，不要大量灌水）"
+      ],
+      "stop_if": "出现胸痛、明显气短、头晕，立即停止。",
+      "_logic": {
+        "stage": 2,
+        "hr_pct_hrmax_range": [60, 70],
+        "rpe_range": [13, 14],
+        "duration_target_min": [30, 40],
+        "frequency_per_week_target": 4,
+        "appropriate_for_poor_state": false,
+        "appropriate_for_high_risk": false,
+        "appropriate_for_medium_risk": true,
+        "appropriate_for_low_risk": true,
+        "entry_condition": "完成 aerobic-stage1 的进阶触发条件",
+        "progression_trigger": "舒适完成40分钟 × 每周4次，持续2周",
+        "linked_rules": ["f2-g1-progression-order", "f2-g2-weekly-cap", "f2-g3-talk-test"]
+      }
+    },
+
+    {
+      "id": "aerobic-stage3",
+      "category": "aerobic",
+      "name": "有氧训练 · 强化提高",
+      "name_clinical": "Phase II 有氧训练第三阶段（70–80% HRmax）",
+      "stage_label": "第8–12周",
+      "summary": "在适应中等强度训练后进入较高强度，最终目标是每次持续60分钟。",
+      "params": {
+        "weeks": "第8–12周（完成第二阶段后进入）",
+        "hr_target": "最大心率的70–80%",
+        "rpe_target": "14–16（比较费力到费力）",
+        "duration_per_session_min": "40–60分钟（目标逐步达到）",
+        "frequency_per_week": "4–5",
+        "final_target": "每次60分钟持续有氧，每周4–5次"
+      },
+      "description": "这是居家心脏康复有氧训练的目标阶段。运动时感觉「费力」，可以说单词但说完整句子比较困难。36次心脏康复训练结束时的理想状态是能稳定完成每次60分钟。",
+      "activity_examples": [
+        "快走或慢跑（根据个人体能选择）",
+        "室内固定自行车（中等阻力）",
+        "椭圆机（全身协调运动）",
+        "游泳自由泳或仰泳（注意上肢力量是否充分）"
+      ],
+      "session_structure": [
+        {
+          "phase": "热身",
+          "duration_min": 5,
+          "intensity": "第二阶段强度热身，RPE 12–13",
+          "instruction": "让身体充分预热再进入高强度。"
+        },
+        {
+          "phase": "主训练",
+          "duration_min": "40–60（逐步达到60分钟目标）",
+          "intensity": "RPE 14–16",
+          "instruction": "保持稳定节奏。可以说单词但说完整句子费力，这是正常的。如果出现需要暂停说话的明显气喘，稍微降速。"
+        },
+        {
+          "phase": "整理放松",
+          "duration_min": "5–10",
+          "intensity": "逐步降至RPE 12以下",
+          "instruction": "减速放松，结合腹式呼吸和小腿拉伸。"
+        }
+      ],
+      "how_to_know_intensity_is_right": [
+        "能说单词，但说完整句子比较费力 → 强度合适",
+        "完全无法说话 → 降速",
+        "HIIT进阶选项：适应此阶段后，可与医生讨论是否引入间歇训练"
+      ],
+      "safety_notes": [
+        "这个阶段对心脏的需求增加，每次运动前回顾当天状态（睡眠、有无症状）",
+        "如果当天感觉不对劲，退回第二阶段强度即可，不需要强撑",
+        "运动后记录感受，下次就诊时与医生讨论进展"
+      ],
+      "stop_if": "胸痛、胸闷、明显气短、头晕。立即停止。",
+      "_logic": {
+        "stage": 3,
+        "hr_pct_hrmax_range": [70, 80],
+        "rpe_range": [14, 16],
+        "duration_target_min": [40, 60],
+        "frequency_per_week_target": 5,
+        "appropriate_for_poor_state": false,
+        "appropriate_for_high_risk": false,
+        "appropriate_for_medium_risk": false,
+        "appropriate_for_low_risk": true,
+        "entry_condition": "完成 aerobic-stage2 的进阶触发条件，且最近评估状态良好",
+        "progression_trigger": "适应后可与医生评估是否引入HIIT（见 aerobic-hiit）",
+        "linked_rules": ["f2-g1-progression-order", "f2-g2-weekly-cap", "f2-g3-talk-test", "f2-f1-cabg-upper-limb-restriction"]
+      }
+    },
+
+    {
+      "id": "aerobic-hiit",
+      "category": "aerobic_advanced",
+      "name": "间歇训练（HIIT）",
+      "name_clinical": "高强度间歇训练 High-Intensity Interval Training",
+      "stage_label": "进阶选项（第三阶段适应后）",
+      "summary": "短时高强度冲刺 + 充分恢复交替进行，比普通匀速有氧更高效地提升心肺耐力。",
+      "prerequisite_note": "需要医生评估同意后方可进行。未完成三阶段适应的患者不建议直接进入。",
+      "params": {
+        "high_intensity_interval": {
+          "duration_sec": "30–60秒",
+          "rpe_target": "15–17（很费力到非常费力）",
+          "hr_target": "最大心率的80–85%"
+        },
+        "recovery_interval": {
+          "duration_min": "1–5分钟",
+          "rpe_target": "低于14（恢复到可以正常说话）",
+          "intensity": "慢走或低阻力踩踏"
+        },
+        "intervals_per_session": "4–8个间歇",
+        "total_session_min": "30–45分钟（含热身整理）",
+        "frequency_per_week": "2–3（不超过）"
+      },
+      "description": "一次HIIT训练由多个「冲刺+恢复」循环组成。冲刺时加速到感觉「很费力」，恢复时减速让心率降回来，再进行下一次冲刺。研究显示，HIIT在提升心肺功能方面比匀速训练效果更好，且安全性相当。",
+      "session_structure": [
+        {
+          "phase": "热身",
+          "duration_min": 5,
+          "intensity": "第三阶段匀速节奏，RPE 13–14",
+          "instruction": "充分热身，让心率达到中等强度再开始间歇。"
+        },
+        {
+          "phase": "间歇循环（重复4–8次）",
+          "sub_phases": [
+            {
+              "name": "冲刺",
+              "duration": "30–60秒",
+              "intensity": "RPE 15–17，快走变慢跑或加大阻力",
+              "instruction": "加速到感觉「很费力」，但不要拼尽全力到无法继续。"
+            },
+            {
+              "name": "恢复",
+              "duration": "1–5分钟（心率降回来为准）",
+              "intensity": "RPE低于14，慢速踩踏或缓走",
+              "instruction": "让心率和呼吸恢复到可以说话的程度，再开始下一次冲刺。不要缩短恢复时间。"
+            }
+          ]
+        },
+        {
+          "phase": "整理放松",
+          "duration_min": 5,
+          "intensity": "逐步降至RPE 12以下",
+          "instruction": "最后5分钟匀速慢走或低阻力踩踏，让心率平稳下降。"
+        }
+      ],
+      "evidence_note": "17项随机对照研究（902名冠心病患者）显示，HIIT比匀速有氧训练平均多提升心肺功能约1.5 mL/kg/min，且两组不良心血管事件发生率没有显著差异。",
+      "how_to_know_its_working": [
+        "冲刺阶段感觉费力但可以坚持 → 合适",
+        "恢复阶段结束前心率已降回中等强度 → 恢复充分",
+        "完成4–8个间歇后有疲劳感但不过度 → 负荷合理"
+      ],
+      "safety_notes": [
+        "第一次做HIIT：只做4个间歇，感受身体反应，下次再逐步增加",
+        "每次间歇之间必须充分恢复，不要缩短恢复时间来「节省时间」",
+        "心脏起搏器或ICD用户：冲刺心率必须比ICD放电阈值低至少15次，请与医生确认",
+        "β受体阻滞剂用户：不用心率判断强度，用RPE 15–17判断冲刺强度",
+        "身体不适、睡眠差、近期症状加重：改为第三阶段匀速训练"
+      ],
+      "stop_if": "任何胸部不适、头晕、心跳异常（过快或不规则）、明显气短无法缓解，立即停止。",
+      "_logic": {
+        "stage": 4,
+        "type": "interval",
+        "hr_pct_hrmax_high": [80, 85],
+        "rpe_high_range": [15, 17],
+        "rpe_recovery_max": 14,
+        "intervals": [4, 8],
+        "frequency_per_week_max": 3,
+        "appropriate_for_poor_state": false,
+        "appropriate_for_high_risk": false,
+        "appropriate_for_medium_risk": false,
+        "appropriate_for_low_risk": true,
+        "requires_doctor_approval": true,
+        "entry_condition": "完成并适应 aerobic-stage3，医生评估同意",
+        "beta_blocker_override": "使用RPE 15–17替代心率目标，参见 f2-a2-rpe-only-beta-blocker",
+        "icd_constraint": "冲刺心率上限 = ICD放电阈值 - 15 bpm，参见 f2-a3",
+        "cabg_restriction": "无氧训练限制，但避免引起胸骨区域不适",
+        "linked_rules": ["f2-a2-rpe-only-beta-blocker", "f2-g2-weekly-cap", "f2-g3-talk-test"]
+      }
+    }
+
+  ],
+
+  "_resistance_training_note": {
+    "note": "阻力训练具体进阶参数（组数：1→2→3组；负荷进阶约5%；频率：每周2→3次非连续日；上肢目标70% 1RM，下肢目标80% 1RM；CABG术后需胸骨愈合8–10周）已在 KG/rules.yaml Group G 中结构化记录。具体阻力训练动作需根据设备条件（弹力带/哑铃/器械）单独设计，当前文献文件未覆盖具体动作描述。",
+    "linked_rules": ["f2-f1-cabg-upper-limb-restriction", "f2-g1-progression-order", "f2-g2-weekly-cap"]
+  },
+
+  "_routing_summary": {
+    "description": "F2模块路由：根据危险分层 + 当前进阶阶段 + 评估状态决定推荐哪个方案",
+    "when_low_risk_good_state": {
+      "start": "aerobic-stage1",
+      "after_stage1_completion": "aerobic-stage2",
+      "after_stage2_completion": "aerobic-stage3",
+      "after_stage3_adapted_with_doctor_approval": "aerobic-hiit"
+    },
+    "when_medium_risk_good_state": {
+      "start": "aerobic-stage1",
+      "max_stage": "aerobic-stage2",
+      "note": "中危患者通常不进入stage3和HIIT，需医生评估"
+    },
+    "when_poor_state": {
+      "recommendation": "暂停有氧训练，推送 exercise_breath.json 中的拉伸和呼吸练习",
+      "linked_file": "exercise_breath.json",
+      "linked_rules": ["f2-c2-poor-state-action", "f2-c3-high-risk-action"]
+    },
+    "when_high_risk": {
+      "recommendation": "有氧训练锁定，仅允许 exercise_breath.json 中标注 appropriate_for_high_risk: true 的项目",
+      "linked_file": "exercise_breath.json"
+    },
+    "intensity_adjustment_override": {
+      "beta_blocker": "所有方案的心率目标替换为RPE目标，参见 f2-a2-rpe-only-beta-blocker",
+      "symptom_triggered_reduction": "出现症状时退回上一阶段，参见 f2-d1 至 f2-d4",
+      "progression_blocked": "连续3次超出RPE上限 → 降档，参见 f2-e2"
+    }
+  }
+}

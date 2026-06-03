@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 功能引导</title>
+<style>
+  :root {
+    --bg: #F7F5F1;
+    --card: #F0EDE8;
+    --text: #2C2A26;
+    --text-sub: #888780;
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --orange: #BA7517;
+    --orange-light: #FAEEDA;
+    --red: #A32D2D;
+    --red-light: #FCEBEB;
+    --green: #1D9E75;
+    --green-light: #D4F2E7;
+    --green-dark: #085041;
+    --border: #C8C5BE;
+    --r-card: 12px;
+    --r-btn: 8px;
+    --r-pill: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #E8E4DE;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
+  }
+
+  .phone {
+    width: 390px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .status-bar {
+    height: 44px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .status-time { font-size: 15px; font-weight: 600; color: var(--text); }
+  .status-icons { font-size: 12px; color: var(--text); }
+
+  /* Top bar */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px 0;
+    flex-shrink: 0;
+  }
+  .top-bar-title {
+    font-size: 14px;
+    color: var(--text-sub);
+  }
+  .skip-btn {
+    font-size: 14px;
+    color: var(--text-sub);
+    text-decoration: none;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Dots indicator */
+  .dots-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 0 10px;
+    flex-shrink: 0;
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.2s;
+  }
+  .dot.active {
+    width: 20px;
+    border-radius: 3px;
+    background: var(--blue);
+  }
+
+  /* Cards carousel */
+  .cards-viewport {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .cards-track {
+    display: flex;
+    height: 100%;
+    transition: transform 0.3s ease;
+  }
+
+  .guide-card {
+    width: 390px;
+    flex-shrink: 0;
+    padding: 16px 16px 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Card illustration area */
+  .card-illustration {
+    border-radius: var(--r-card);
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .illustration-icon {
+    font-size: 72px;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .illustration-label {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: var(--r-pill);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Card content */
+  .card-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    margin-bottom: 10px;
+  }
+
+  .card-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.35;
+    margin-bottom: 12px;
+  }
+
+  .card-body {
+    font-size: 16px;
+    color: var(--text-sub);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+
+  /* Feature points */
+  .feature-points {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .feature-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--card);
+    border-radius: 10px;
+  }
+
+  .fp-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .fp-text {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .fp-text strong { font-weight: 600; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    flex-shrink: 0;
+    padding: 12px 16px 32px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .btn-back-card {
+    height: 56px;
+    width: 56px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-btn);
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-next-card {
+    flex: 1;
+    height: 56px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: var(--r-btn);
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-next-card:active { opacity: 0.85; }
+  .btn-next-card.green { background: var(--green); }
+
+  /* Touch swipe support */
+  .cards-viewport {
+    touch-action: pan-y;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">●●● WiFi 🔋</div>
+  </div>
+
+  <div class="top-bar">
+    <span class="top-bar-title">功能快速引导</span>
+    <a href="../screens/home-index.html" class="skip-btn">跳过 ›</a>
+  </div>
+
+  <div class="dots-row" id="dotsRow">
+    <div class="dot active" id="d0"></div>
+    <div class="dot" id="d1"></div>
+    <div class="dot" id="d2"></div>
+    <div class="dot" id="d3"></div>
+    <div class="dot" id="d4"></div>
+  </div>
+
+  <div class="cards-viewport" id="viewport">
+    <div class="cards-track" id="track">
+
+      <!-- CARD 1: 运动处方 -->
+      <div class="guide-card">
+        <div class="card-illustration" style="background:var(--blue-light);">
+          <div class="illustration-icon">🏃‍♂️</div>
+          <div class="illustration-label" style="background:var(--blue);color:white;">运动功能</div>
+        </div>
+        <div class="card-tag" style="background:var(--blue-light);color:var(--blue);">💙 核心功能</div>
+        <div class="card-title">每天的运动方案，由系统为你定制</div>
+        <div class="card-body">根据你的评估结果，系统会每次计算适合你的运动类型、时长和强度，并随着你的反馈不断调整。</div>
+        <div class="feature-points">
+          <div class="feature-point">
+            <div class="fp-icon">✅</div>
+            <div class="fp-text"><strong>运动前</strong>每次做简短状态确认（约 30 秒）</div>
+          </div>
+          <div class="feature-point">
+            <div class="fp-icon">⏱</div>
+            <div class="fp-text"><strong>运动中</strong>内置计时器，无需看时钟</div>
+          </div>
+          <div class="feature-point">
+            <div class="fp-icon">📊</div>
+            <div class="fp-text"><strong>运动后</strong>记录 RPE 感受，系统自动优化下次强度</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: Check-in 流程 -->
+      <div class="guide-card">
+        <div class="card-illustration" style="background:#E8F6EE;">
+          <div class="illustration-icon">🩺</div>
+          <div class="illustration-label" style="background:var(--green);color:white;">安全第一</div>
+        </div>
+        <div class="card-tag" style="background:var(--green-light);color:var(--green-dark);">🌿 安全设计</div>
+        <div class="card-title">每次运动前，先做一个 30 秒的状态检查</div>
+        <div class="card-body">我们不希望你在不合适的状态下运动。运动前的「Check-in」会询问今天的身体信号和睡眠疲劳，只有一切正常才会展示处方。</div>
+        <div class="feature-points">
+          <div class="feature-point">
+            <div class="fp-icon">🚫</div>
+            <div class="fp-text">出现<strong>胸痛/心慌/头晕</strong>等症状时，系统会提示今日停止运动</div>
+          </div>
+          <div class="feature-point">
+            <div class="fp-icon">😴</div>
+            <div class="fp-text"><strong>睡眠很差 + 很累</strong>时，系统可能建议降低强度</div>
+          </div>
+          <div class="feature-point">
+            <div class="fp-icon">🔄</div>
+            <div class="fp-text">明天进入运动页面，会询问<strong>今天的不适是否已缓解</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: 营养 & 助手 -->
+      <div class="guide-card">
+        <div class="card-illustration" style="background:var(--orange-light);">
+          <div class="illustration-icon">🥗</div>
+          <div class="illustration-label" style="background:var(--orange);color:white;">营养 & 助手</div>
+        </div>
+        <div class="card-tag" style="background:var(--orange-light);color:var(--orange);">🧡 配套功能</div>
+        <div class="card-title">营养指南 + 随时提问的康复助手</div>
+        <div class="card-body">不只是运动——心脏康复的五大处方都有对应功能。营养、科普、心理支持，按需使用。</div>
+        <div class="feature-points">
+          <div class="feature-point">
+            <div class="fp-icon">🛒</div>
+            <div class="fp-text"><strong>超市选购指南</strong>：哪些食物放心买，哪些少买</div>
+          </div>
+          <div class="feature-point">
+            <div class="fp-icon">🔄</div>
+            <div class="fp-text"><strong>食材替换表</strong>：中式烹饪场景下的健康替代方案</div>
+          </div>
+          <div class="feature-point">
+            <div class="fp-icon">🤖</div>
+            <div class="fp-text"><strong>康复助手</strong>随时提问，基于循证医学知识库回答</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 4: 药物处方 -->
+      <div class="guide-card">
+        <div class="card-illustration" style="background:#E4E1DC;">
+          <div class="illustration-icon">💊</div>
+          <div class="illustration-label" style="background:#5C5852;color:white;">用药追踪</div>
+        </div>
+        <div class="card-tag" style="background:#ECEAE6;color:#5C5852;">⚕️ 用药依从</div>
+        <div class="card-title">用药追踪与科普——一切用药决策，遵医嘱</div>
+        <div class="card-body">Heart 会在每月随访中记录你的用药情况，并提供常见药物的科普信息。但我们不是医生，不推荐任何药物，也不建议你自行调整服药方式。</div>
+        <div class="feature-points">
+          <div class="feature-point">
+            <div class="fp-icon">📋</div>
+            <div class="fp-text"><strong>每月随访</strong>记录用药依从性（β受体阻滞剂 / 他汀类 / 抗血小板）</div>
+          </div>
+          <div class="feature-point">
+            <div class="fp-icon">📖</div>
+            <div class="fp-text"><strong>药物科普</strong>说明常见药物的作用与注意事项，不做任何具体推荐</div>
+          </div>
+          <div class="feature-point">
+            <div class="fp-icon">⚠️</div>
+            <div class="fp-text">出现用药疑问，请<strong>联系你的主治医生</strong>，不要自行增减或更改</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 5: 随访 & 进度 -->
+      <div class="guide-card">
+        <div class="card-illustration" style="background:#F0EBF8;">
+          <div class="illustration-icon">📅</div>
+          <div class="illustration-label" style="background:#7C3AED;color:white;">进度追踪</div>
+        </div>
+        <div class="card-tag" style="background:#F0EBF8;color:#7C3AED;">🟣 跟踪记录</div>
+        <div class="card-title">每周随访 + 数据可视化，看见你的进步</div>
+        <div class="card-body">坚持是最难的一步。定期随访帮你记录身体变化，数据图表让进步看得见，里程碑奖励让坚持有意义。</div>
+        <div class="feature-points">
+          <div class="feature-point">
+            <div class="fp-icon">📋</div>
+            <div class="fp-text"><strong>每周随访</strong>约 2 分钟，记录睡眠/情绪/症状</div>
+          </div>
+          <div class="feature-point">
+            <div class="fp-icon">📈</div>
+            <div class="fp-text"><strong>运动数据</strong>：RPE 趋势、心率恢复、完成次数</div>
+          </div>
+          <div class="feature-point">
+            <div class="fp-icon">🏅</div>
+            <div class="fp-text"><strong>里程碑</strong>：第 12、18、90 次，每个都值得庆祝</div>
+          </div>
+          <div class="feature-point">
+            <div class="fp-icon">🧠</div>
+            <div class="fp-text"><strong>心理状态关注</strong>：每周随访关注你的情绪，适时推送心理健康内容</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end track -->
+  </div><!-- end viewport -->
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <button class="btn-back-card" id="backBtn" onclick="prevCard()">‹</button>
+    <button class="btn-next-card" id="nextBtn" onclick="nextCard()">下一步 →</button>
+  </div>
+
+</div>
+
+<script>
+  let current = 0;
+  const total = 5;
+
+  const track = document.getElementById('track');
+  const nextBtn = document.getElementById('nextBtn');
+  const backBtn = document.getElementById('backBtn');
+
+  function updateUI() {
+    track.style.transform = `translateX(-${current * 390}px)`;
+
+    for(let i = 0; i < total; i++) {
+      const d = document.getElementById('d' + i);
+      d.className = 'dot' + (i === current ? ' active' : '');
+    }
+
+    backBtn.style.visibility = current === 0 ? 'hidden' : 'visible';
+
+    if(current === total - 1) {
+      nextBtn.textContent = '开始使用 Heart ✓';
+      nextBtn.classList.add('green');
+      nextBtn.onclick = () => { window.location.href = '../screens/home-index.html'; };
+    } else {
+      nextBtn.textContent = '下一步 →';
+      nextBtn.classList.remove('green');
+      nextBtn.onclick = nextCard;
+    }
+  }
+
+  function nextCard() {
+    if(current < total - 1) {
+      current++;
+      updateUI();
+    }
+  }
+
+  function prevCard() {
+    if(current > 0) {
+      current--;
+      updateUI();
+    }
+  }
+
+  // Touch / swipe support
+  let touchStartX = 0;
+  const viewport = document.getElementById('viewport');
+
+  viewport.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  viewport.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if(Math.abs(dx) > 50) {
+      if(dx < 0) nextCard();
+      else prevCard();
+    }
+  }, { passive: true });
+
+  updateUI();
+</script>
+</body>
+</html>

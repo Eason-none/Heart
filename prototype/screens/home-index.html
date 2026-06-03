@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 首页</title>
+<style>
+:root {
+  --bg: #F7F5F1;
+  --card: #F0EDE8;
+  --text: #2C2A26;
+  --sub: #888780;
+  --blue: #185FA5;
+  --blue-light: #E6F1FB;
+  --orange: #BA7517;
+  --orange-light: #FAEEDA;
+  --red: #A32D2D;
+  --red-light: #FCEBEB;
+  --green: #1D9E75;
+  --green-light: #D4F2E7;
+  --green-dark: #085041;
+  --border: #C8C5BE;
+  --r-card: 12px;
+  --r-btn: 8px;
+  --r-pill: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #E8E4DE;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
+}
+.phone {
+  width: 390px;
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.status-bar {
+  height: 44px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.status-time { font-size: 15px; font-weight: 600; color: var(--text); }
+.status-icons { font-size: 12px; color: var(--text); }
+
+/* Assessment resume banner */
+.resume-banner {
+  background: var(--orange-light);
+  border-left: 4px solid var(--orange);
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--orange);
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.resume-banner.hidden { display: none; }
+
+/* Scroll content */
+.scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Demo switcher */
+.demo-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+.demo-label { font-size: 12px; color: var(--sub); }
+.demo-btn {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--sub);
+  cursor: pointer;
+  font-family: inherit;
+}
+.demo-btn.active { background: var(--blue); border-color: var(--blue); color: white; font-weight: 600; }
+
+/* Section label */
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sub);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* ── SCIENCE CARD ── */
+.science-card {
+  background: var(--card);
+  border-radius: var(--r-card);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.science-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.topic-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--blue);
+  color: white;
+}
+.science-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+.science-body {
+  font-size: 16px;
+  color: var(--text);
+  line-height: 1.6;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+}
+.science-body.collapsed { -webkit-line-clamp: 4; }
+.science-body.expanded { -webkit-line-clamp: unset; }
+.expand-btn {
+  font-size: 15px;
+  color: var(--blue);
+  background: none;
+  border: none;
+  padding: 6px 0;
+  cursor: pointer;
+  font-family: inherit;
+  display: block;
+  margin-top: 4px;
+}
+
+/* Topic tag selector */
+.topic-selector {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.topic-selector-label {
+  font-size: 13px;
+  color: var(--sub);
+  margin-bottom: 8px;
+}
+.topic-tags-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.topic-tag {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  font-size: 14px;
+  color: var(--sub);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.topic-tag.picked { background: var(--blue-light); border-color: var(--blue); color: var(--blue); font-weight: 600; }
+.topic-selector.hidden { display: none; }
+
+/* ── EXERCISE TODAY SECTION ── */
+.exercise-card {
+  background: var(--card);
+  border-radius: var(--r-card);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.exercise-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.today-label { font-size: 15px; color: var(--sub); }
+.exercise-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--green-light);
+  color: var(--green-dark);
+}
+.exercise-info-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.exercise-info-item { display: flex; flex-direction: column; gap: 2px; }
+.exercise-info-label { font-size: 13px; color: var(--sub); }
+.exercise-info-value { font-size: 17px; font-weight: 700; color: var(--text); }
+.exercise-info-value .rpe-badge {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: var(--blue-light);
+  color: var(--blue);
+}
+
+.btn-exercise-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  background: var(--blue);
+  color: white;
+  font-size: 17px;
+  font-weight: 600;
+  border-radius: var(--r-btn);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  gap: 8px;
+  font-family: inherit;
+  transition: opacity 0.15s;
+}
+.btn-exercise-cta:active { opacity: 0.85; }
+
+/* Rest day */
+.rest-day-card {
+  background: var(--card);
+  border-radius: var(--r-card);
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.rest-icon { font-size: 36px; }
+.rest-text-area { flex: 1; }
+.rest-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.rest-hint { font-size: 15px; color: var(--sub); line-height: 1.5; }
+
+/* ── BOTTOM SECTION ── */
+.symptom-reminder {
+  background: var(--card);
+  border-radius: var(--r-card);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.reminder-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.reminder-text { font-size: 15px; color: var(--sub); line-height: 1.6; }
+
+/* Followup prompt bar */
+.followup-bar {
+  background: var(--orange-light);
+  border-left: 4px solid var(--orange);
+  border-radius: 0 var(--r-btn) var(--r-btn) 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  cursor: pointer;
+  text-decoration: none;
+  margin-bottom: 10px;
+}
+.followup-bar-text {
+  font-size: 15px;
+  color: var(--text);
+  flex: 1;
+}
+.followup-bar-arrow { font-size: 18px; color: var(--orange); }
+.followup-bar.hidden { display: none; }
+
+/* ── TAB BAR ── */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  width: 390px;
+  height: 68px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  padding-top: 8px;
+  z-index: 50;
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-decoration: none;
+  cursor: pointer;
+  position: relative;
+}
+.tab-icon { font-size: 22px; line-height: 1; }
+.tab-label { font-size: 10px; color: var(--sub); font-weight: 500; }
+.tab-item.active .tab-label { color: var(--blue); font-weight: 700; }
+.tab-item.active .tab-icon { filter: none; }
+
+/* Red dot badge */
+.tab-badge {
+  position: absolute;
+  top: -3px;
+  right: 20px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">●●● WiFi 🔋</div>
+  </div>
+
+  <!-- Assessment resume banner (conditional) -->
+  <a href="../onboarding/assessment-index.html" class="resume-banner hidden" id="resumeBanner">
+    ⚠ 首次评估未完成 · 点击继续填写 →
+  </a>
+
+  <div class="scroll-content">
+
+    <!-- Demo controls -->
+    <div class="demo-row">
+      <span class="demo-label">演示模式：</span>
+      <button class="demo-btn active" id="demoExercise" onclick="setMode('exercise')">运动日</button>
+      <button class="demo-btn" id="demoRest" onclick="setMode('rest')">休息日</button>
+      <button class="demo-btn" id="demoAssessment" onclick="toggleBanner()">续填 Banner</button>
+      <button class="demo-btn" id="demoFollowup" onclick="toggleFollowup()">逾期随访</button>
+    </div>
+
+    <!-- ── 上 1/3: 科普卡片 ── -->
+    <div class="section-label">今日科普</div>
+    <div class="science-card">
+      <div class="science-card-top">
+        <span class="topic-pill">🏃 运动知识</span>
+        <span style="font-size:13px;color:var(--sub);">每日更新</span>
+      </div>
+      <div class="science-title">为什么运动后要做冷身？这一步很多人跳过了</div>
+      <div class="science-body collapsed" id="scienceBody">
+        冷身（cool-down）是运动结束后以较低强度持续活动 5–10 分钟的过程，对心脏康复患者尤其重要。
+
+突然停止运动会导致血液在下肢淤积，心脏回血量骤降，可能引发头晕甚至低血压。研究显示，冠心病患者在运动后立即停止（而非逐渐降速）时，心律异常发生率显著更高。
+
+正确的冷身方式：快步行走 → 慢步行走 → 原地踏步，整个过程保持呼吸平稳。如果你使用计步器或手环，冷身阶段的心率应逐渐回落至 100 次/分以下。
+
+记住：冷身不是可选项，而是每次运动的标准收尾。
+      </div>
+      <button class="expand-btn" id="expandBtn" onclick="toggleExpand()">展开 ↓</button>
+
+      <!-- Topic tag selector -->
+      <div class="topic-selector" id="topicSelector">
+        <div class="topic-selector-label">你对哪个话题感兴趣？</div>
+        <div class="topic-tags-row">
+          <button class="topic-tag" onclick="pickTopic(this)">💊 用药知识</button>
+          <button class="topic-tag" onclick="pickTopic(this)">🧠 心理调适</button>
+          <button class="topic-tag" onclick="pickTopic(this)">😴 睡眠管理</button>
+          <button class="topic-tag" onclick="pickTopic(this)">🩺 复诊准备</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 中 1/3: 运动提示（运动日）── -->
+    <div class="section-label" id="exerciseSectionLabel">今日运动</div>
+
+    <div id="exerciseDayCard" class="exercise-card">
+      <div class="exercise-top-row">
+        <span class="today-label">今天是运动日</span>
+        <span class="exercise-type-badge">🚶 步行</span>
+      </div>
+      <div class="exercise-info-row">
+        <div class="exercise-info-item">
+          <span class="exercise-info-label">时长</span>
+          <span class="exercise-info-value">30 分钟</span>
+        </div>
+        <div class="exercise-info-item">
+          <span class="exercise-info-label">目标强度</span>
+          <span class="exercise-info-value"><span class="rpe-badge">适中</span></span>
+        </div>
+        <div class="exercise-info-item">
+          <span class="exercise-info-label">累计</span>
+          <span class="exercise-info-value">第 3 次</span>
+        </div>
+      </div>
+      <a href="exercise-index.html" class="btn-exercise-cta">去运动 →</a>
+    </div>
+
+    <!-- 休息日 -->
+    <div id="restDayCard" class="rest-day-card hidden">
+      <div class="rest-icon">🌿</div>
+      <div class="rest-text-area">
+        <div class="rest-title">今天是休息日</div>
+        <div class="rest-hint">下次运动建议：明天<br>适当活动筋骨，注意补充水分</div>
+      </div>
+    </div>
+
+    <!-- ── 下 1/3: 症状提醒 + 随访 ── -->
+    <!-- Followup overdue bar (conditional) -->
+    <a href="followup-index.html" class="followup-bar hidden" id="followupBar">
+      <span class="followup-bar-text">本周随访未完成，点击开始 →</span>
+      <span class="followup-bar-arrow">›</span>
+    </a>
+
+    <div class="symptom-reminder">
+      <span class="reminder-icon">⚠️</span>
+      <span class="reminder-text">如出现胸痛、胸闷、心慌、头晕等不适，请立即停止活动并就医</span>
+    </div>
+
+  </div><!-- end scroll -->
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <a class="tab-item active" href="home-index.html">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">首页</span>
+    </a>
+    <a class="tab-item" href="exercise-index.html">
+      <span class="tab-icon">🏃</span>
+      <span class="tab-label">运动</span>
+    </a>
+    <a class="tab-item" href="nutrition-index.html">
+      <span class="tab-icon">🥗</span>
+      <span class="tab-label">营养</span>
+    </a>
+    <a class="tab-item" href="assistant-index.html">
+      <span class="tab-icon">🤖</span>
+      <span class="tab-label">助手</span>
+    </a>
+    <a class="tab-item" href="profile-index.html" style="position:relative;">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">我</span>
+      <span class="tab-badge hidden" id="profileBadge"></span>
+    </a>
+  </div>
+</div>
+
+<script>
+  let expanded = false;
+  let topicPicked = false;
+
+  function toggleExpand() {
+    expanded = !expanded;
+    const body = document.getElementById('scienceBody');
+    const btn = document.getElementById('expandBtn');
+    body.className = 'science-body ' + (expanded ? 'expanded' : 'collapsed');
+    btn.textContent = expanded ? '收起 ↑' : '展开 ↓';
+  }
+
+  function pickTopic(el) {
+    if(topicPicked) return;
+    el.classList.add('picked');
+    topicPicked = true;
+    setTimeout(() => {
+      document.getElementById('topicSelector').classList.add('hidden');
+    }, 600);
+  }
+
+  function setMode(mode) {
+    const isExercise = mode === 'exercise';
+    document.getElementById('exerciseDayCard').classList.toggle('hidden', !isExercise);
+    document.getElementById('restDayCard').classList.toggle('hidden', isExercise);
+    document.getElementById('exerciseSectionLabel').textContent = isExercise ? '今日运动' : '今日安排';
+    document.getElementById('demoExercise').classList.toggle('active', isExercise);
+    document.getElementById('demoRest').classList.toggle('active', !isExercise);
+    // Badge: rest day => profile red dot to suggest followup check
+    document.getElementById('profileBadge').classList.toggle('hidden', isExercise);
+  }
+
+  let bannerOn = false;
+  function toggleBanner() {
+    bannerOn = !bannerOn;
+    document.getElementById('resumeBanner').classList.toggle('hidden', !bannerOn);
+    document.getElementById('demoAssessment').classList.toggle('active', bannerOn);
+  }
+
+  let followupOn = false;
+  function toggleFollowup() {
+    followupOn = !followupOn;
+    document.getElementById('followupBar').classList.toggle('hidden', !followupOn);
+    document.getElementById('profileBadge').classList.toggle('hidden', !followupOn);
+    document.getElementById('demoFollowup').classList.toggle('active', followupOn);
+  }
+</script>
+</body>
+</html>

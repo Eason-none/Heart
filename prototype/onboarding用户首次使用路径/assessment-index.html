@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · F3 评估</title>
+<style>
+  :root {
+    --bg: #F7F5F1;
+    --card: #F0EDE8;
+    --text: #2C2A26;
+    --text-sub: #888780;
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --orange: #BA7517;
+    --orange-light: #FAEEDA;
+    --red: #A32D2D;
+    --red-light: #FCEBEB;
+    --green: #1D9E75;
+    --border: #C8C5BE;
+    --r-card: 12px;
+    --r-btn: 8px;
+    --r-pill: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #E8E4DE;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
+  }
+
+  .phone {
+    width: 390px;
+    min-height: 100vh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .status-bar {
+    height: 44px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    justify-content: space-between;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .status-time { font-size: 15px; font-weight: 600; color: var(--text); }
+  .status-icons { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--text); }
+
+  /* Progress bar */
+  .progress-bar-container {
+    padding: 10px 16px 0;
+    flex-shrink: 0;
+    background: var(--bg);
+    z-index: 10;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .progress-label-text { font-size: 13px; color: var(--text-sub); }
+  .progress-label-group { font-size: 14px; font-weight: 600; color: var(--text); }
+
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--blue);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  /* Group dots */
+  .group-dots {
+    display: flex;
+    gap: 6px;
+    padding-bottom: 12px;
+  }
+  .group-dot {
+    flex: 1;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .group-dot.done { background: var(--blue); }
+  .group-dot.active { background: var(--blue); opacity: 0.5; }
+
+  /* Scroll content */
+  .scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Transition card */
+  .transition-card {
+    background: var(--card);
+    border-radius: var(--r-card);
+    padding: 20px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .transition-card.show { display: block; }
+  .transition-icon { font-size: 32px; margin-bottom: 12px; }
+  .transition-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .transition-body { font-size: 15px; color: var(--text-sub); line-height: 1.6; }
+
+  /* Question group */
+  .question-group { display: none; }
+  .question-group.show { display: block; }
+
+  .question-block {
+    margin-bottom: 20px;
+  }
+
+  .question-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .question-required { color: var(--red); margin-left: 3px; }
+
+  .question-skippable {
+    font-size: 13px;
+    color: var(--text-sub);
+    margin-top: -6px;
+    margin-bottom: 10px;
+  }
+
+  .question-error {
+    font-size: 13px;
+    color: var(--red);
+    margin-top: 6px;
+    display: none;
+  }
+  .question-error.show { display: block; }
+
+  /* Single select options */
+  .option-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .option-item {
+    min-height: 52px;
+    background: var(--card);
+    border-radius: var(--r-btn);
+    border: 1.5px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .option-item.selected {
+    background: var(--blue-light);
+    border-color: var(--blue);
+  }
+  .option-item.selected .option-dot { background: var(--blue); border-color: var(--blue); }
+  .option-item.selected .option-dot::after { opacity: 1; }
+
+  .option-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s;
+  }
+  .option-dot::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+    opacity: 0;
+    transition: opacity 0.1s;
+  }
+
+  .option-text { font-size: 16px; color: var(--text); line-height: 1.4; }
+
+  /* Multi select */
+  .multi-option-item.selected {
+    background: var(--blue-light);
+    border-color: var(--blue);
+  }
+  .multi-option-item .option-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s;
+  }
+  .multi-option-item.selected .option-check {
+    background: var(--blue);
+    border-color: var(--blue);
+  }
+  .multi-option-item.selected .option-check::after {
+    content: '';
+    width: 4px;
+    height: 8px;
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+    transform: rotate(45deg) translate(-1px, -1px);
+    display: block;
+  }
+
+  /* Number input */
+  .number-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .number-input {
+    flex: 1;
+    height: 52px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-btn);
+    background: var(--card);
+    font-size: 18px;
+    color: var(--text);
+    padding: 0 14px;
+    outline: none;
+    transition: border-color 0.15s;
+    font-family: inherit;
+  }
+  .number-input:focus { border-color: var(--blue); }
+  .number-input.error { border-color: var(--red); }
+  .number-unit {
+    font-size: 15px;
+    color: var(--text-sub);
+    min-width: 36px;
+  }
+
+  /* VSAQ */
+  .vsaq-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .vsaq-option {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-btn);
+    padding: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .vsaq-option.selected { background: var(--blue-light); border-color: var(--blue); }
+  .vsaq-label { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .vsaq-desc { font-size: 12px; color: var(--text-sub); line-height: 1.4; }
+  .vsaq-option.selected .vsaq-label { color: var(--blue); }
+
+  /* LVEF two-step */
+  .conditional-reveal {
+    display: none;
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--blue-light);
+    border-radius: var(--r-card);
+    border: 1px solid #B8D4EE;
+  }
+  .conditional-reveal.show { display: block; }
+  .conditional-reveal .question-label { font-size: 15px; margin-bottom: 8px; }
+
+  /* PHQ likert */
+  .likert-option {
+    min-height: 52px;
+    background: var(--card);
+    border-radius: var(--r-btn);
+    border: 1.5px solid var(--border);
+    padding: 10px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .likert-option.selected { background: var(--blue-light); border-color: var(--blue); }
+  .likert-score {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-sub);
+    background: var(--bg);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .likert-option.selected .likert-score { background: var(--blue); color: white; }
+
+  /* Nav buttons */
+  .nav-buttons {
+    flex-shrink: 0;
+    padding: 12px 16px 32px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-prev {
+    height: 56px;
+    background: var(--card);
+    color: var(--text);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-btn);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    flex: 1;
+    font-family: inherit;
+    transition: opacity 0.15s;
+  }
+  .btn-prev:active { opacity: 0.7; }
+  .btn-prev:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-next {
+    height: 56px;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: var(--r-btn);
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    flex: 2;
+    font-family: inherit;
+    transition: opacity 0.15s;
+  }
+  .btn-next:active { opacity: 0.85; }
+
+  /* Overlay / Modal */
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(44, 42, 38, 0.5);
+    display: none;
+    align-items: center;
+    padding: 24px 20px;
+    z-index: 100;
+  }
+  .modal-overlay.show { display: flex; }
+
+  .modal-card {
+    background: var(--bg);
+    border-radius: 16px;
+    padding: 28px 24px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .modal-icon { font-size: 48px; margin-bottom: 16px; }
+  .modal-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 12px; line-height: 1.4; }
+  .modal-body { font-size: 15px; color: var(--text-sub); line-height: 1.7; margin-bottom: 20px; }
+
+  .modal-btn-row { display: flex; gap: 10px; }
+  .modal-btn-cancel {
+    flex: 1; height: 52px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r-btn);
+    font-size: 16px; color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .modal-btn-confirm {
+    flex: 1; height: 52px;
+    background: var(--blue);
+    border: none;
+    border-radius: var(--r-btn);
+    font-size: 16px; font-weight: 600; color: white;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .modal-btn-full {
+    width: 100%; height: 52px;
+    background: var(--blue);
+    border: none;
+    border-radius: var(--r-btn);
+    font-size: 16px; font-weight: 600; color: white;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* Loading overlay */
+  .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    z-index: 200;
+  }
+  .loading-overlay.show { display: flex; }
+  .loading-spinner {
+    width: 48px; height: 48px;
+    border: 4px solid var(--border);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 16px; color: var(--text-sub); }
+
+  .group-title-area {
+    padding: 16px 0 8px;
+  }
+  .group-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .group-subtitle {
+    font-size: 14px;
+    color: var(--text-sub);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .high-risk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--red);
+    background: var(--red-light);
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+  <!-- Status -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-bar-container">
+    <div class="progress-label">
+      <span class="progress-label-text" id="progressText">第 1 部分 / 共 5 部分</span>
+      <span class="progress-label-group" id="groupName">基本信息</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:20%"></div>
+    </div>
+    <div class="group-dots">
+      <div class="group-dot active" id="dot0"></div>
+      <div class="group-dot" id="dot1"></div>
+      <div class="group-dot" id="dot2"></div>
+      <div class="group-dot" id="dot3"></div>
+      <div class="group-dot" id="dot4"></div>
+    </div>
+  </div>
+
+  <!-- Scroll -->
+  <div class="scroll-content" id="scrollContent">
+
+    <!-- GROUP 0 TRANSITION (shown before group 0) — not needed for first group -->
+
+    <!-- GROUP 1: 基本信息 -->
+    <div class="question-group show" id="group0">
+      <div class="group-title-area">
+        <div class="group-title">基本信息</div>
+        <div class="group-subtitle">帮助我们了解你的基本健康状况，所有信息仅用于生成你的个性化康复方案。</div>
+      </div>
+
+      <!-- Q1: 年龄 -->
+      <div class="question-block" id="q0_0">
+        <div class="question-label">你的年龄？<span class="question-required">*</span></div>
+        <div class="number-input-wrap">
+          <input class="number-input" type="number" id="age" placeholder="如：58" min="18" max="120">
+          <span class="number-unit">岁</span>
+        </div>
+        <div class="question-error" id="age_err">请输入合理年龄（18–120 岁）</div>
+      </div>
+
+      <!-- Q2: 性别 -->
+      <div class="question-block" id="q0_1">
+        <div class="question-label">你的性别？<span class="question-required">*</span></div>
+        <div class="option-list">
+          <div class="option-item" onclick="selectSingle(this,'gender')">
+            <div class="option-dot"></div>
+            <span class="option-text">男</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'gender')">
+            <div class="option-dot"></div>
+            <span class="option-text">女</span>
+          </div>
+        </div>
+        <div class="question-error" id="gender_err">此项必填</div>
+      </div>
+
+      <!-- Q3: 身高/体重/腰围 -->
+      <div class="question-block" id="q0_2">
+        <div class="question-label">身高 / 体重 / 腰围<span class="question-required">*</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div class="number-input-wrap">
+            <input class="number-input" type="number" id="height" placeholder="身高" min="100" max="250">
+            <span class="number-unit">cm</span>
+          </div>
+          <div class="number-input-wrap">
+            <input class="number-input" type="number" id="weight" placeholder="体重" min="20" max="300">
+            <span class="number-unit">kg</span>
+          </div>
+          <div class="number-input-wrap">
+            <input class="number-input" type="number" id="waist" placeholder="腰围" min="40" max="200">
+            <span class="number-unit">cm</span>
+          </div>
+        </div>
+        <div class="question-error" id="hww_err">请填写身高、体重和腰围</div>
+      </div>
+
+      <!-- Q4: 诊断类型 -->
+      <div class="question-block" id="q0_3">
+        <div class="question-label">你的确诊类型？<span class="question-required">*</span></div>
+        <div class="option-list">
+          <div class="option-item" onclick="selectSingle(this,'diagnosis')">
+            <div class="option-dot"></div>
+            <span class="option-text">急性心肌梗死（含已恢复）</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'diagnosis')">
+            <div class="option-dot"></div>
+            <span class="option-text">稳定型心绞痛</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'diagnosis')">
+            <div class="option-dot"></div>
+            <span class="option-text">冠状动脉旁路移植术（搭桥）后</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'diagnosis')">
+            <div class="option-dot"></div>
+            <span class="option-text">经皮冠状动脉介入治疗（支架）后</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'diagnosis')">
+            <div class="option-dot"></div>
+            <span class="option-text">其他冠心病类型</span>
+          </div>
+        </div>
+        <div class="question-error" id="diagnosis_err">此项必填</div>
+      </div>
+
+      <!-- Q5: 手术距今 -->
+      <div class="question-block" id="q0_4">
+        <div class="question-label">距离最近一次心脏相关手术或住院，大约有多久？<span class="question-required">*</span></div>
+        <div class="option-list">
+          <div class="option-item" onclick="selectSingle(this,'surgery_time')">
+            <div class="option-dot"></div>
+            <span class="option-text">不到 1 个月</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'surgery_time')">
+            <div class="option-dot"></div>
+            <span class="option-text">1–3 个月</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'surgery_time')">
+            <div class="option-dot"></div>
+            <span class="option-text">3–12 个月</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'surgery_time')">
+            <div class="option-dot"></div>
+            <span class="option-text">超过 1 年</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'surgery_time')">
+            <div class="option-dot"></div>
+            <span class="option-text">从未手术（仅药物治疗）</span>
+          </div>
+        </div>
+        <div class="question-error" id="surgery_time_err">此项必填</div>
+      </div>
+    </div>
+
+    <!-- TRANSITION before group 2 -->
+    <div class="transition-card" id="transition1">
+      <div class="transition-icon">🫀</div>
+      <div class="transition-title">接下来，了解你的心脏功能</div>
+      <div class="transition-body">这部分包含心脏泵血能力和相关症状的问题。有些信息可以跳过——如果你不确定，留空即可，之后可以更新。</div>
+    </div>
+
+    <!-- GROUP 2: 心脏功能 -->
+    <div class="question-group" id="group1">
+      <div class="group-title-area">
+        <div class="group-title">心脏功能</div>
+        <div class="group-subtitle">用于评估你适合的运动强度范围。</div>
+      </div>
+
+      <!-- 静息心率 (skippable) -->
+      <div class="question-block">
+        <div class="question-label">你的静息心率大约是多少？</div>
+        <div class="question-skippable">可跳过 — 不确定可留空</div>
+        <div class="number-input-wrap">
+          <input class="number-input" type="number" id="rest_hr" placeholder="如：68" min="30" max="200">
+          <span class="number-unit">次/分</span>
+        </div>
+      </div>
+
+      <!-- LVEF 两步 -->
+      <div class="question-block" id="q1_lvef_step1">
+        <div class="question-label">医生有没有提过你的心脏泵血功能比较弱？<span class="question-required">*</span></div>
+        <div class="option-list">
+          <div class="option-item" onclick="selectSingle(this,'lvef_weak');toggleLVEF(this)">
+            <div class="option-dot"></div>
+            <span class="option-text">有，医生说过</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'lvef_weak');toggleLVEF(this)">
+            <div class="option-dot"></div>
+            <span class="option-text">没有，功能正常</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'lvef_weak');toggleLVEF(this)">
+            <div class="option-dot"></div>
+            <span class="option-text">不确定 / 没有被提及</span>
+          </div>
+        </div>
+        <div class="question-error" id="lvef_step1_err">此项必填</div>
+
+        <div class="conditional-reveal" id="lvef_reveal">
+          <div class="question-label">你知道心脏射血分数（EF%）的数值吗？</div>
+          <div class="question-skippable" style="margin:-4px 0 10px;">可跳过 — 不确定可选「等我问医生」</div>
+          <div class="option-list">
+            <div class="option-item" onclick="selectSingle(this,'lvef_value')">
+              <div class="option-dot"></div>
+              <span class="option-text">≥50%（正常）</span>
+            </div>
+            <div class="option-item" onclick="selectSingle(this,'lvef_value')">
+              <div class="option-dot"></div>
+              <span class="option-text">40%–49%（轻度降低）</span>
+            </div>
+            <div class="option-item" onclick="selectSingle(this,'lvef_value')">
+              <div class="option-dot"></div>
+              <span class="option-text">&lt;40%（明显降低）</span>
+            </div>
+            <div class="option-item" onclick="selectSingle(this,'lvef_value')">
+              <div class="option-dot"></div>
+              <span class="option-text">等我问医生</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 高危三问 -->
+      <div style="margin-bottom:20px;">
+        <div class="high-risk-badge">⚠ 安全筛查</div>
+        <div style="font-size:13px;color:var(--text-sub);margin-bottom:12px;line-height:1.5;">以下三个问题非常重要，请如实回答。</div>
+
+        <div class="question-block" id="q1_hq1">
+          <div class="question-label">最近 6 个月内，是否出现过静息状态下的胸痛或胸闷？<span class="question-required">*</span></div>
+          <div class="option-list">
+            <div class="option-item" onclick="selectSingle(this,'hq1');checkHighRisk()">
+              <div class="option-dot"></div>
+              <span class="option-text">是</span>
+            </div>
+            <div class="option-item" onclick="selectSingle(this,'hq1');checkHighRisk()">
+              <div class="option-dot"></div>
+              <span class="option-text">否</span>
+            </div>
+          </div>
+          <div class="question-error" id="hq1_err">此项必填</div>
+        </div>
+
+        <div class="question-block" id="q1_hq2">
+          <div class="question-label">最近 6 个月内，是否发生过晕厥或接近晕厥的情况？<span class="question-required">*</span></div>
+          <div class="option-list">
+            <div class="option-item" onclick="selectSingle(this,'hq2');checkHighRisk()">
+              <div class="option-dot"></div>
+              <span class="option-text">是</span>
+            </div>
+            <div class="option-item" onclick="selectSingle(this,'hq2');checkHighRisk()">
+              <div class="option-dot"></div>
+              <span class="option-text">否</span>
+            </div>
+          </div>
+          <div class="question-error" id="hq2_err">此项必填</div>
+        </div>
+
+        <div class="question-block" id="q1_hq3">
+          <div class="question-label">是否有未受控制的严重心律不齐或近期急性心衰发作？<span class="question-required">*</span></div>
+          <div class="option-list">
+            <div class="option-item" onclick="selectSingle(this,'hq3');checkHighRisk()">
+              <div class="option-dot"></div>
+              <span class="option-text">是</span>
+            </div>
+            <div class="option-item" onclick="selectSingle(this,'hq3');checkHighRisk()">
+              <div class="option-dot"></div>
+              <span class="option-text">否</span>
+            </div>
+          </div>
+          <div class="question-error" id="hq3_err">此项必填</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSITION before group 3 -->
+    <div class="transition-card" id="transition2">
+      <div class="transition-icon">💊</div>
+      <div class="transition-title">接下来，了解你的慢病与用药情况</div>
+      <div class="transition-body">这部分会问到一些基础疾病和用药习惯，帮助我们为你排除心率相关干扰，调整运动建议。</div>
+    </div>
+
+    <!-- GROUP 3: 慢病与用药 -->
+    <div class="question-group" id="group2">
+      <div class="group-title-area">
+        <div class="group-title">慢病与用药</div>
+        <div class="group-subtitle">用于调整运动处方的个性化参数。</div>
+      </div>
+
+      <!-- 合并症 -->
+      <div class="question-block">
+        <div class="question-label">你目前有哪些基础疾病？<span class="question-required">*</span>（可多选）</div>
+        <div class="option-list" id="comorbidity_options">
+          <div class="option-item multi-option-item" onclick="selectMulti(this,'comorbidity','none')">
+            <div class="option-check"></div>
+            <span class="option-text">都没有</span>
+          </div>
+          <div class="option-item multi-option-item" onclick="selectMulti(this,'comorbidity','hbp')">
+            <div class="option-check"></div>
+            <span class="option-text">高血压</span>
+          </div>
+          <div class="option-item multi-option-item" onclick="selectMulti(this,'comorbidity','dm')">
+            <div class="option-check"></div>
+            <span class="option-text">糖尿病</span>
+          </div>
+          <div class="option-item multi-option-item" onclick="selectMulti(this,'comorbidity','hl')">
+            <div class="option-check"></div>
+            <span class="option-text">高血脂</span>
+          </div>
+          <div class="option-item multi-option-item" onclick="selectMulti(this,'comorbidity','ua')">
+            <div class="option-check"></div>
+            <span class="option-text">高尿酸血症</span>
+          </div>
+        </div>
+        <div class="question-error" id="comorbidity_err">此项必填，请至少选择一项</div>
+      </div>
+
+      <!-- β受体阻滞剂 -->
+      <div class="question-block">
+        <div class="question-label">你目前是否在使用 β 受体阻滞剂（如美托洛尔、比索洛尔等）？<span class="question-required">*</span></div>
+        <div class="option-list">
+          <div class="option-item" onclick="selectSingle(this,'beta_blocker')">
+            <div class="option-dot"></div>
+            <span class="option-text">是，正在使用</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'beta_blocker')">
+            <div class="option-dot"></div>
+            <span class="option-text">否，没有使用</span>
+          </div>
+          <div class="option-item" onclick="selectSingle(this,'beta_blocker')">
+            <div class="option-dot"></div>
+            <span class="option-text">不确定</span>
+          </div>
+        </div>
+        <div class="question-error" id="beta_blocker_err">此项必填</div>
+      </div>
+    </div>
+
+    <!-- TRANSITION before group 4 -->
+    <div class="transition-card" id="transition3">
+      <div class="transition-icon">🧗</div>
+      <div class="transition-title">接下来，了解你的日常活动能力</div>
+      <div class="transition-body">下面会用几个生活场景来判断你目前的体能水平，这将直接影响你的初始运动强度设定。</div>
+    </div>
+
+    <!-- GROUP 4: 功能储备 VSAQ -->
+    <div class="question-group" id="group3">
+      <div class="group-title-area">
+        <div class="group-title">日常活动能力</div>
+        <div class="group-subtitle">请选择你目前能轻松完成的最高强度活动。</div>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">以下哪个描述最接近你目前的活动能力？<span class="question-required">*</span></div>
+        <div class="vsaq-options" id="vsaq_options">
+          <div class="vsaq-option" onclick="selectVSAQ(this)">
+            <div class="vsaq-label">1–2 METs</div>
+            <div class="vsaq-desc">仅能平地缓行，上一层楼梯需要停歇</div>
+          </div>
+          <div class="vsaq-option" onclick="selectVSAQ(this)">
+            <div class="vsaq-label">3–4 METs</div>
+            <div class="vsaq-desc">能正常速度走路、爬缓坡、做轻家务</div>
+          </div>
+          <div class="vsaq-option" onclick="selectVSAQ(this)">
+            <div class="vsaq-label">5–6 METs</div>
+            <div class="vsaq-desc">能上楼梯不停歇、骑自行车、慢速游泳</div>
+          </div>
+          <div class="vsaq-option" onclick="selectVSAQ(this)">
+            <div class="vsaq-label">7–9 METs</div>
+            <div class="vsaq-desc">能慢跑、快速爬楼梯、搬运较重物品</div>
+          </div>
+          <div class="vsaq-option" onclick="selectVSAQ(this)" style="grid-column:span 2;">
+            <div class="vsaq-label">≥10 METs</div>
+            <div class="vsaq-desc">能快跑、打球、从事体力劳动</div>
+          </div>
+        </div>
+        <div class="question-error" id="vsaq_err">此项必填，请选择最接近的描述</div>
+      </div>
+    </div>
+
+    <!-- TRANSITION before group 5 -->
+    <div class="transition-card" id="transition4">
+      <div class="transition-icon">🌱</div>
+      <div class="transition-title">最后一步：心理健康基线</div>
+      <div class="transition-body">心脏康复与心理状态密切相关。以下 4 个问题帮助我们了解你最近的情绪状况，只需约 1 分钟。</div>
+    </div>
+
+    <!-- GROUP 5: 心理基线 PHQ-2 + GAD-2 -->
+    <div class="question-group" id="group4">
+      <div class="group-title-area">
+        <div class="group-title">最近的状态</div>
+        <div class="group-subtitle">以下每题均指「过去 2 周内」的感受，选择最符合的频率。</div>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">做事提不起劲或没有兴趣？<span class="question-required">*</span></div>
+        <div class="option-list option-list-likert">
+          <div class="likert-option" onclick="selectLikert(this,'phq1')">
+            <span class="option-text">完全没有</span>
+            <span class="likert-score">0</span>
+          </div>
+          <div class="likert-option" onclick="selectLikert(this,'phq1')">
+            <span class="option-text">有几天</span>
+            <span class="likert-score">1</span>
+          </div>
+          <div class="likert-option" onclick="selectLikert(this,'phq1')">
+            <span class="option-text">超过一半的天数</span>
+            <span class="likert-score">2</span>
+          </div>
+          <div class="likert-option" onclick="selectLikert(this,'phq1')">
+            <span class="option-text">几乎每天</span>
+            <span class="likert-score">3</span>
+          </div>
+        </div>
+        <div class="question-error" id="phq1_err">此项必填</div>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">感到心情低落、沮丧或绝望？<span class="question-required">*</span></div>
+        <div class="option-list">
+          <div class="likert-option" onclick="selectLikert(this,'phq2')">
+            <span class="option-text">完全没有</span>
+            <span class="likert-score">0</span>
+          </div>
+          <div class="likert-option" onclick="selectLikert(this,'phq2')">
+            <span class="option-text">有几天</span>
+            <span class="likert-score">1</span>
+          </div>
+          <div class="likert-option" onclick="selectLikert(this,'phq2')">
+            <span class="option-text">超过一半的天数</span>
+            <span class="likert-score">2</span>
+          </div>
+          <div class="likert-option" onclick="selectLikert(this,'phq2')">
+            <span class="option-text">几乎每天</span>
+            <span class="likert-score">3</span>
+          </div>
+        </div>
+        <div class="question-error" id="phq2_err">此项必填</div>
+      </div>
+
+      <div class="question-block">
+        <div class="question-label">感到紧张、焦虑或者烦躁？<span class="question-required">*</span></div>
+        <div class="option-list">
+          <div class="likert-option" onclick="selectLikert(this,'gad1')">
+            <span class="option-text">完全没有</span>
+            <span class="likert-score">0</span>
+          </div>
+          <div class="likert-option" onclick="selectLikert(this,'gad1')">
+            <span class="option-text">有几天</span>
+            <span class="likert-score">1</span>
+          </div>
+          <div class="likert-option" onclick="selectLikert(this,'gad1')">
+            <span class="option-text">超过一半的天数</span>
+            <span class="likert-score">2</span>
+          </div>
+          <div class="likert-option" onclick="selectLikert(this,'gad1')">
+            <span class="option-text">几乎每天</span>
+            <span class="likert-score">3</span>
+          </div>
+        </div>
+        <div class="question-error" id="gad1_err">此项必填</div>
+      </div>
+
+      <div class="question-block" style="margin-bottom:24px;">
+        <div class="question-label">无法停止担忧或控制担忧？<span class="question-required">*</span></div>
+        <div class="option-list">
+          <div class="likert-option" onclick="selectLikert(this,'gad2')">
+            <span class="option-text">完全没有</span>
+            <span class="likert-score">0</span>
+          </div>
+          <div class="likert-option" onclick="selectLikert(this,'gad2')">
+            <span class="option-text">有几天</span>
+            <span class="likert-score">1</span>
+          </div>
+          <div class="likert-option" onclick="selectLikert(this,'gad2')">
+            <span class="option-text">超过一半的天数</span>
+            <span class="likert-score">2</span>
+          </div>
+          <div class="likert-option" onclick="selectLikert(this,'gad2')">
+            <span class="option-text">几乎每天</span>
+            <span class="likert-score">3</span>
+          </div>
+        </div>
+        <div class="question-error" id="gad2_err">此项必填</div>
+      </div>
+    </div>
+
+  </div><!-- end scroll -->
+
+  <!-- Nav buttons -->
+  <div class="nav-buttons">
+    <button class="btn-prev" id="prevBtn" onclick="handlePrev()" disabled>上一步</button>
+    <button class="btn-next" id="nextBtn" onclick="handleNext()">下一部分 →</button>
+  </div>
+
+  <!-- High Risk Modal -->
+  <div class="modal-overlay" id="highRiskModal">
+    <div class="modal-card">
+      <div class="modal-icon">⚠️</div>
+      <div class="modal-title">需要先做好准备</div>
+      <div class="modal-body">根据你的回答，你目前的情况在正式开始运动康复前，需要获得医生的明确评估和许可。<br><br>你仍然可以继续完成评估，我们会为你提供适合当前阶段的功能（营养、科普、康复助手）。</div>
+      <button class="modal-btn-full" onclick="closeHighRiskModal()">我明白了，继续填写</button>
+    </div>
+  </div>
+
+  <!-- Cross-group back modal -->
+  <div class="modal-overlay" id="crossGroupModal">
+    <div class="modal-card">
+      <div class="modal-icon">↩</div>
+      <div class="modal-title">返回上一部分</div>
+      <div class="modal-body">返回上一部分会清空当前部分的填写，确认吗？</div>
+      <div class="modal-btn-row">
+        <button class="modal-btn-cancel" onclick="closeCrossGroupModal(false)">取消</button>
+        <button class="modal-btn-confirm" onclick="closeCrossGroupModal(true)">确认返回</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">正在生成你的康复计划…</div>
+  </div>
+
+</div><!-- end phone -->
+
+<script>
+  // State
+  let currentGroup = 0; // 0-4
+  const totalGroups = 5;
+  let highRiskTriggered = false;
+  let highRiskShown = false;
+
+  const groups = ['group0','group1','group2','group3','group4'];
+  const transitions = [null,'transition1','transition2','transition3','transition4'];
+  const groupNames = ['基本信息','心脏功能','慢病与用药','功能储备','心理基线'];
+  const answers = {};
+  const multiAnswers = { comorbidity: [] };
+
+  // ---- UI helpers ----
+  function showGroup(idx) {
+    groups.forEach((id,i) => {
+      const el = document.getElementById(id);
+      el.classList.toggle('show', i === idx);
+    });
+    transitions.forEach((id,i) => {
+      if(!id) return;
+      document.getElementById(id).classList.toggle('show', i === idx);
+    });
+    updateProgress(idx);
+    document.getElementById('scrollContent').scrollTop = 0;
+    // Update buttons
+    document.getElementById('prevBtn').disabled = idx === 0;
+    document.getElementById('nextBtn').textContent = idx === totalGroups-1 ? '提交评估 ✓' : '下一部分 →';
+  }
+
+  function updateProgress(idx) {
+    const pct = ((idx + 1) / totalGroups * 100).toFixed(0);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent = `第 ${idx+1} 部分 / 共 ${totalGroups} 部分`;
+    document.getElementById('groupName').textContent = groupNames[idx];
+    for(let i=0; i<5; i++) {
+      const dot = document.getElementById('dot'+i);
+      dot.className = 'group-dot' + (i < idx ? ' done' : i === idx ? ' active' : '');
+    }
+  }
+
+  // ---- Selection helpers ----
+  function selectSingle(el, name) {
+    const parent = el.parentElement;
+    parent.querySelectorAll('.option-item').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    answers[name] = el.querySelector('.option-text').textContent.trim();
+    // Hide related error
+    const errId = name + '_err';
+    const errEl = document.getElementById(errId);
+    if(errEl) errEl.classList.remove('show');
+  }
+
+  function selectMulti(el, name, value) {
+    if(value === 'none') {
+      // Clear all others
+      document.getElementById('comorbidity_options').querySelectorAll('.multi-option-item').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      multiAnswers[name] = ['none'];
+    } else {
+      // Remove 'none' if present
+      const noneEl = document.querySelector('#comorbidity_options .multi-option-item');
+      noneEl.classList.remove('selected');
+      multiAnswers[name] = multiAnswers[name].filter(v => v !== 'none');
+      // Toggle this
+      if(el.classList.contains('selected')) {
+        el.classList.remove('selected');
+        multiAnswers[name] = multiAnswers[name].filter(v => v !== value);
+      } else {
+        el.classList.add('selected');
+        multiAnswers[name].push(value);
+      }
+    }
+    const errEl = document.getElementById('comorbidity_err');
+    if(errEl && multiAnswers[name].length > 0) errEl.classList.remove('show');
+  }
+
+  function selectVSAQ(el) {
+    document.querySelectorAll('.vsaq-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    answers['vsaq'] = el.querySelector('.vsaq-label').textContent;
+    const errEl = document.getElementById('vsaq_err');
+    if(errEl) errEl.classList.remove('show');
+  }
+
+  function selectLikert(el, name) {
+    const parent = el.closest('.option-list, .question-block');
+    el.parentElement.querySelectorAll('.likert-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    answers[name] = el.querySelector('.likert-score').textContent;
+    const errEl = document.getElementById(name + '_err');
+    if(errEl) errEl.classList.remove('show');
+  }
+
+  // LVEF two-step
+  function toggleLVEF(el) {
+    const text = el.querySelector('.option-text').textContent.trim();
+    const reveal = document.getElementById('lvef_reveal');
+    if(text === '有，医生说过') {
+      reveal.classList.add('show');
+    } else {
+      reveal.classList.remove('show');
+    }
+    answers['lvef_weak'] = text;
+    const errEl = document.getElementById('lvef_step1_err');
+    if(errEl) errEl.classList.remove('show');
+  }
+
+  // ---- Validation per group ----
+  function validateGroup(idx) {
+    let valid = true;
+    if(idx === 0) {
+      const age = parseInt(document.getElementById('age').value);
+      const ageErr = document.getElementById('age_err');
+      if(!age || age < 18 || age > 120) {
+        ageErr.classList.add('show');
+        valid = false;
+      } else { ageErr.classList.remove('show'); }
+
+      if(!answers['gender']) {
+        document.getElementById('gender_err').classList.add('show');
+        valid = false;
+      }
+      const h = document.getElementById('height').value;
+      const w = document.getElementById('weight').value;
+      const wt = document.getElementById('waist').value;
+      if(!h || !w || !wt) {
+        document.getElementById('hww_err').classList.add('show');
+        valid = false;
+      } else { document.getElementById('hww_err').classList.remove('show'); }
+
+      if(!answers['diagnosis']) {
+        document.getElementById('diagnosis_err').classList.add('show');
+        valid = false;
+      }
+      if(!answers['surgery_time']) {
+        document.getElementById('surgery_time_err').classList.add('show');
+        valid = false;
+      }
+    } else if(idx === 1) {
+      if(!answers['lvef_weak']) {
+        document.getElementById('lvef_step1_err').classList.add('show');
+        valid = false;
+      }
+      if(!answers['hq1']) { document.getElementById('hq1_err').classList.add('show'); valid = false; }
+      if(!answers['hq2']) { document.getElementById('hq2_err').classList.add('show'); valid = false; }
+      if(!answers['hq3']) { document.getElementById('hq3_err').classList.add('show'); valid = false; }
+    } else if(idx === 2) {
+      if(!multiAnswers['comorbidity'] || multiAnswers['comorbidity'].length === 0) {
+        document.getElementById('comorbidity_err').classList.add('show');
+        valid = false;
+      }
+      if(!answers['beta_blocker']) {
+        document.getElementById('beta_blocker_err').classList.add('show');
+        valid = false;
+      }
+    } else if(idx === 3) {
+      if(!answers['vsaq']) {
+        document.getElementById('vsaq_err').classList.add('show');
+        valid = false;
+      }
+    } else if(idx === 4) {
+      ['phq1','phq2','gad1','gad2'].forEach(k => {
+        if(answers[k] === undefined) {
+          document.getElementById(k+'_err').classList.add('show');
+          valid = false;
+        }
+      });
+    }
+    return valid;
+  }
+
+  // ---- High risk ----
+  function checkHighRisk() {
+    if(highRiskShown) return;
+    const yesAnswers = ['hq1','hq2','hq3'].filter(k => answers[k] === '是');
+    if(yesAnswers.length > 0) {
+      highRiskTriggered = true;
+      document.getElementById('highRiskModal').classList.add('show');
+    }
+  }
+
+  function closeHighRiskModal() {
+    document.getElementById('highRiskModal').classList.remove('show');
+    highRiskShown = true;
+  }
+
+  // ---- Cross-group back ----
+  let pendingBack = false;
+  function handlePrev() {
+    if(currentGroup === 0) return;
+    pendingBack = true;
+    document.getElementById('crossGroupModal').classList.add('show');
+  }
+
+  function closeCrossGroupModal(confirm) {
+    document.getElementById('crossGroupModal').classList.remove('show');
+    if(confirm && pendingBack) {
+      currentGroup--;
+      // Clear current group answers conceptually (not strictly needed for prototype)
+      showGroup(currentGroup);
+    }
+    pendingBack = false;
+  }
+
+  // ---- Next ----
+  function handleNext() {
+    if(!validateGroup(currentGroup)) {
+      // Scroll to first error
+      const firstErr = document.querySelector('.question-error.show');
+      if(firstErr) firstErr.scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+
+    if(currentGroup === totalGroups - 1) {
+      // Submit
+      submitAssessment();
+      return;
+    }
+
+    currentGroup++;
+    showGroup(currentGroup);
+  }
+
+  function submitAssessment() {
+    document.getElementById('loadingOverlay').classList.add('show');
+    setTimeout(() => {
+      // Navigate to summary
+      const risk = highRiskTriggered ? 'high' : 'low';
+      window.location.href = 'assessment-summary.html?risk=' + risk;
+    }, 2000);
+  }
+
+  // Init
+  showGroup(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 用户流程图</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  body {
+    background: #F0EDE8;
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
+    margin: 0;
+    padding: 24px;
+  }
+  h1 { font-size: 20px; font-weight: 700; color: #2C2A26; margin-bottom: 4px; }
+  .subtitle { font-size: 14px; color: #888780; margin-bottom: 24px; line-height: 1.6; }
+  .diagram-wrap {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #2C2A26; }
+  .legend-dot { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+  .branch-links { background: white; border-radius: 12px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .branch-links h2 { font-size: 15px; font-weight: 700; color: #2C2A26; margin-bottom: 14px; }
+  .branch-link-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #C8C5BE; }
+  .branch-link-row:last-child { border-bottom: none; }
+  .branch-icon { font-size: 20px; flex-shrink: 0; }
+  .branch-info { flex: 1; }
+  .branch-name { font-size: 15px; font-weight: 600; color: #2C2A26; }
+  .branch-desc { font-size: 13px; color: #888780; margin-top: 2px; }
+  .branch-btn { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; font-family: inherit; }
+</style>
+</head>
+<body>
+
+<h1>🫀 Heart 用户流程图</h1>
+<div class="subtitle">
+  主线：新用户首次注册 → 评估 → 每日运动循环 → 里程碑<br>
+  分支：从主线 4 个决策点分叉，完成后回到主线
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#185FA5;"></div>主线节点</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#BA7517;"></div>决策分叉点</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#A32D2D;"></div>高危 / 安全分支</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1D9E75;"></div>正向结果</div>
+</div>
+
+<div class="diagram-wrap">
+  <div class="mermaid">
+flowchart TD
+  classDef main fill:#185FA5,stroke:#185FA5,color:#fff
+  classDef decision fill:#BA7517,stroke:#BA7517,color:#fff
+  classDef danger fill:#A32D2D,stroke:#A32D2D,color:#fff
+  classDef success fill:#1D9E75,stroke:#1D9E75,color:#fff
+  classDef branch fill:#F0EDE8,stroke:#BA7517,color:#BA7517,stroke-dasharray:4 2
+
+  A([用户打开 App]):::main
+  B[欢迎 · 知情同意]:::main
+  D[F3 首次评估问卷]:::main
+
+  D1{高危三问<br>任意阳性？}:::decision
+  HR([高危降级 · 只读模式]):::danger
+
+  E[评估摘要<br>低/中危]:::success
+  F[首页 Dashboard]:::main
+
+  G1{Check-in<br>症状筛查}:::decision
+  SW([症状预警 · 当日锁定]):::danger
+
+  H[状态评估]:::main
+
+  H1{中危 + 差状态？}:::decision
+  BS([柔韧 + PLDB 呼吸训练]):::main
+
+  I[运动处方展示]:::main
+  J[运动执行]:::main
+  K[运动后反馈]:::main
+  L[运动摘要]:::success
+
+  L1{随访到期？}:::decision
+  FU([随访填写<br>每周5题 / 每月VSAQ复测]):::main
+
+  M([里程碑 · 第12次 · 90天]):::success
+
+  A --> B --> D --> D1
+  D1 -->|是| HR
+  D1 -->|否| E --> F --> G1
+  G1 -->|有症状| SW
+  G1 -->|全部没有| H --> H1
+  H1 -->|是| BS --> L
+  H1 -->|否| I --> J --> K --> L --> L1
+  L1 -->|是| FU --> F
+  L1 -->|否| F
+  L --> M
+  </div>
+</div>
+
+<div class="branch-links">
+  <h2>分支流程原型文件</h2>
+  <div class="branch-link-row">
+    <div class="branch-icon">🫀</div>
+    <div class="branch-info">
+      <div class="branch-name">主线流程（Golden Path）</div>
+      <div class="branch-desc">完整主线：注册 → 评估 → 首页 → 每日运动循环 → 里程碑（15步可点击）</div>
+    </div>
+    <a href="flow-golden-path.html" class="branch-btn" style="background:#E6F1FB;color:#185FA5;">查看 →</a>
+  </div>
+  <div class="branch-link-row">
+    <div class="branch-icon">🔒</div>
+    <div class="branch-info">
+      <div class="branch-name">高危降级路径</div>
+      <div class="branch-desc">岔出点：评估高危三问 → 只读模式，运动锁定，科普/助手/饮食/心理练习可用</div>
+    </div>
+    <a href="flow-high-risk.html" class="branch-btn" style="background:#FCEBEB;color:#A32D2D;">查看 →</a>
+  </div>
+  <div class="branch-link-row">
+    <div class="branch-icon">⚠️</div>
+    <div class="branch-info">
+      <div class="branch-name">症状预警流程</div>
+      <div class="branch-desc">岔出点：Check-in 勾选胸闷等症状 → 红色警示卡，锁定当日，次日询问恢复</div>
+    </div>
+    <a href="flow-symptom-warning.html" class="branch-btn" style="background:#FCEBEB;color:#A32D2D;">查看 →</a>
+  </div>
+  <div class="branch-link-row">
+    <div class="branch-icon">🌡️</div>
+    <div class="branch-info">
+      <div class="branch-name">差状态日（中危）</div>
+      <div class="branch-desc">岔出点：中危 + 状态评估差 → 柔韧 + PLDB 呼吸训练替代有氧，含完整方法展示</div>
+    </div>
+    <a href="flow-bad-state.html" class="branch-btn" style="background:#FAEEDA;color:#BA7517;">查看 →</a>
+  </div>
+  <div class="branch-link-row">
+    <div class="branch-icon">📋</div>
+    <div class="branch-info">
+      <div class="branch-name">随访流程</div>
+      <div class="branch-desc">岔出点：7天到期提醒 → 每周5题 + 每月VSAQ复测 + 椅子站立 + AI月度反馈</div>
+    </div>
+    <a href="flow-followup.html" class="branch-btn" style="background:#E6F1FB;color:#185FA5;">查看 →</a>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#185FA5',
+      primaryTextColor: '#fff',
+      primaryBorderColor: '#185FA5',
+      lineColor: '#888780',
+      secondaryColor: '#F0EDE8',
+      tertiaryColor: '#F7F5F1',
+      fontSize: '15px'
+    },
+    flowchart: { curve: 'linear', nodeSpacing: 40, rankSpacing: 50 }
+  });
+</script>
+</body>
+</html>

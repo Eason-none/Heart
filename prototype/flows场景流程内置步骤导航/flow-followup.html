@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 随访流程</title>
+<style>
+:root {
+  --bg:#F7F5F1; --card:#F0EDE8; --text:#2C2A26; --sub:#888780;
+  --blue:#185FA5; --blue-light:#E6F1FB;
+  --orange:#BA7517; --orange-light:#FAEEDA;
+  --red:#A32D2D; --red-light:#FCEBEB;
+  --green:#1D9E75; --green-light:#D4F2E7; --green-dark:#085041;
+  --border:#C8C5BE;
+  --r-card:12px; --r-btn:8px; --r-pill:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#E8E4DE;font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif;min-height:100vh;}
+.outer{display:flex;flex-direction:column;align-items:center;padding:16px 16px 40px;gap:12px;}
+.flow-nav{width:390px;background:white;border-radius:12px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.flow-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.badge{padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;background:var(--blue-light);color:var(--blue);}
+.flow-steps{display:flex;gap:4px;flex-wrap:wrap;}
+.flow-step{font-size:10px;padding:3px 8px;border-radius:8px;border:1.5px solid var(--border);color:var(--sub);cursor:pointer;white-space:nowrap;transition:all .15s;}
+.flow-step.active{background:var(--blue);border-color:var(--blue);color:white;font-weight:700;}
+.flow-step.done{background:var(--green-light);border-color:var(--green);color:var(--green-dark);}
+.context-bar{width:390px;background:var(--blue-light);border-radius:10px;padding:10px 14px;border-left:3px solid var(--blue);font-size:13px;color:var(--blue);line-height:1.5;}
+.phone{width:390px;min-height:680px;background:var(--bg);border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);display:flex;flex-direction:column;}
+.status-bar{height:44px;background:var(--bg);display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex-shrink:0;}
+.page-header{height:48px;background:var(--bg);display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid var(--border);}
+.page-title{font-size:18px;font-weight:700;color:var(--text);}
+.header-sub{font-size:13px;color:var(--sub);}
+.scroll-area{flex:1;overflow-y:auto;padding:16px 16px 100px;}
+.panel{display:none;} .panel.active{display:block;}
+.tab-bar{height:68px;background:var(--bg);border-top:1px solid var(--border);display:flex;align-items:flex-start;padding-top:8px;flex-shrink:0;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.tab-icon{font-size:22px;line-height:1;}
+.tab-label{font-size:10px;color:var(--sub);font-weight:500;}
+.tab-item.active .tab-label{color:var(--blue);font-weight:700;}
+.card{background:var(--card);border-radius:var(--r-card);padding:16px;margin-bottom:12px;}
+.section-label{font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:var(--r-pill);}
+.pill-green{background:var(--green-light);color:var(--green-dark);}
+.pill-blue{background:var(--blue-light);color:var(--blue);}
+.pill-orange{background:var(--orange-light);color:var(--orange);}
+.btn-full{display:flex;align-items:center;justify-content:center;width:100%;border:none;border-radius:var(--r-btn);font-size:17px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+.btn-blue{height:56px;background:var(--blue);color:white;margin-bottom:10px;}
+.btn-secondary{height:48px;background:var(--card);color:var(--text);border:1.5px solid var(--border);margin-bottom:10px;}
+.q-card{background:var(--card);border-radius:var(--r-card);padding:16px;margin-bottom:12px;}
+.q-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px;line-height:1.4;}
+.radio-opt{min-height:48px;background:var(--bg);border-radius:var(--r-btn);border:1.5px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:8px;transition:all .12s;}
+.radio-opt.selected{background:var(--blue-light);border-color:var(--blue);}
+.radio-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.radio-opt.selected .radio-dot{border-color:var(--blue);background:var(--blue);}
+.radio-opt.selected .radio-dot::after{content:'';width:6px;height:6px;border-radius:50%;background:white;display:block;}
+.radio-label{font-size:15px;color:var(--text);}
+.num-input-row{display:flex;align-items:center;gap:12px;margin-top:8px;}
+.num-input{flex:1;height:48px;background:white;border-radius:var(--r-btn);border:1.5px solid var(--border);padding:0 14px;font-size:17px;font-family:inherit;color:var(--text);}
+.num-unit{font-size:14px;color:var(--sub);}
+.skip-btn{font-size:13px;color:var(--blue);background:none;border:none;cursor:pointer;font-family:inherit;padding:6px 0;}
+/* Progress */
+.progress-bar-wrap{margin-bottom:16px;}
+.progress-bar-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .3s;}
+.progress-label{font-size:12px;color:var(--sub);margin-top:5px;}
+/* Type toggle */
+.type-toggle{display:flex;background:var(--card);border-radius:var(--r-pill);padding:3px;gap:2px;margin-bottom:16px;}
+.type-btn{flex:1;height:34px;border-radius:14px;border:none;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--sub);font-family:inherit;transition:all .15s;}
+.type-btn.active{background:var(--bg);color:var(--text);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.1);}
+/* VSAQ */
+.vsaq-card{background:var(--bg);border-radius:var(--r-btn);border:1.5px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:8px;}
+.vsaq-card.selected{background:var(--blue-light);border-color:var(--blue);}
+.vsaq-num{width:28px;height:28px;border-radius:50%;background:var(--card);color:var(--sub);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.vsaq-card.selected .vsaq-num{background:var(--blue);color:white;}
+.vsaq-text{font-size:15px;color:var(--text);}
+/* Summary */
+.sum-hero{background:var(--green-light);border-radius:var(--r-card);padding:18px 16px;display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+.sum-icon{font-size:40px;flex-shrink:0;}
+.ai-block{background:white;border-radius:var(--r-card);border:1px solid var(--border);padding:16px;margin-bottom:12px;}
+.ai-header{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;margin-bottom:10px;}
+.ai-text{font-size:15px;color:var(--text);line-height:1.7;}
+/* M3/M4 interaction */
+.m-expand{background:var(--bg);border-radius:var(--r-btn);padding:12px 14px;margin-top:10px;border:1.5px solid var(--border);}
+.sym-chk-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:15px;color:var(--text);cursor:pointer;}
+.sym-chk-row:last-child{border-bottom:none;}
+.sym-chk-row input{width:18px;height:18px;flex-shrink:0;}
+
+/* Footer */
+.flow-footer{width:390px;background:white;border-radius:12px;padding:10px 14px;box-shadow:0 1px 4px rgba(0,0,0,.1);display:flex;justify-content:space-between;align-items:center;}
+.flow-footer span{font-size:13px;color:var(--sub);}
+.nav-btn{font-size:14px;font-weight:600;padding:8px 18px;border-radius:var(--r-btn);border:none;cursor:pointer;font-family:inherit;}
+.nav-prev{background:var(--card);color:var(--text);}
+.nav-next{background:var(--blue);color:white;}
+.nav-btn:disabled{opacity:.4;cursor:not-allowed;}
+</style>
+</head>
+<body>
+<div class="outer">
+  <div class="flow-nav">
+    <div class="flow-title">📋 随访流程 <span class="badge">Branch</span></div>
+    <div style="font-size:12px;color:var(--sub);margin-bottom:8px;">岔出点：首页随访 banner 逾期 3 天 / 「我」页面入口触发</div>
+    <div class="flow-steps">
+      <div class="flow-step active" id="fs-0" onclick="goToStep(0)">① 触发提醒</div>
+      <div class="flow-step" id="fs-1" onclick="goToStep(1)">② 每周随访（5题）</div>
+      <div class="flow-step" id="fs-2" onclick="goToStep(2)">③ 每月额外题</div>
+      <div class="flow-step" id="fs-3" onclick="goToStep(3)">④ VSAQ 复测</div>
+      <div class="flow-step" id="fs-4" onclick="goToStep(4)">⑤ 提交完成</div>
+    </div>
+  </div>
+  <div class="context-bar">
+    <strong>背景：</strong>本次为第 4 周随访，触发每月完整随访。用户高血压标签已激活（额外血压题）。
+  </div>
+  <div class="phone">
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <span class="status-icons">●●● WiFi 🔋</span>
+    </div>
+    <div class="scroll-area" id="scrollArea">
+
+      <!-- ① 触发提醒（首页 Banner 状态） -->
+      <div class="panel active" id="step-0">
+        <div class="page-header"><span class="page-title">首页</span></div>
+        <div style="margin-top:16px;">
+          <!-- 逾期提示条 -->
+          <div style="background:var(--orange-light);border-radius:var(--r-card);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px;border-left:4px solid var(--orange);cursor:pointer;" onclick="next()">
+            <div>
+              <div style="font-size:15px;font-weight:700;color:var(--orange);margin-bottom:3px;">本月随访未完成 · 已逾期 3 天</div>
+              <div style="font-size:13px;color:var(--orange);opacity:.85;">填写约需 8 分钟，帮助系统优化你的处方</div>
+            </div>
+            <div style="font-size:22px;color:var(--orange);margin-left:auto;">›</div>
+          </div>
+          <!-- 首页其他内容（示意） -->
+          <div style="background:var(--card);border-radius:var(--r-card);padding:14px 16px;margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">今日科普</div>
+            <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;">冬季运动怎么调整？</div>
+            <div style="font-size:13px;color:var(--sub);">气温低时，血管收缩，运动前热身尤为重要……</div>
+          </div>
+          <div style="background:var(--blue);border-radius:var(--r-card);padding:16px;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:12px;color:rgba(255,255,255,.75);margin-bottom:2px;">适应期 · 第 7 次</div>
+              <div style="font-size:17px;font-weight:700;color:white;">步行 30 分钟</div>
+            </div>
+            <div style="font-size:28px;color:rgba(255,255,255,.8);">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② 每周随访 5 题 -->
+      <div class="panel" id="step-1">
+        <div class="page-header">
+          <span class="page-title">随访</span>
+          <span class="header-sub">第 4 周</span>
+        </div>
+        <div style="margin-top:16px;">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-track"><div class="progress-bar-fill" style="width:30%"></div></div>
+            <div class="progress-label">每周基础题 · 5 题</div>
+          </div>
+          <div class="type-toggle">
+            <button class="type-btn active">📅 每周基础</button>
+            <button class="type-btn">📆 本月额外</button>
+          </div>
+          <div class="q-card">
+            <div class="q-title">W1 · 本周完成了几次运动？</div>
+            <div class="radio-opt selected"><div class="radio-dot"></div><span class="radio-label">3 次（按计划完成）</span></div>
+            <div class="radio-opt"><div class="radio-dot"></div><span class="radio-label">1–2 次（部分完成）</span></div>
+            <div class="radio-opt"><div class="radio-dot"></div><span class="radio-label">0 次（未完成）</span></div>
+          </div>
+          <div class="q-card">
+            <div class="q-title">W2 · 本周运动中有没有不适感？</div>
+            <div class="radio-opt selected"><div class="radio-dot"></div><span class="radio-label">没有不适</span></div>
+            <div class="radio-opt"><div class="radio-dot"></div><span class="radio-label">轻微，运动后自行缓解</span></div>
+            <div class="radio-opt"><div class="radio-dot"></div><span class="radio-label">明显不适，已减少运动</span></div>
+          </div>
+          <div class="q-card">
+            <div class="q-title">W3 · 本周睡眠总体如何？</div>
+            <div class="radio-opt selected"><div class="radio-dot"></div><span class="radio-label">较好（5 天以上睡眠质量好）</span></div>
+            <div class="radio-opt"><div class="radio-dot"></div><span class="radio-label">一般（3–4 天）</span></div>
+            <div class="radio-opt"><div class="radio-dot"></div><span class="radio-label">较差（2 天以下）</span></div>
+          </div>
+          <div class="q-card">
+            <div class="q-title">W4 · 本周情绪状态？</div>
+            <div class="radio-opt selected"><div class="radio-dot"></div><span class="radio-label">平稳，没有明显焦虑或低落</span></div>
+            <div class="radio-opt"><div class="radio-dot"></div><span class="radio-label">偶尔有些焦虑或不安</span></div>
+            <div class="radio-opt"><div class="radio-dot"></div><span class="radio-label">情绪低落，持续多天</span></div>
+          </div>
+          <div class="q-card">
+            <div class="q-title">W5 · 本周有没有便秘（3 天以上未排便）？</div>
+            <div class="radio-opt selected"><div class="radio-dot"></div><span class="radio-label">没有</span></div>
+            <div class="radio-opt"><div class="radio-dot"></div><span class="radio-label">有，轻度</span></div>
+            <div class="radio-opt"><div class="radio-dot"></div><span class="radio-label">有，较明显需要处理</span></div>
+          </div>
+          <!-- 高血压额外题 -->
+          <div style="background:var(--orange-light);border-left:3px solid var(--orange);border-radius:var(--r-card);padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--orange);font-weight:600;">高血压标签 · 额外题</div>
+          <div class="q-card">
+            <div class="q-title">本周有没有测量血压？</div>
+            <div class="radio-opt selected"><div class="radio-dot"></div><span class="radio-label">有，最高 128/84 mmHg</span></div>
+            <div class="radio-opt"><div class="radio-dot"></div><span class="radio-label">有，最高 ≥ 140/90 mmHg</span></div>
+            <div class="radio-opt"><div class="radio-dot"></div><span class="radio-label">没有测量</span></div>
+          </div>
+          <button class="btn-full btn-blue" onclick="next()">继续 · 本月额外题 →</button>
+        </div>
+      </div>
+
+      <!-- ③ 每月额外题 -->
+      <div class="panel" id="step-2">
+        <div class="page-header">
+          <span class="page-title">随访</span>
+          <span class="header-sub">本月额外</span>
+        </div>
+        <div style="margin-top:16px;">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-track"><div class="progress-bar-fill" style="width:65%"></div></div>
+            <div class="progress-label">本月额外题 · 含 VSAQ 复测</div>
+          </div>
+          <div class="type-toggle">
+            <button class="type-btn">📅 每周基础</button>
+            <button class="type-btn active">📆 本月额外</button>
+          </div>
+          <div class="q-card">
+            <div class="q-title">M1 · 本月体重大约是多少？</div>
+            <div class="num-input-row">
+              <input class="num-input" type="number" placeholder="68" value="68">
+              <span class="num-unit">kg</span>
+            </div>
+            <button class="skip-btn">可跳过 →</button>
+          </div>
+          <div class="q-card">
+            <div class="q-title">M2 · 本月腰围大约是多少？</div>
+            <div class="num-input-row">
+              <input class="num-input" type="number" placeholder="88" value="88">
+              <span class="num-unit">cm</span>
+            </div>
+            <button class="skip-btn">可跳过 →</button>
+          </div>
+          <div class="q-card">
+            <div class="q-title">M3 · 本月有没有新的身体症状，或者去医院复诊？</div>
+            <div class="radio-opt selected" id="m3-none" onclick="selectM3('none')"><div class="radio-dot"></div><span class="radio-label">没有</span></div>
+            <div class="radio-opt" id="m3-symptom" onclick="selectM3('symptom')"><div class="radio-dot"></div><span class="radio-label">有新症状，未就医</span></div>
+            <div class="radio-opt" id="m3-visited" onclick="selectM3('visited')"><div class="radio-dot"></div><span class="radio-label">已就医复诊</span></div>
+
+            <!-- M3 展开：有症状未就医 -->
+            <div id="m3-symptom-panel" class="m-expand" style="display:none;">
+              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">请确认：以下症状本月是否出现过？（可多选）</div>
+              <label class="sym-chk-row" id="sym-chest"><input type="checkbox" onchange="checkM3Danger()"> 胸痛 / 胸闷</label>
+              <label class="sym-chk-row" id="sym-dizzy"><input type="checkbox" onchange="checkM3Danger()"> 头晕 / 眼前发黑</label>
+              <label class="sym-chk-row" id="sym-palp"><input type="checkbox" onchange="checkM3Danger()"> 心慌 / 心跳明显异常</label>
+              <label class="sym-chk-row" id="sym-breath"><input type="checkbox" onchange="checkM3Danger()"> 呼吸困难（明显气短）</label>
+              <label class="sym-chk-row"><input type="checkbox"> 其他，不在上面列表中</label>
+              <div id="m3-danger-alert" style="display:none;background:var(--red-light);border-radius:var(--r-btn);padding:10px 14px;margin-top:10px;border-left:3px solid var(--red);">
+                <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:4px;">⚠️ 检测到危险症状</div>
+                <div style="font-size:13px;color:var(--text);line-height:1.55;">建议尽快就医确认。在就医并报告「已复诊」之前，<strong>有氧和抗阻训练将暂停</strong>，可继续柔韧和呼吸训练。</div>
+              </div>
+              <div id="m3-safe-note" style="display:none;background:var(--orange-light);border-radius:var(--r-btn);padding:10px 14px;margin-top:10px;border-left:3px solid var(--orange);">
+                <div style="font-size:13px;color:var(--orange);line-height:1.55;">💡 建议近期就医了解情况，运动功能暂不影响。</div>
+              </div>
+            </div>
+
+            <!-- M3 展开：已就医复诊 -->
+            <div id="m3-visited-panel" class="m-expand" style="display:none;">
+              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;">医生有没有调整你的运动或用药建议？</div>
+              <div class="radio-opt" id="m3v-no" onclick="selectM3v('no')"><div class="radio-dot"></div><span class="radio-label">没有调整</span></div>
+              <div class="radio-opt" id="m3v-yes" onclick="selectM3v('yes')"><div class="radio-dot"></div><span class="radio-label">有调整</span></div>
+              <div id="m3v-update-hint" style="display:none;background:var(--blue-light);border-radius:var(--r-btn);padding:10px 14px;margin-top:8px;font-size:13px;color:var(--blue);line-height:1.55;">
+                → 建议在「我」页面更新健康状态，系统会据此重新评估处方。
+              </div>
+            </div>
+          </div>
+
+          <div class="q-card">
+            <div class="q-title">M4 · 本月用药依从情况</div>
+            <div class="radio-opt selected" id="m4-good" onclick="selectM4('good')"><div class="radio-dot"></div><span class="radio-label">每天按时服药，未漏服</span></div>
+            <div class="radio-opt" id="m4-few" onclick="selectM4('few')"><div class="radio-dot"></div><span class="radio-label">偶尔漏服（1–2 次）</span></div>
+            <div class="radio-opt" id="m4-many" onclick="selectM4('many')"><div class="radio-dot"></div><span class="radio-label">漏服较多</span></div>
+            <div id="m4-few-note" style="display:none;background:var(--blue-light);border-radius:var(--r-btn);padding:10px 14px;margin-top:10px;font-size:13px;color:var(--blue);line-height:1.55;">
+              💊 偶尔漏服通常影响不大，建议设置服药提醒，尽量规律用药。
+            </div>
+            <div id="m4-pause-note" style="display:none;background:var(--red-light);border-radius:var(--r-btn);padding:12px 14px;margin-top:10px;border-left:3px solid var(--red);">
+              <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:4px;">⚠️ 有氧 + 抗阻训练将暂停</div>
+              <div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:8px;">漏服较多可能影响心率控制和运动安全性，建议就医咨询是否需要调整用药方案。</div>
+              <div style="font-size:12px;color:var(--sub);line-height:1.5;border-top:1px solid var(--border);padding-top:8px;">
+                <strong>解锁方式：</strong>下次随访 M4 选「每天按时」或「偶尔漏服」，或在「我」页面主动标记「已恢复正常用药」。柔韧和呼吸训练不受影响。
+              </div>
+            </div>
+          </div>
+          <button class="btn-full btn-blue" onclick="next()">继续 · VSAQ 运动能力复测 →</button>
+        </div>
+      </div>
+
+      <!-- ④ VSAQ 复测 -->
+      <div class="panel" id="step-3">
+        <div class="page-header">
+          <span class="page-title">随访</span>
+          <span class="header-sub">VSAQ 复测</span>
+        </div>
+        <div style="margin-top:16px;">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-track"><div class="progress-bar-fill" style="width:85%"></div></div>
+            <div class="progress-label">VSAQ 运动能力复测 + 椅子站立</div>
+          </div>
+          <div style="background:var(--blue-light);border-radius:var(--r-card);padding:12px 14px;margin-bottom:14px;border-left:3px solid var(--blue);">
+            <div style="font-size:13px;color:var(--blue);line-height:1.5;">📊 每月复测运动能力，帮助系统判断是否可以进阶处方。与上月对比，你的运动耐量在提升吗？</div>
+          </div>
+          <div class="q-card">
+            <div class="q-title">VSAQ · 你目前能完成的最高强度活动？</div>
+            <div style="font-size:12px;color:var(--sub);margin-bottom:12px;">上月选择：⑤ 能爬 1–2 层楼梯不停歇（约 5 METs）</div>
+            <div class="vsaq-card"><div class="vsaq-num">③</div><span class="vsaq-text">能做轻度家务（扫地、叠衣服）</span></div>
+            <div class="vsaq-card"><div class="vsaq-num">⑤</div><span class="vsaq-text">能爬 1–2 层楼梯不停歇</span></div>
+            <div class="vsaq-card selected"><div class="vsaq-num">⑦</div><span class="vsaq-text">能慢跑或做一些费力园艺</span></div>
+            <div class="vsaq-card"><div class="vsaq-num">⑨</div><span class="vsaq-text">能持续游泳或骑行 30 分钟</span></div>
+            <div style="margin-top:12px;background:var(--green-light);border-radius:var(--r-btn);padding:10px 14px;font-size:13px;color:var(--green-dark);">
+              ✓ 比上月提升了 1 档（⑤→⑦），系统将考虑小幅提升处方强度
+            </div>
+          </div>
+          <div class="q-card">
+            <div class="q-title">椅子站立测试 · 30 秒内能站起来几次？</div>
+            <div style="font-size:13px;color:var(--sub);margin-bottom:12px;line-height:1.5;">坐在椅子上，双臂交叉于胸前，30 秒内尽可能多地完全起立再坐下，记录次数。</div>
+            <div class="num-input-row">
+              <input class="num-input" type="number" placeholder="14" value="14">
+              <span class="num-unit">次</span>
+            </div>
+            <button class="skip-btn">可跳过 →</button>
+          </div>
+          <button class="btn-full btn-blue" onclick="next()">提交随访 →</button>
+        </div>
+      </div>
+
+      <!-- ⑤ 提交完成 -->
+      <div class="panel" id="step-4">
+        <div class="page-header"><span class="page-title">随访</span></div>
+        <div style="margin-top:16px;">
+          <div class="sum-hero">
+            <div class="sum-icon">📋</div>
+            <div>
+              <div style="font-size:20px;font-weight:700;color:var(--green-dark);margin-bottom:4px;">本月随访完成！</div>
+              <div style="font-size:13px;color:var(--green-dark);opacity:.75;">感谢你的认真填写，数据将帮助优化你的康复方案。</div>
+            </div>
+          </div>
+          <div style="background:var(--card);border-radius:var(--r-card);padding:16px;margin-bottom:12px;">
+            <div class="section-label" style="margin-bottom:10px;">本月数据摘要</div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:14px;color:var(--sub);">运动完成率</span><span style="font-size:15px;font-weight:600;color:var(--green-dark);">100% ↑</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:14px;color:var(--sub);">VSAQ 复测</span><span style="font-size:15px;font-weight:600;color:var(--green-dark);">⑤ → ⑦ 提升</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:14px;color:var(--sub);">椅子站立</span><span style="font-size:15px;font-weight:600;color:var(--text);">14 次</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;"><span style="font-size:14px;color:var(--sub);">血压</span><span style="font-size:15px;font-weight:600;color:var(--text);">128/84 mmHg</span></div>
+          </div>
+          <div class="ai-block">
+            <div class="ai-header">✦ AI 月度反馈</div>
+            <div class="ai-text" style="font-size:14px;">本月运动完成率 100%，VSAQ 从⑤升至⑦，说明你的功能容量在稳步提升。<br><br>下月处方将小幅提升：有氧时长延长至 35 分钟，强度维持「适中」，下月第 2 次运动时可考虑进阶至「适中偏上」。<br><br>血压 128/84 mmHg 控制良好，继续保持。</div>
+          </div>
+          <div style="background:var(--blue-light);border:1.5px dashed var(--blue);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
+            <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;">↵ 分支流程结束</div>
+            <div style="font-size:13px;color:var(--blue);line-height:1.55;margin-bottom:10px;">随访完成后，用户回到主线首页，继续下一次有氧运动循环。处方已根据本次随访结果更新。</div>
+            <a href="flow-golden-path.html#home" style="display:block;text-align:center;background:var(--blue);color:white;border-radius:8px;padding:10px;font-size:14px;font-weight:600;text-decoration:none;">→ 回到主线首页</a>
+          </div>
+          <button class="btn-full btn-blue" onclick="goToStep(0)" style="margin-bottom:24px;">在此流程内重新演示</button>
+        </div>
+      </div>
+
+    </div><!-- scroll-area -->
+    <div class="tab-bar">
+      <div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-label">首页</span></div>
+      <div class="tab-item"><span class="tab-icon">🏃</span><span class="tab-label">运动</span></div>
+      <div class="tab-item"><span class="tab-icon">🥗</span><span class="tab-label">营养</span></div>
+      <div class="tab-item"><span class="tab-icon">🤖</span><span class="tab-label">助手</span></div>
+      <div class="tab-item active"><span class="tab-icon">👤</span><span class="tab-label">我</span></div>
+    </div>
+  </div>
+  <div class="flow-footer">
+    <button class="nav-btn nav-prev" id="prevBtn" onclick="prev()" disabled>← 上一步</button>
+    <span id="stepLabel">步骤 1 / 5</span>
+    <button class="nav-btn nav-next" id="nextBtn" onclick="next()">下一步 →</button>
+  </div>
+  <a href="flow-golden-path.html" style="font-size:13px;color:var(--sub);text-decoration:none;">← 返回主线流程</a>
+</div>
+<script>
+const TOTAL = 5;
+let cur = 0;
+function goToStep(n) {
+  cur = Math.max(0, Math.min(TOTAL-1, n));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('step-' + cur).classList.add('active');
+  document.querySelectorAll('.flow-step').forEach((el, i) => {
+    el.classList.remove('active','done');
+    if (i === cur) el.classList.add('active');
+    else if (i < cur) el.classList.add('done');
+  });
+  document.getElementById('stepLabel').textContent = `步骤 ${cur+1} / ${TOTAL}`;
+  document.getElementById('prevBtn').disabled = cur === 0;
+  document.getElementById('nextBtn').disabled = cur === TOTAL-1;
+  document.getElementById('nextBtn').textContent = cur === TOTAL-1 ? '完成' : '下一步 →';
+  document.getElementById('scrollArea').scrollTop = 0;
+}
+function next() { if (cur < TOTAL-1) goToStep(cur+1); }
+function prev() { if (cur > 0) goToStep(cur-1); }
+
+// ── M3 ──
+function selectM3(type) {
+  ['m3-none','m3-symptom','m3-visited'].forEach(function(id){
+    var el = document.getElementById(id);
+    el.classList.remove('selected');
+    el.querySelector('.radio-dot').style.borderColor = '';
+  });
+  document.getElementById('m3-' + type).classList.add('selected');
+  document.getElementById('m3-symptom-panel').style.display = type === 'symptom' ? 'block' : 'none';
+  document.getElementById('m3-visited-panel').style.display = type === 'visited' ? 'block' : 'none';
+}
+function checkM3Danger() {
+  var dangerIds = ['sym-chest','sym-dizzy','sym-palp','sym-breath'];
+  var hasDanger = dangerIds.some(function(id){
+    return document.getElementById(id).querySelector('input').checked;
+  });
+  var anyChecked = document.querySelectorAll('#m3-symptom-panel input[type=checkbox]:checked').length > 0;
+  document.getElementById('m3-danger-alert').style.display = hasDanger ? 'block' : 'none';
+  document.getElementById('m3-safe-note').style.display = (!hasDanger && anyChecked) ? 'block' : 'none';
+}
+function selectM3v(type) {
+  ['m3v-no','m3v-yes'].forEach(function(id){
+    document.getElementById(id).classList.remove('selected');
+  });
+  document.getElementById('m3v-' + type).classList.add('selected');
+  document.getElementById('m3v-update-hint').style.display = type === 'yes' ? 'block' : 'none';
+}
+
+// ── M4 ──
+function selectM4(type) {
+  ['m4-good','m4-few','m4-many'].forEach(function(id){
+    document.getElementById(id).classList.remove('selected');
+  });
+  document.getElementById('m4-' + type).classList.add('selected');
+  document.getElementById('m4-few-note').style.display = type === 'few' ? 'block' : 'none';
+  document.getElementById('m4-pause-note').style.display = type === 'many' ? 'block' : 'none';
+}
+</script>
+</body>
+</html>

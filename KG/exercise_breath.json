@@ -1,0 +1,501 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "source": "article/breath.md",
+    "generated": "2026-06-01",
+    "language": "patient_friendly",
+    "note": "所有展示字段已按PRD术语通俗化原则处理。逻辑字段供F2模块路由判断使用。"
+  },
+
+  "exercises": [
+
+    {
+      "_comment": "========== 柔韧性训练 6个 ==========",
+
+      "id": "flex-calf",
+      "category": "flexibility",
+      "name": "小腿拉伸",
+      "name_clinical": "腓肠肌拉伸（Calf Stretch）",
+      "target_area": "小腿后侧",
+      "illustration_hint": "站立，一脚向后，后脚跟贴地",
+
+      "params": {
+        "hold_sec": 30,
+        "sets_per_side": 4,
+        "sides": 2,
+        "total_min": 4,
+        "frequency": "每次运动前热身 + 运动后整理"
+      },
+
+      "steps": [
+        "站在椅背或墙壁前，双手轻扶保持平衡，双脚朝前",
+        "右脚向前迈一步，左脚向后站直",
+        "右膝微微弯曲，左膝保持伸直，左脚跟贴紧地面",
+        "髋部缓慢向前移动，直到小腿后侧有明显紧绷感",
+        "保持30秒，换另一侧重复"
+      ],
+
+      "safety_notes": [
+        "拉伸到「有点紧」就够了，不要拉到疼",
+        "全程正常呼吸，不要憋气",
+        "如果小腿有疼痛或明显水肿，先告诉医生再做"
+      ],
+
+      "stop_if": "出现疼痛、头晕或胸部不适，立即停止",
+
+      "_logic": {
+        "appropriate_for_poor_state": true,
+        "appropriate_for_high_risk": true,
+        "cabg_restriction_weeks": null,
+        "rpe_max": 12,
+        "phase": ["home_rehab", "phase2", "phase1"],
+        "linked_rules": ["f2-c2-medium-risk-poor-state-adjust", "f2-c3-low-risk-poor-state-reduce"]
+      }
+    },
+
+    {
+      "id": "flex-achilles",
+      "category": "flexibility",
+      "name": "脚踝拉伸",
+      "name_clinical": "跟腱拉伸（Achilles Stretch）",
+      "target_area": "脚踝后侧、小腿深层",
+      "illustration_hint": "站立，两脚前后，双膝微弯",
+
+      "params": {
+        "hold_sec": 30,
+        "sets_per_side": 4,
+        "sides": 2,
+        "frequency": "每次运动前热身 + 运动后整理"
+      },
+
+      "steps": [
+        "站在椅背或墙壁前，双手轻扶保持平衡",
+        "一脚向前、一脚向后站立",
+        "与小腿拉伸不同：后脚膝盖也轻微弯曲（不是伸直）",
+        "两脚跟都要贴地，同时微微下蹲",
+        "直到脚踝后方有紧绷感，保持30秒，换另一侧"
+      ],
+
+      "safety_notes": [
+        "两脚跟必须贴地，不要踮脚",
+        "动作幅度小一点，感觉到拉伸即可"
+      ],
+
+      "stop_if": "出现疼痛或头晕，立即停止",
+
+      "_logic": {
+        "appropriate_for_poor_state": true,
+        "appropriate_for_high_risk": true,
+        "cabg_restriction_weeks": null,
+        "rpe_max": 12,
+        "phase": ["home_rehab", "phase2", "phase1"],
+        "linked_rules": ["f2-c2-medium-risk-poor-state-adjust", "f2-c3-low-risk-poor-state-reduce"]
+      }
+    },
+
+    {
+      "id": "flex-hamstring-back",
+      "category": "flexibility",
+      "name": "腰背 + 大腿后侧拉伸",
+      "name_clinical": "下背部与腘绳肌拉伸（Lower Back and Hamstring Stretch）",
+      "target_area": "大腿后侧、腰背部",
+      "illustration_hint": "站立，从髋部向前弯曲",
+
+      "params": {
+        "hold_sec": 30,
+        "sets": 4,
+        "frequency": "每次运动后整理"
+      },
+
+      "steps": [
+        "双脚与肩同宽站立，身旁放椅子辅助平衡",
+        "从髋部（腰部）开始向前弯，不是弓背",
+        "膝盖保持略微弯曲，不要锁死",
+        "缓慢向下弯，直到大腿后侧和腰背有牵拉感",
+        "保持30秒",
+        "起身时：先微微弯膝，再缓慢直立（防止起身太快头晕）"
+      ],
+
+      "safety_notes": [
+        "起身一定要慢，防止头晕",
+        "有腰部旧伤或眩晕倾向，幅度要更小",
+        "CABG术后注意胸骨处有无不适"
+      ],
+
+      "stop_if": "起身时头晕，立即坐下；胸部或腰部出现疼痛，立即停止",
+
+      "_logic": {
+        "appropriate_for_poor_state": true,
+        "appropriate_for_high_risk": true,
+        "cabg_restriction_weeks": null,
+        "rpe_max": 12,
+        "phase": ["home_rehab", "phase2"],
+        "linked_rules": ["f2-c2-medium-risk-poor-state-adjust", "f2-c3-low-risk-poor-state-reduce"]
+      }
+    },
+
+    {
+      "id": "flex-quadriceps",
+      "category": "flexibility",
+      "name": "大腿前侧拉伸",
+      "name_clinical": "股四头肌拉伸（Thigh / Quadriceps Stretch）",
+      "target_area": "大腿前侧",
+      "illustration_hint": "单脚站立，手抓脚踝向后拉",
+
+      "params": {
+        "hold_sec": 30,
+        "sets_per_side": 4,
+        "sides": 2,
+        "frequency": "每次运动后整理"
+      },
+
+      "steps": [
+        "站在椅背旁边，单手扶住保持平衡",
+        "用右手轻抓右脚踝，缓慢向后上方拉起",
+        "感觉右大腿前侧有紧绷感即可，不用强迫脚碰到臀部",
+        "两膝保持并拢，身体保持直立，不要前倾",
+        "保持30秒，换另一侧"
+      ],
+
+      "safety_notes": [
+        "保持身体直立，不要弯腰前倾",
+        "平衡不好时紧握椅背，防止摔倒"
+      ],
+
+      "stop_if": "膝关节出现疼痛，立即停止",
+
+      "_logic": {
+        "appropriate_for_poor_state": true,
+        "appropriate_for_high_risk": true,
+        "cabg_restriction_weeks": null,
+        "rpe_max": 12,
+        "phase": ["home_rehab", "phase2"],
+        "linked_rules": ["f2-c2-medium-risk-poor-state-adjust", "f2-c3-low-risk-poor-state-reduce"]
+      }
+    },
+
+    {
+      "id": "flex-chest",
+      "category": "flexibility",
+      "name": "胸部伸展",
+      "name_clinical": "胸部拉伸（Chest Stretch）",
+      "target_area": "胸部前侧、肩膀前方",
+      "illustration_hint": "双手在背后十指交扣，向后上方抬起",
+
+      "params": {
+        "hold_sec": 12,
+        "sets": 4,
+        "frequency": "每次运动后整理（术后获得许可后）"
+      },
+
+      "steps": [
+        "坐位或站位均可",
+        "双手在背后十指交扣，掌心朝内",
+        "手臂伸直，缓慢向后上方抬起",
+        "肩胛骨向中间夹紧，感觉胸部向前扩展",
+        "感到胸前和肩前方有牵拉感",
+        "保持10~15秒，放松重复"
+      ],
+
+      "safety_notes": [
+        "⚠️ CABG（搭桥手术）术后8~10周内禁止做此动作，需获得外科医生许可后才能开始",
+        "感到胸骨处不适立即停止"
+      ],
+
+      "stop_if": "胸骨或胸部有任何不适感，立即停止",
+
+      "_logic": {
+        "appropriate_for_poor_state": true,
+        "appropriate_for_high_risk": false,
+        "cabg_restriction_weeks": 10,
+        "cabg_restriction_note": "CABG术后10周内不展示此动作，解锁需外科许可确认",
+        "rpe_max": 12,
+        "phase": ["home_rehab", "phase2"],
+        "linked_rules": ["f2-f1-cabg-upper-limb-filter"]
+      }
+    },
+
+    {
+      "id": "flex-upper-back",
+      "category": "flexibility",
+      "name": "上背部伸展",
+      "name_clinical": "上背部拉伸（Upper Back Stretch）",
+      "target_area": "上背部、肩膀",
+      "illustration_hint": "双手向前伸直，掌心向外，低头含胸",
+
+      "params": {
+        "hold_sec": 12,
+        "sets": 4,
+        "frequency": "每次运动前热身 + 运动后整理"
+      },
+
+      "steps": [
+        "坐位或站位均可",
+        "双手十指交扣，向正前方伸直，掌心向外翻转",
+        "低头，视线看向地面",
+        "肩膀轻微向前弓，感觉上背部有扩展和牵拉感",
+        "保持10~15秒，放松重复"
+      ],
+
+      "safety_notes": [
+        "低头动作要缓慢，有颈椎问题者幅度要小"
+      ],
+
+      "stop_if": "出现头晕或颈部疼痛，立即停止",
+
+      "_logic": {
+        "appropriate_for_poor_state": true,
+        "appropriate_for_high_risk": true,
+        "cabg_restriction_weeks": null,
+        "rpe_max": 12,
+        "phase": ["home_rehab", "phase2", "phase1"],
+        "linked_rules": ["f2-c2-medium-risk-poor-state-adjust", "f2-c3-low-risk-poor-state-reduce"]
+      }
+    },
+
+    {
+      "_comment": "========== 呼吸训练 3种方法 ==========",
+
+      "id": "breath-diaphragm",
+      "category": "breathing",
+      "name": "腹式呼吸",
+      "name_clinical": "膈肌呼吸（Diaphragmatic Breathing）",
+      "target_area": "呼吸肌、心率和血压调节",
+      "illustration_hint": "仰卧或坐姿，一手放胸口，一手放腹部",
+
+      "params": {
+        "inhale_sec": 4,
+        "exhale_sec": 6,
+        "session_min": "5~10",
+        "sessions_per_day": "2~3次",
+        "frequency": "可融入起床、餐后、睡前",
+        "description_short": "吸气4秒，呼气6秒，腹部起伏，胸部不动"
+      },
+
+      "steps": [
+        "仰卧（膝盖弯曲）或坐在椅子上，背部挺直，肩膀放松",
+        "一手放在胸口，一手放在肚子上（肋骨下方）",
+        "用鼻子缓慢吸气，数1、2、3、4——感受肚子上的手被顶起来，胸口的手保持不动",
+        "用嘴或鼻子缓慢呼气，数1、2、3、4、5、6——肚子慢慢回落",
+        "节奏：吸气4秒，呼气6秒，不要憋气"
+      ],
+
+      "safety_notes": [
+        "全程自然呼吸，不要用力，不要憋气",
+        "如果练习中感觉头晕，恢复正常呼吸节奏休息片刻"
+      ],
+
+      "stop_if": "感到头晕或胸闷，停止并恢复正常呼吸",
+
+      "evidence_note": "有助于降低心率、血压和焦虑（JBI系统综述 2019）",
+
+      "_logic": {
+        "appropriate_for_poor_state": true,
+        "appropriate_for_high_risk": true,
+        "cabg_restriction_weeks": null,
+        "rpe_max": 11,
+        "use_when": ["poor_state_all", "pre_exercise_warmup", "daily_relaxation", "anxiety_relief"],
+        "phase": ["home_rehab", "phase2", "phase1"],
+        "linked_rules": ["f2-c2-medium-risk-poor-state-adjust"]
+      }
+    },
+
+    {
+      "id": "breath-pursed-lip",
+      "category": "breathing",
+      "name": "吹口哨式呼吸",
+      "name_clinical": "缩唇呼吸（Pursed-Lip Breathing, PLB）",
+      "target_area": "改善气体交换、缓解气短",
+      "illustration_hint": "嘴唇缩成吹口哨的形状，缓慢呼气",
+
+      "params": {
+        "inhale_sec": 2,
+        "exhale_sec": "4~6",
+        "cycles_per_session": "3~5个，休息1~2分钟后可重复",
+        "frequency": "每日多次，气短发作时也可使用",
+        "description_short": "吸气2秒，缩唇呼气4~6秒，呼气是吸气时间的2倍"
+      },
+
+      "steps": [
+        "坐在椅子上，姿势舒适，肩膀放松",
+        "用鼻子缓慢吸气，数1、2（约2秒，正常量，不用深吸）",
+        "嘴唇缩起来，像要吹口哨或轻轻吹蜡烛一样",
+        "通过缩起的嘴唇缓慢呼气，数1、2、3、4（4~6秒）",
+        "不要用力呼，让气自然流出",
+        "口诀：「吸气1、2，呼气1、2、3、4」"
+      ],
+
+      "safety_notes": [
+        "每次只做3~5个呼吸循环，然后休息1~2分钟再继续——练太久会让呼吸肌疲劳",
+        "气短发作时可以随时使用"
+      ],
+
+      "stop_if": "感到头晕，停止并恢复正常呼吸",
+
+      "_logic": {
+        "appropriate_for_poor_state": true,
+        "appropriate_for_high_risk": true,
+        "cabg_restriction_weeks": null,
+        "rpe_max": 11,
+        "use_when": ["dyspnea_relief", "poor_state_all", "daily_practice"],
+        "phase": ["home_rehab", "phase2", "phase1"],
+        "linked_rules": ["f2-c2-medium-risk-poor-state-adjust"]
+      }
+    },
+
+    {
+      "id": "breath-pldb",
+      "category": "breathing",
+      "name": "完整呼吸练习",
+      "name_clinical": "缩唇膈肌联合呼吸（Pursed-Lip Diaphragmatic Breathing, PLDB）",
+      "target_area": "综合呼吸训练，改善心肺功能",
+      "illustration_hint": "坐姿，一手放腹部，缩唇呼气",
+
+      "params": {
+        "inhale_sec": "2~4",
+        "exhale_sec": "4~6",
+        "cycles_per_day": "每天至少30个呼吸循环",
+        "days_per_week": "每周至少3天",
+        "description_short": "腹部吸气2~4秒，缩唇呼气4~6秒，每天30次以上"
+      },
+
+      "steps": [
+        "坐在椅子上，背部挺直，肩膀放松，一手放在肚子上",
+        "用鼻子缓慢吸气2~4秒，感受肚子向外隆起（腹式呼吸要点）",
+        "嘴唇缩起来，缓慢呼气4~6秒，肚子慢慢回落（吹口哨式呼吸要点）",
+        "全程保持自然节奏，不用力，不憋气",
+        "可以在等待、休息、睡前随时插入练习"
+      ],
+
+      "safety_notes": [
+        "不要追求完美的节奏，自然舒适最重要",
+        "如果感到头晕，暂停休息片刻"
+      ],
+
+      "stop_if": "感到头晕、胸闷或明显不适，停止并休息",
+
+      "evidence_note": "研究显示可改善心脏射血分数（LVEF）、6分钟步行距离，并降低焦虑（重庆医大队列研究 2026）",
+
+      "_logic": {
+        "appropriate_for_poor_state": true,
+        "appropriate_for_high_risk": true,
+        "cabg_restriction_weeks": null,
+        "rpe_max": 11,
+        "use_when": ["poor_state_medium", "poor_state_all", "daily_practice", "heart_failure_support"],
+        "is_primary_poor_state_exercise": true,
+        "phase": ["home_rehab", "phase2"],
+        "linked_rules": ["f2-c2-medium-risk-poor-state-adjust"],
+        "note": "状态差时的首选呼吸训练方案（对应规则C2中的PLDB推荐）"
+      }
+    },
+
+    {
+      "_comment": "========== 呼吸体操（状态较好时使用，共4节）==========",
+
+      "id": "breath-routine",
+      "category": "breathing_routine",
+      "name": "呼吸体操",
+      "name_clinical": "心肺康复呼吸体操（Breathing Calisthenics）",
+      "target_area": "呼吸与肢体协调，综合心肺功能",
+      "illustration_hint": "站立，配合呼吸节律做肢体动作",
+
+      "params": {
+        "total_min": "15~25",
+        "frequency_recommended": "每周3~5次",
+        "intensity_target": "始终能正常说话（Talk Test通过）",
+        "description_short": "4节动作，配合呼吸节律，每次15~25分钟"
+      },
+
+      "prerequisite": "身体状态良好，无症状，能完成基础有氧训练后再尝试",
+
+      "sections": [
+        {
+          "name": "第一节：踮脚抬手",
+          "steps": [
+            "吸气时，缓慢踮起脚尖，双手握拳，手臂微微外展",
+            "保持2秒",
+            "呼气时，缓慢落脚，双手张开放松",
+            "重复8~10次"
+          ],
+          "safety": "踮脚时不要憋气；感觉头晕立即停止"
+        },
+        {
+          "name": "第二节：扩胸调息",
+          "steps": [
+            "站立，双臂向两侧平举，与肩同高",
+            "吸气时，双臂缓慢向后扩展，胸廓打开",
+            "呼气时，双臂回到体前，缓慢交叉",
+            "重复8~10次"
+          ],
+          "safety": "⚠️ CABG（搭桥）术后10周内不做此节；如有胸骨不适立即停止"
+        },
+        {
+          "name": "第三节：单手托举",
+          "steps": [
+            "一手缓慢向上托举（掌心向上），同时另一手向下按（掌心向下）",
+            "吸气时托举，呼气时放下，换另一手",
+            "左右各重复4~6次"
+          ],
+          "safety": "⚠️ CABG术后10周内避免手臂高举；上举以不引起胸部不适为准"
+        },
+        {
+          "name": "第四节：弓步呼吸",
+          "steps": [
+            "右脚向前迈出弓步，上身保持正直",
+            "吸气时直立，呼气时上身轻微前倾（幅度小）",
+            "左右各重复4~6次"
+          ],
+          "safety": "关节不好者可缩小弓步幅度；注意保持平衡"
+        }
+      ],
+
+      "safety_notes": [
+        "全程必须能正常说话——如果说不完整句子，立刻放慢节奏",
+        "出现明显气短，立即减慢或停止",
+        "CABG（搭桥）术后10周内跳过第二节和第三节"
+      ],
+
+      "stop_if": "出现胸痛、头晕、心跳明显异常或无法说话，立即停止",
+
+      "evidence_note": "RCT研究显示呼吸体操配合吸气肌训练，可显著改善心肺功能（Farghaly et al., IJERPH 2022）",
+
+      "_logic": {
+        "appropriate_for_poor_state": false,
+        "appropriate_for_high_risk": false,
+        "cabg_restriction_weeks": 10,
+        "cabg_restricted_sections": ["第二节：扩胸调息", "第三节：单手托举"],
+        "rpe_max": 13,
+        "min_fitness_requirement": "能完成基础有氧训练，无运动中不适",
+        "use_when": ["good_state_progression", "breathing_training_advanced"],
+        "phase": ["home_rehab", "phase2"],
+        "linked_rules": ["f2-f1-cabg-upper-limb-filter", "f2-g3-talk-test-dyspnea-reduce"]
+      }
+    }
+  ],
+
+  "_routing_summary": {
+    "note": "F2模块应根据以下逻辑决定推送哪些运动",
+    "when_state_is_poor_medium_risk": {
+      "description": "对应规则 f2-c2：中危+状态差",
+      "show": ["flex-calf", "flex-achilles", "flex-hamstring-back", "flex-quadriceps", "flex-upper-back", "breath-pldb"],
+      "hide": ["flex-chest（CABG<10周）", "breath-routine"]
+    },
+    "when_state_is_poor_low_risk": {
+      "description": "对应规则 f2-c3：低危+状态差（降强度有氧+可选柔韧）",
+      "show_as_supplement": ["flex-calf", "flex-achilles", "breath-diaphragm"]
+    },
+    "standard_cooldown": {
+      "description": "每次运动后整理（所有用户）",
+      "show": ["flex-calf", "flex-achilles", "flex-hamstring-back", "flex-quadriceps", "flex-upper-back"]
+    },
+    "daily_breathing_practice": {
+      "description": "每日呼吸练习推荐（不分状态）",
+      "show": ["breath-pldb", "breath-diaphragm"]
+    },
+    "cabg_unlock_at_week": {
+      "flex-chest": 10,
+      "breath-routine-section2": 10,
+      "breath-routine-section3": 10
+    }
+  }
+}

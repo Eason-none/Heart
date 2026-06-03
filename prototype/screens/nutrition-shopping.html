@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heart · 超市选购指南</title>
+<style>
+:root {
+  --bg:#F7F5F1; --card:#F0EDE8; --text:#2C2A26; --sub:#888780;
+  --blue:#185FA5; --blue-light:#E6F1FB;
+  --orange:#BA7517; --orange-light:#FAEEDA;
+  --red:#A32D2D; --red-light:#FCEBEB;
+  --green:#1D9E75; --green-light:#D4F2E7; --green-dark:#085041;
+  --border:#C8C5BE;
+  --r-card:12px; --r-btn:8px; --r-pill:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;font-family:-apple-system,"PingFang SC","Hiragino Sans GB",sans-serif}
+.phone{width:390px;min-height:100vh;background:var(--bg);display:flex;flex-direction:column}
+.status-bar{height:44px;background:var(--bg);display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex-shrink:0}
+.status-time{font-size:15px;font-weight:600;color:var(--text)}
+.status-icons{font-size:12px;color:var(--text)}
+.nav-bar{height:48px;display:flex;align-items:center;padding:0 16px;gap:8px;flex-shrink:0;border-bottom:1px solid var(--border);position:relative}
+.nav-back{font-size:16px;color:var(--blue);text-decoration:none;height:44px;display:flex;align-items:center;gap:2px}
+.nav-title{font-size:17px;font-weight:600;color:var(--text);position:absolute;left:50%;transform:translateX(-50%)}
+
+.scroll-content{flex:1;overflow-y:auto;padding:14px 16px 32px;-webkit-overflow-scrolling:touch}
+
+/* Category tab bar */
+.cat-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{flex-shrink:0;height:34px;padding:0 14px;border-radius:var(--r-pill);border:1.5px solid var(--border);background:var(--card);font-size:13px;font-weight:500;color:var(--sub);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+.cat-tab.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+
+/* Section header */
+.section-header{display:flex;align-items:center;gap:8px;margin:16px 0 10px}
+.section-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.section-title{font-size:16px;font-weight:700;color:var(--text)}
+
+/* Food item */
+.food-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.food-item{border-radius:var(--r-btn);padding:12px 14px;display:flex;align-items:center;gap:12px;position:relative}
+.food-item.good{background:var(--green-light)}
+.food-item.caution{background:var(--orange-light)}
+.food-item.avoid{background:var(--red-light)}
+.food-emoji{font-size:24px;flex-shrink:0;width:32px;text-align:center}
+.food-text{flex:1}
+.food-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px}
+.food-reason{font-size:13px;line-height:1.5}
+.food-item.good .food-reason{color:var(--green-dark)}
+.food-item.caution .food-reason{color:var(--orange)}
+.food-item.avoid .food-reason{color:var(--red)}
+.food-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:var(--r-pill);flex-shrink:0}
+.badge-good{background:var(--green);color:#fff}
+.badge-caution{background:var(--orange);color:#fff}
+.badge-avoid{background:var(--red);color:#fff}
+
+/* Tip card */
+.tip-card{border-radius:var(--r-card);background:var(--blue-light);padding:14px 16px;margin-bottom:16px;border:1px solid #B8D4EE}
+.tip-card-title{font-size:14px;font-weight:700;color:var(--blue);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.tip-card-body{font-size:14px;color:var(--blue);opacity:.85;line-height:1.6}
+
+/* Legend */
+.legend-row{display:flex;gap:12px;margin-bottom:14px;padding:10px 14px;background:var(--card);border-radius:var(--r-btn)}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">●●● WiFi 🔋</div>
+  </div>
+  <div class="nav-bar">
+    <a href="nutrition-index.html" class="nav-back">‹ 营养</a>
+    <span class="nav-title">超市选购指南</span>
+  </div>
+
+  <div class="scroll-content">
+
+    <!-- Category tabs -->
+    <div class="cat-tabs" id="catTabs">
+      <button class="cat-tab active" onclick="showCat('grain',this)">🌾 主食</button>
+      <button class="cat-tab" onclick="showCat('protein',this)">🥩 蛋白质</button>
+      <button class="cat-tab" onclick="showCat('veg',this)">🥦 蔬菜</button>
+      <button class="cat-tab" onclick="showCat('fat',this)">🫒 油脂</button>
+      <button class="cat-tab" onclick="showCat('dairy',this)">🥛 乳制品</button>
+      <button class="cat-tab" onclick="showCat('snack',this)">🍎 零食饮料</button>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>推荐优先选</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>适量可选</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>建议减少</div>
+    </div>
+
+    <!-- 主食 -->
+    <div id="cat-grain">
+      <div class="tip-card">
+        <div class="tip-card-title">💡 主食选购原则</div>
+        <div class="tip-card-body">选全谷物、杂粮优先，精制米面血糖指数高，长期大量食用不利于体重和血糖管理。</div>
+      </div>
+      <div class="food-list">
+        <div class="food-item good"><span class="food-emoji">🌾</span><div class="food-text"><div class="food-name">燕麦（整粒 / 钢切）</div><div class="food-reason">β-葡聚糖降低 LDL 胆固醇，饱腹感强，GI 低</div></div><span class="food-badge badge-good">优选</span></div>
+        <div class="food-item good"><span class="food-emoji">🍚</span><div class="food-text"><div class="food-name">糙米 / 杂粮饭</div><div class="food-reason">保留麸皮和胚芽，膳食纤维是白米的 3–4 倍</div></div><span class="food-badge badge-good">优选</span></div>
+        <div class="food-item good"><span class="food-emoji">🫘</span><div class="food-text"><div class="food-name">红薯 / 山药</div><div class="food-reason">钾含量高，有助于维持血压平衡，可替代部分主食</div></div><span class="food-badge badge-good">优选</span></div>
+        <div class="food-item caution"><span class="food-emoji">🥐</span><div class="food-text"><div class="food-name">全麦面包（注意成分表）</div><div class="food-reason">需确认全麦粉排第一位，含添加糖的品牌需控量</div></div><span class="food-badge badge-caution">适量</span></div>
+        <div class="food-item avoid"><span class="food-emoji">🍜</span><div class="food-text"><div class="food-name">精制白米 / 白面条</div><div class="food-reason">精制碳水 GI 高，大量食用影响血糖，不利体重管理</div></div><span class="food-badge badge-avoid">减少</span></div>
+        <div class="food-item avoid"><span class="food-emoji">🍞</span><div class="food-text"><div class="food-name">普通白面包 / 起酥包</div><div class="food-reason">高 GI + 含反式脂肪酸（起酥油），双重不利因素</div></div><span class="food-badge badge-avoid">避免</span></div>
+      </div>
+    </div>
+
+    <!-- 蛋白质 -->
+    <div id="cat-protein" style="display:none">
+      <div class="tip-card">
+        <div class="tip-card-title">💡 蛋白质选购原则</div>
+        <div class="tip-card-body">优选鱼类和豆类；禽肉去皮；红肉每周不超过 500g；加工肉制品尽量少买。</div>
+      </div>
+      <div class="food-list">
+        <div class="food-item good"><span class="food-emoji">🐟</span><div class="food-text"><div class="food-name">三文鱼 / 鲈鱼 / 带鱼</div><div class="food-reason">富含 Omega-3 脂肪酸，可降低甘油三酯，保护心脏</div></div><span class="food-badge badge-good">每周≥2次</span></div>
+        <div class="food-item good"><span class="food-emoji">🫘</span><div class="food-text"><div class="food-name">豆腐 / 毛豆 / 鹰嘴豆</div><div class="food-reason">植物蛋白质，饱和脂肪低，可替代部分动物蛋白</div></div><span class="food-badge badge-good">优选</span></div>
+        <div class="food-item good"><span class="food-emoji">🥚</span><div class="food-text"><div class="food-name">鸡蛋（全蛋）</div><div class="food-reason">优质蛋白，适量摄入（每天 1 个），不必过度限制</div></div><span class="food-badge badge-good">每日 1 个</span></div>
+        <div class="food-item caution"><span class="food-emoji">🍗</span><div class="food-text"><div class="food-name">鸡肉 / 鸭肉（去皮）</div><div class="food-reason">去皮后饱和脂肪显著降低，是优质白肉来源</div></div><span class="food-badge badge-caution">去皮食用</span></div>
+        <div class="food-item caution"><span class="food-emoji">🥩</span><div class="food-text"><div class="food-name">瘦牛肉 / 猪里脊</div><div class="food-reason">铁含量高，但饱和脂肪较多，每周控制在 500g 以内</div></div><span class="food-badge badge-caution">适量</span></div>
+        <div class="food-item avoid"><span class="food-emoji">🌭</span><div class="food-text"><div class="food-name">香肠 / 培根 / 腊肉</div><div class="food-reason">高钠、高饱和脂肪、含亚硝酸盐，心血管风险明确</div></div><span class="food-badge badge-avoid">避免</span></div>
+      </div>
+    </div>
+
+    <!-- 蔬菜 -->
+    <div id="cat-veg" style="display:none">
+      <div class="tip-card">
+        <div class="tip-card-title">💡 蔬菜选购原则</div>
+        <div class="tip-card-body">每天 ≥ 400g 蔬菜，深色蔬菜（绿/橙/红）占一半以上。品种多样优于大量单一品种。</div>
+      </div>
+      <div class="food-list">
+        <div class="food-item good"><span class="food-emoji">🥦</span><div class="food-text"><div class="food-name">西蓝花 / 菠菜 / 空心菜</div><div class="food-reason">富含叶酸、维生素 K、抗氧化素；注意服华法林者控量</div></div><span class="food-badge badge-good">深色优先</span></div>
+        <div class="food-item good"><span class="food-emoji">🍅</span><div class="food-text"><div class="food-name">番茄 / 胡萝卜 / 南瓜</div><div class="food-reason">番茄红素和 β-胡萝卜素，抗氧化，加热后吸收更佳</div></div><span class="food-badge badge-good">优选</span></div>
+        <div class="food-item good"><span class="food-emoji">🧄</span><div class="food-text"><div class="food-name">大蒜 / 洋葱</div><div class="food-reason">含有机硫化物，研究显示有助于轻度降低胆固醇和血压</div></div><span class="food-badge badge-good">调味优选</span></div>
+        <div class="food-item caution"><span class="food-emoji">🥔</span><div class="food-text"><div class="food-name">土豆 / 芋头</div><div class="food-reason">淀粉含量高，建议作为主食替代计算，非额外添加</div></div><span class="food-badge badge-caution">计入主食量</span></div>
+        <div class="food-item avoid"><span class="food-emoji">🥫</span><div class="food-text"><div class="food-name">腌制蔬菜（泡菜/咸菜）</div><div class="food-reason">钠含量极高，100g 泡菜含盐量可超出全天推荐量</div></div><span class="food-badge badge-avoid">极少食用</span></div>
+      </div>
+    </div>
+
+    <!-- 油脂 -->
+    <div id="cat-fat" style="display:none">
+      <div class="tip-card">
+        <div class="tip-card-title">💡 油脂选购原则</div>
+        <div class="tip-card-body">选不饱和脂肪酸为主的植物油；控制总用量（每天 25–30g）；坚果是优质脂肪来源。</div>
+      </div>
+      <div class="food-list">
+        <div class="food-item good"><span class="food-emoji">🫒</span><div class="food-text"><div class="food-name">橄榄油（初榨）</div><div class="food-reason">单不饱和脂肪酸最丰富，抗氧化，地中海饮食核心</div></div><span class="food-badge badge-good">优选</span></div>
+        <div class="food-item good"><span class="food-emoji">🌰</span><div class="food-text"><div class="food-name">核桃 / 杏仁 / 亚麻籽</div><div class="food-reason">含 Omega-3、维生素 E；每天一小把（约 30g）为宜</div></div><span class="food-badge badge-good">每日一把</span></div>
+        <div class="food-item good"><span class="food-emoji">🌻</span><div class="food-text"><div class="food-name">菜籽油 / 茶籽油</div><div class="food-reason">国内易得，Omega-3 / Omega-6 比例较优，耐高温</div></div><span class="food-badge badge-good">中餐适用</span></div>
+        <div class="food-item caution"><span class="food-emoji">🧴</span><div class="food-text"><div class="food-name">花生油 / 玉米油</div><div class="food-reason">Omega-6 偏高，少量使用问题不大，注意总量</div></div><span class="food-badge badge-caution">控量使用</span></div>
+        <div class="food-item avoid"><span class="food-emoji">🧈</span><div class="food-text"><div class="food-name">猪油 / 黄油 / 椰子油</div><div class="food-reason">饱和脂肪酸高，过量摄入升高 LDL 胆固醇</div></div><span class="food-badge badge-avoid">减少</span></div>
+        <div class="food-item avoid"><span class="food-emoji">🍟</span><div class="food-text"><div class="food-name">起酥油 / 氢化植物油</div><div class="food-reason">含反式脂肪酸，明确增加心血管事件风险，查成分表</div></div><span class="food-badge badge-avoid">严格避免</span></div>
+      </div>
+    </div>
+
+    <!-- 乳制品 -->
+    <div id="cat-dairy" style="display:none">
+      <div class="tip-card">
+        <div class="tip-card-title">💡 乳制品选购原则</div>
+        <div class="tip-card-body">低脂或脱脂优先；原味无添加；每天 250–500ml 奶或等量乳制品。</div>
+      </div>
+      <div class="food-list">
+        <div class="food-item good"><span class="food-emoji">🥛</span><div class="food-text"><div class="food-name">低脂纯牛奶 / 脱脂奶</div><div class="food-reason">钙质丰富，低脂版本饱和脂肪少，性价比高</div></div><span class="food-badge badge-good">每日 250ml</span></div>
+        <div class="food-item good"><span class="food-emoji">🍶</span><div class="food-text"><div class="food-name">无糖原味酸奶</div><div class="food-reason">益生菌有助于肠道健康，注意查成分表确认无添加糖</div></div><span class="food-badge badge-good">原味无糖</span></div>
+        <div class="food-item caution"><span class="food-emoji">🧀</span><div class="food-text"><div class="food-name">奶酪（低钠品种）</div><div class="food-reason">蛋白质和钙丰富，但钠含量差异大，选低钠品种</div></div><span class="food-badge badge-caution">查钠含量</span></div>
+        <div class="food-item avoid"><span class="food-emoji">🧋</span><div class="food-text"><div class="food-name">含糖奶茶 / 调味奶</div><div class="food-reason">糖分和热量极高，对血糖和体重管理均不利</div></div><span class="food-badge badge-avoid">避免</span></div>
+      </div>
+    </div>
+
+    <!-- 零食饮料 -->
+    <div id="cat-snack" style="display:none">
+      <div class="tip-card">
+        <div class="tip-card-title">💡 零食 &amp; 饮料选购原则</div>
+        <div class="tip-card-body">尽量选天然食物；看营养成分表，关注钠、糖和脂肪含量；含糖饮料是最容易被忽视的心血管危险因素之一。</div>
+      </div>
+      <div class="food-list">
+        <div class="food-item good"><span class="food-emoji">🍎</span><div class="food-text"><div class="food-name">新鲜水果（低糖品种）</div><div class="food-reason">蓝莓、苹果、橙子富含黄酮和膳食纤维，优先整果</div></div><span class="food-badge badge-good">整果优先</span></div>
+        <div class="food-item good"><span class="food-emoji">🫐</span><div class="food-text"><div class="food-name">无盐混合坚果</div><div class="food-reason">健康脂肪来源，每天 30g，选无盐无糖品种</div></div><span class="food-badge badge-good">无盐无糖</span></div>
+        <div class="food-item caution"><span class="food-emoji">🍫</span><div class="food-text"><div class="food-name">黑巧克力（可可 70%+）</div><div class="food-reason">含黄烷醇有护心作用，但热量较高，每次 1–2 片</div></div><span class="food-badge badge-caution">少量</span></div>
+        <div class="food-item avoid"><span class="food-emoji">🥤</span><div class="food-text"><div class="food-name">含糖碳酸饮料 / 果汁饮料</div><div class="food-reason">每瓶可含 8–12 茶匙糖，液态糖比固态更快升高血糖</div></div><span class="food-badge badge-avoid">避免</span></div>
+        <div class="food-item avoid"><span class="food-emoji">🍪</span><div class="food-text"><div class="food-name">饼干 / 薯片 / 膨化食品</div><div class="food-reason">高钠、高饱和脂肪，部分含反式脂肪，营养密度极低</div></div><span class="food-badge badge-avoid">避免</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script>
+  function showCat(id, btn) {
+    ['grain','protein','veg','fat','dairy','snack'].forEach(c => {
+      document.getElementById('cat-' + c).style.display = c === id ? '' : 'none';
+    });
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>

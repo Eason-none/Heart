@@ -4,6 +4,7 @@ import type { UserProfile, RiskLevel } from '@/types'
  * Derives risk level from assessment data.
  * High-risk triggers: any high-risk Q = true, or PHQ-2+GAD-2 any item ≥3.
  * Called immediately when any high-risk Q is answered "yes" (early exit).
+ * If user says heart pump is weak but provides no LVEF value, minimum medium risk.
  */
 export function calculateRiskLevel(data: {
   high_risk_q1: boolean
@@ -12,14 +13,15 @@ export function calculateRiskLevel(data: {
   phq2_score: number
   gad2_score: number
   lvef?: number
+  lvef_weak?: boolean
   vsaq_score: number
 }): RiskLevel {
   if (data.high_risk_q1 || data.high_risk_q2 || data.high_risk_q3) return 'high'
   if (data.phq2_score >= 3 || data.gad2_score >= 3) return 'high'
   if (data.lvef !== undefined && data.lvef < 40) return 'high'
-
-  // Medium vs low: LVEF 40-49, or multiple comorbidities, or lower VSAQ
-  if ((data.lvef !== undefined && data.lvef < 50) || data.vsaq_score <= 4) return 'medium'
+  if (data.lvef !== undefined && data.lvef < 50) return 'medium'
+  if (data.lvef_weak && data.lvef === undefined) return 'medium'
+  if (data.vsaq_score <= 4) return 'medium'
   return 'low'
 }
 

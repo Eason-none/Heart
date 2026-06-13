@@ -1,16 +1,79 @@
 import Link from 'next/link'
 
-const SWAPS = [
-  { original: '猪油 / 动物油', swap: '茶油 / 橄榄油', reason: '减少饱和脂肪，增加单不饱和脂肪酸' },
-  { original: '精白米饭（一碗）', swap: '白米 + 糙米 / 杂豆（1:1）', reason: '降低升糖指数，增加膳食纤维' },
-  { original: '猪肉馅', swap: '鸡肉馅 / 豆腐', reason: '降低饱和脂肪含量' },
-  { original: '酱油（大量）', swap: '少量酱油 + 醋 + 葱姜', reason: '减钠，同时保留风味' },
-  { original: '腌制咸鱼', swap: '新鲜三文鱼 / 鲭鱼', reason: '高钠换成富含 Omega-3 的鲜鱼' },
-  { original: '全脂牛奶', swap: '低脂牛奶 / 豆奶', reason: '减少饱和脂肪' },
-  { original: '油条 / 炸糕（早餐）', swap: '燕麦粥 / 全麦馒头', reason: '减少反式脂肪和精制糖' },
-  { original: '薯片 / 零食', swap: '原味坚果（一小把）/ 水果', reason: '用健康脂肪替代空热量' },
-  { original: '甜饮料', swap: '白开水 / 淡绿茶', reason: '减少精制糖，控制热量' },
-  { original: '红烧肉（肥肉部分）', swap: '去皮鸡腿肉 / 瘦牛肉', reason: '减少饱和脂肪，保留蛋白质' },
+type Method = '方法①' | '方法②' | '方法③'
+
+const METHOD_COLORS: Record<Method, string> = {
+  '方法①': 'bg-orange text-white',
+  '方法②': 'bg-green text-white',
+  '方法③': 'bg-blue text-white',
+}
+
+const SWAPS: Array<{
+  original: string
+  swap: string
+  reason: string
+  methods: Method[]
+}> = [
+  {
+    original: '白粥 + 咸菜（早餐）',
+    swap: '燕麦粥 + 水煮蛋 + 清炒时蔬',
+    reason: '碳水极高、蛋白质≈0 的"清淡陷阱"——换成有蛋白质来源的早餐结构',
+    methods: ['方法①'],
+  },
+  {
+    original: '猪油 / 色拉油',
+    swap: '茶籽油 / 菜籽油（炒菜）、橄榄油（凉拌）',
+    reason: '用不饱和脂肪酸替代饱和脂肪，降低 LDL 胆固醇',
+    methods: ['方法②'],
+  },
+  {
+    original: '精白米饭（一碗）',
+    swap: '白米 + 糙米 / 杂豆（1:1 混煮）',
+    reason: '降低升糖指数，增加膳食纤维至原来的 2–3 倍，血糖更平稳',
+    methods: ['方法①'],
+  },
+  {
+    original: '猪五花 / 排骨',
+    swap: '鲈鱼 / 鳕鱼（清蒸或少油烹饪）',
+    reason: '每周 2 次以上鱼类可使甘油三酯降低约 15–20%；低嘌呤鱼种也适合高尿酸患者',
+    methods: ['方法①', '方法②'],
+  },
+  {
+    original: '酱油（大量）',
+    swap: '少量低钠酱油 + 醋 + 葱姜',
+    reason: '1 勺酱油≈1000mg 钠——减钠不减味的核心策略',
+    methods: ['方法③'],
+  },
+  {
+    original: '腌制咸鱼 / 腊肉',
+    swap: '新鲜鱼类 / 去皮禽肉',
+    reason: '腌制食品高钠高亚硝酸盐；换成新鲜蛋白质，同时减少隐性盐',
+    methods: ['方法②', '方法③'],
+  },
+  {
+    original: '普通食盐',
+    swap: '低钠盐（钾盐）',
+    reason: '在不改变咸度感知的前提下减少约 1/3 钠摄入；肾功能不全者请咨询医生',
+    methods: ['方法③'],
+  },
+  {
+    original: '油条 / 起酥面包（早餐）',
+    swap: '全麦馒头 / 杂粮面包',
+    reason: '油炸起酥含反式脂肪；换成全谷物早餐同时改善碳水质量',
+    methods: ['方法①', '方法②'],
+  },
+  {
+    original: '含糖饮料 / 鲜榨果汁',
+    swap: '白开水 / 淡绿茶 / 整颗水果',
+    reason: '果汁丢失纤维且含大量果糖，同时升血糖和尿酸；整果比果汁更优',
+    methods: ['方法③'],
+  },
+  {
+    original: '薯片 / 饼干（零食）',
+    swap: '原味坚果一小把（约 30g）',
+    reason: '用健康脂肪来源替代高钠高饱和脂肪的空热量零食',
+    methods: ['方法②', '方法③'],
+  },
 ]
 
 export default function NutritionSwapPage() {
@@ -25,22 +88,28 @@ export default function NutritionSwapPage() {
             <path d="M15 19L8 12L15 5" stroke="#2C2A26" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </Link>
-        <h1 className="text-lg font-semibold text-text">中式替代食材</h1>
+        <h1 className="text-lg font-semibold text-text">中式食材替换表</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-6">
-        <p className="text-sm text-text-sub mb-4 leading-relaxed">
-          不用颠覆饮食习惯，从一点一点的替代开始。每一个小改变都有意义。
+        <p className="text-sm text-text-sub leading-relaxed mb-4">
+          先看方法标签，理解"为什么这样换"，再试着把同一个方法用在表里没有的食物上。每次换掉一样，长期坚持效果明显。
         </p>
-        <div className="bg-card rounded-card divide-y divide-border">
+
+        <div className="flex flex-col gap-2.5">
           {SWAPS.map(item => (
-            <div key={item.original} className="px-4 py-4">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm text-text line-through opacity-60">{item.original}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <div key={item.original} className="bg-card rounded-card px-4 py-3.5">
+              <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                {item.methods.map(m => (
+                  <span key={m} className={`text-[11px] font-bold px-2 py-0.5 rounded-pill ${METHOD_COLORS[m]}`}>{m}</span>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="text-sm text-text-sub line-through">{item.original}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path d="M5 12H19M13 6L19 12L13 18" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" />
                 </svg>
-                <span className="text-base font-semibold text-green">{item.swap}</span>
+                <span className="text-[15px] font-semibold text-green leading-tight">{item.swap}</span>
               </div>
               <p className="text-sm text-text-sub leading-relaxed">{item.reason}</p>
             </div>

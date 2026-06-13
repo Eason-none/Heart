@@ -1,29 +1,28 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { RPE_LABELS } from '@/lib/exercise/intensity'
-import type { RPELevel } from '@/types'
+import { getExerciseTypeLabel } from '@/lib/exercise/prescription'
+import type { RPELevel, ExerciseType } from '@/types'
 
 type TimeRange = 'recent2w' | 'recent1m' | 'all'
 
-// Mock data
-const MOCK_SESSIONS = [
-  { date: '2026-05-28', type: '步行', duration: 28, rpe: 2 as RPELevel, adjusted: false },
-  { date: '2026-05-26', type: '步行', duration: 25, rpe: 2 as RPELevel, adjusted: false },
-  { date: '2026-05-24', type: '步行', duration: 25, rpe: 3 as RPELevel, adjusted: false },
-  { date: '2026-05-21', type: '抗阻', duration: 30, rpe: 2 as RPELevel, adjusted: false },
-  { date: '2026-05-19', type: '步行', duration: 25, rpe: 2 as RPELevel, adjusted: false },
-  { date: '2026-05-17', type: '步行', duration: 20, rpe: 1 as RPELevel, adjusted: true },
-]
+interface DisplaySession {
+  date: string
+  type: string
+  duration: number
+  rpe: RPELevel | null
+  isAerobic: boolean
+}
 
 const RPE_COLORS: Record<RPELevel, string> = { 1: '#1D9E75', 2: '#185FA5', 3: '#BA7517', 4: '#A32D2D' }
 
-function RPETrendChart({ sessions }: { sessions: typeof MOCK_SESSIONS }) {
+function RPETrendChart({ sessions }: { sessions: DisplaySession[] }) {
   const W = 335, H = 130, PADDING = { top: 12, right: 16, bottom: 24, left: 32 }
   const chartW = W - PADDING.left - PADDING.right
   const chartH = H - PADDING.top - PADDING.bottom
   const stepH = chartH / 4
-  const data = sessions.filter(s => ['步行','居家有氧','慢跑','骑行'].includes(s.type)).slice(-10).reverse()
+  const data = (sessions.filter(s => s.isAerobic && s.rpe !== null) as Array<DisplaySession & { rpe: RPELevel }>).slice(-10).reverse()
 
   const getX = (i: number) => PADDING.left + (data.length <= 1 ? chartW / 2 : (i / (data.length - 1)) * chartW)
   const getY = (rpe: number) => PADDING.top + stepH * (4 - rpe) + stepH / 2
@@ -33,13 +32,11 @@ function RPETrendChart({ sessions }: { sessions: typeof MOCK_SESSIONS }) {
 
   return (
     <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
-      {/* Target band (RPE 2 = 适中) */}
       <rect
         x={PADDING.left} y={PADDING.top + stepH * 1}
         width={chartW} height={stepH}
         fill="#E6F1FB" opacity="0.6"
       />
-      {/* Grid lines */}
       {[1,2,3,4].map((level, i) => (
         <g key={level}>
           <line
@@ -54,11 +51,9 @@ function RPETrendChart({ sessions }: { sessions: typeof MOCK_SESSIONS }) {
           </text>
         </g>
       ))}
-      {/* Line */}
       {points.length > 1 && (
         <polyline points={polyline} fill="none" stroke="#185FA5" strokeWidth="1.5" strokeLinejoin="round" />
       )}
-      {/* Dots */}
       {points.map((p, i) => (
         <circle key={i} cx={p.x} cy={p.y} r="6" fill={RPE_COLORS[p.rpe as RPELevel]} />
       ))}
@@ -90,17 +85,46 @@ function ProgressRing({ done, target }: { done: number; target: number }) {
 
 export default function ExerciseDataPage() {
   const [tab, setTab] = useState<TimeRange>('recent2w')
+  const [allSessions, setAllSessions] = useState<DisplaySession[]>([])
 
-  const filtered = tab === 'recent2w' ? MOCK_SESSIONS.slice(0, 4)
-    : tab === 'recent1m' ? MOCK_SESSIONS
-    : MOCK_SESSIONS
+  useEffect(() => {
+    try {
+      const raw: Array<{
+        date: string
+        exercise_type: ExerciseType
+        duration: number
+        rpe_actual: RPELevel | null
+        is_aerobic_count: boolean
+      }> = JSON.parse(localStorage.getItem('exercise_sessions') || '[]')
 
-  const done = filtered.filter(s => ['步行','居家有氧','慢跑'].includes(s.type)).length
+      const mapped: DisplaySession[] = raw.map(s => ({
+        date: s.date.slice(0, 10),
+        type: getExerciseTypeLabel(s.exercise_type),
+        duration: s.duration,
+        rpe: s.rpe_actual,
+        isAerobic: s.is_aerobic_count,
+      }))
+      mapped.sort((a, b) => b.date.localeCompare(a.date))
+      setAllSessions(mapped)
+    } catch {}
+  }, [])
+
+  const now = Date.now()
+  const filtered = allSessions.filter(s => {
+    const t = new Date(s.date).getTime()
+    if (tab === 'recent2w') return t >= now - 14 * 24 * 60 * 60 * 1000
+    if (tab === 'recent1m') return t >= now - 30 * 24 * 60 * 60 * 1000
+    return true
+  })
+
+  const done = filtered.filter(s => s.isAerobic).length
   const target = tab === 'recent2w' ? 6 : tab === 'recent1m' ? 12 : 18
-  const avgDuration = Math.round(filtered.reduce((s, x) => s + x.duration, 0) / Math.max(1, filtered.length))
+  const avgDuration = filtered.length > 0
+    ? Math.round(filtered.reduce((s, x) => s + x.duration, 0) / filtered.length)
+    : 0
 
-  return (
-    <div className="flex flex-col h-full bg-bg">
+  const header = (
+    <>
       <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
         <span className="text-[15px] font-semibold text-text">9:41</span>
       </div>
@@ -112,8 +136,36 @@ export default function ExerciseDataPage() {
         </Link>
         <h1 className="text-lg font-semibold text-text">运动数据</h1>
       </div>
+    </>
+  )
 
-      {/* Tab bar */}
+  if (allSessions.length === 0) {
+    return (
+      <div className="flex flex-col h-full bg-bg">
+        {header}
+        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-3">
+          <div className="w-14 h-14 rounded-full bg-card flex items-center justify-center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+              <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <h2 className="text-base font-semibold text-text">还没有运动记录</h2>
+          <p className="text-sm text-text-sub leading-relaxed">完成第一次运动后，<br />你的数据会显示在这里。</p>
+          <Link
+            href="/exercise"
+            className="mt-2 min-h-[44px] px-6 bg-blue text-white rounded-btn flex items-center text-base font-medium"
+          >
+            去运动
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col h-full bg-bg">
+      {header}
+
       <div className="flex-shrink-0 flex border-b border-border">
         {([['recent2w','近 2 周'],['recent1m','近 1 个月'],['all','全程']] as const).map(([v, label]) => (
           <button
@@ -130,7 +182,6 @@ export default function ExerciseDataPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-6 space-y-4">
-        {/* Overview */}
         <div className="bg-card rounded-card p-4 flex items-center gap-4">
           <ProgressRing done={done} target={target} />
           <div className="flex flex-col gap-3 flex-1">
@@ -145,42 +196,35 @@ export default function ExerciseDataPage() {
           </div>
         </div>
 
-        {/* RPE chart */}
         <div className="bg-card rounded-card p-4">
           <p className="text-sm font-semibold text-text mb-3">运动强度趋势</p>
-          {filtered.length > 0 ? (
+          {filtered.filter(s => s.isAerobic).length > 0 ? (
             <RPETrendChart sessions={filtered} />
           ) : (
-            <p className="text-sm text-text-sub text-center py-6">完成第一次运动后，数据将显示在这里</p>
+            <p className="text-sm text-text-sub text-center py-6">此时间段内无有氧运动记录</p>
           )}
         </div>
 
-        {/* Timeline */}
         <div className="bg-card rounded-card p-4">
           <p className="text-sm font-semibold text-text mb-3">运动记录</p>
           {filtered.length === 0 ? (
-            <p className="text-sm text-text-sub text-center py-4">暂无记录</p>
+            <p className="text-sm text-text-sub text-center py-4">此时间段内暂无记录</p>
           ) : (
             <div className="border-l-2 border-border ml-2 space-y-0">
               {filtered.map((s, i) => (
                 <div key={i} className="relative pl-5 pb-4 last:pb-0">
                   <div
                     className="absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full"
-                    style={{ background: RPE_COLORS[s.rpe] }}
+                    style={{ background: s.rpe ? RPE_COLORS[s.rpe] : '#C8C5BE' }}
                   />
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-text-sub">{s.date.slice(5)}</p>
                       <p className="text-base font-medium text-text">{s.type} · {s.duration} 分钟</p>
                     </div>
-                    <div className="text-right">
-                      <span className={`text-sm font-medium`} style={{ color: RPE_COLORS[s.rpe] }}>
-                        {RPE_LABELS[s.rpe].label}
-                      </span>
-                      {s.adjusted && (
-                        <p className="text-xs text-orange">强度已调整</p>
-                      )}
-                    </div>
+                    <span className="text-sm font-medium" style={{ color: s.rpe ? RPE_COLORS[s.rpe] : '#C8C5BE' }}>
+                      {s.rpe ? RPE_LABELS[s.rpe].label : '—'}
+                    </span>
                   </div>
                 </div>
               ))}

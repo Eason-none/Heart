@@ -1,6 +1,6 @@
 // ─── User & Assessment ───────────────────────────────────────────────────────
 
-export type DiagnosisType = 'stable_angina' | 'pci' | 'cabg' | 'mi_recovery'
+export type DiagnosisType = 'stable_angina' | 'pci' | 'cabg' | 'mi_recovery' | 'chd_no_surgery'
 export type RiskLevel = 'low' | 'medium' | 'high'
 export type RehabPhase = 'adaptation' | 'improvement' | 'maintenance'
 export type SmokingStatus = 'non_smoker' | 'smoker' | 'quit'
@@ -25,6 +25,8 @@ export interface UserProfile {
   high_risk_q1: boolean // chest pain at rest
   high_risk_q2: boolean // syncope in past 6 months
   high_risk_q3: boolean // heart failure or severe arrhythmia diagnosis
+  has_icd?: boolean     // pacemaker or ICD implanted
+  icd_months_ago?: number // months since implant (1 = <6w, 2 = 6w–3m, 12 = >3m)
   // Group 3 — comorbidities & meds
   comorbidities: Comorbidity[]
   has_beta_blocker: boolean
@@ -156,6 +158,30 @@ export interface ScienceCard {
   requires_smoker?: boolean
 }
 
+// ─── Knowledge Map ────────────────────────────────────────────────────────────
+
+export type KMSectionId = 'heart' | 'risk' | 'emergency' | 'exercise' | 'diet' | 'meds' | 'psych' | 'daily'
+export type KMPriority = 'P0' | 'P1' | 'P2'
+
+export interface KnowledgeCard {
+  id: string
+  section: KMSectionId
+  subsection: string
+  priority: KMPriority
+  phase: ContentPhase[]
+  audience: ContentAudience[]
+  title: string
+  body: string
+  requires_smoker?: boolean
+}
+
+export interface KMSectionMeta {
+  id: KMSectionId
+  label: string
+  description: string
+  urgent?: boolean
+}
+
 // ─── Exercise State Machine ───────────────────────────────────────────────────
 
 export type ExercisePageState = 'checkin' | 'prescription' | 'active' | 'feedback' | 'summary'
@@ -192,6 +218,7 @@ export interface Layer2Window {
     hr_recovery: HRRecovery
     had_discomfort: boolean
     date: string
+    day_state?: DayState
   }>
   last_adjustment_date?: string
 }

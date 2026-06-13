@@ -20,29 +20,47 @@ body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;fon
 .status-bar{height:44px;background:var(--bg);display:flex;align-items:center;padding:0 20px;justify-content:space-between;flex-shrink:0}
 .status-time{font-size:15px;font-weight:600;color:var(--text)}
 .status-icons{font-size:12px;color:var(--text)}
-.page-header{height:48px;background:var(--bg);display:flex;align-items:center;padding:0 16px;justify-content:space-between;flex-shrink:0;border-bottom:1px solid var(--border)}
+.page-header{height:48px;background:var(--bg);display:flex;align-items:center;padding:0 16px;flex-shrink:0;border-bottom:1px solid var(--border)}
 .page-title{font-size:18px;font-weight:700;color:var(--text)}
 
 .scroll-content{flex:1;overflow-y:auto;padding:14px 16px 100px;-webkit-overflow-scrolling:touch}
 
-/* Science card */
-.science-card{background:var(--card);border-radius:var(--r-card);padding:16px;margin-bottom:14px}
-.science-card-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.topic-pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:var(--r-pill)}
-.pill-green-solid{background:var(--green);color:#fff}
-.pill-blue-solid{background:var(--blue);color:#fff}
-.science-title{font-size:18px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:8px}
-.science-body{font-size:16px;color:var(--text);line-height:1.65;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical}
-.science-body.collapsed{-webkit-line-clamp:4}
-.science-body.expanded{-webkit-line-clamp:unset}
-.expand-btn{font-size:15px;color:var(--blue);background:none;border:none;padding:6px 0;cursor:pointer;font-family:inherit;display:block;margin-top:4px}
+/* Phase card */
+.phase-card{display:flex;align-items:center;gap:10px;background:var(--blue-light);border-radius:var(--r-card);padding:12px 16px;margin-bottom:14px}
+.phase-icon{font-size:24px;flex-shrink:0}
+.phase-label{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:2px}
+.phase-body{font-size:13px;color:var(--blue);opacity:.8;line-height:1.5}
 
-/* Key-point chips inside science card */
-.key-points{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-.key-chip{font-size:12px;font-weight:600;padding:4px 10px;border-radius:var(--r-pill);background:var(--green-light);color:var(--green-dark)}
+/* Section */
+.section-label{font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.section-intro{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:12px}
 
-/* Section label */
-.section-label{font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+/* Method cards */
+.method-card{background:var(--card);border-radius:var(--r-card);margin-bottom:10px;overflow:hidden}
+.method-header{display:flex;align-items:flex-start;gap:10px;padding:14px 16px 0 16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.method-badge{font-size:11px;font-weight:700;color:#fff;padding:3px 9px;border-radius:10px;flex-shrink:0;margin-top:3px;white-space:nowrap}
+.method-title-wrap{flex:1}
+.method-q{font-size:16px;font-weight:700;color:var(--text);line-height:1.4}
+.method-q2{font-size:14px;font-weight:500;color:var(--sub);margin-top:2px;line-height:1.35}
+.method-chevron{font-size:18px;color:var(--sub);flex-shrink:0;margin-top:1px;transition:transform .2s}
+.method-chevron.open{transform:rotate(180deg)}
+.method-preview{font-size:14px;color:var(--sub);line-height:1.55;padding:8px 16px 14px 16px}
+.method-body{border-top:1px solid var(--border);padding:14px 16px 16px}
+.method-why{font-size:14px;color:var(--text);line-height:1.65;margin-bottom:12px}
+.examples-label{font-size:12px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.method-examples{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.ex-item{border-radius:var(--r-btn);padding:9px 12px;background:var(--bg);font-size:13px;color:var(--text);line-height:1.55}
+.ex-item .ex-bad{color:var(--sub)}
+.ex-item .ex-good{color:var(--green-dark);font-weight:600}
+.method-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.method-chip{font-size:12px;font-weight:600;padding:3px 10px;border-radius:var(--r-pill);background:var(--bg);color:var(--sub);border:1px solid var(--border)}
+.ask-link{font-size:13px;color:var(--blue);text-decoration:none;display:inline-flex;align-items:center;gap:2px}
+
+/* Behavior card */
+.behavior-card{background:var(--green-light);border-radius:var(--r-card);padding:14px 16px;margin-bottom:14px;border-left:4px solid var(--green)}
+.behavior-title{font-size:14px;font-weight:700;color:var(--green-dark);margin-bottom:6px}
+.behavior-body{font-size:14px;color:var(--green-dark);line-height:1.6;margin-bottom:4px}
+.behavior-note{font-size:12px;color:var(--green-dark);opacity:.75;line-height:1.5}
 
 /* Entry cards */
 .entry-card{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:var(--r-card);padding:0 16px;height:72px;text-decoration:none;margin-bottom:10px;border:1.5px solid transparent;transition:border-color .15s;cursor:pointer}
@@ -60,12 +78,15 @@ body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;fon
 .tips-list li{font-size:14px;color:var(--text);line-height:1.55;padding-left:16px;position:relative}
 .tips-list li::before{content:'·';position:absolute;left:4px;color:var(--orange)}
 
-/* Phase card */
-.phase-card{display:flex;align-items:center;gap:10px;background:var(--blue-light);border-radius:var(--r-card);padding:12px 16px;margin-bottom:14px}
-.phase-icon{font-size:24px;flex-shrink:0}
-.phase-text{flex:1}
-.phase-label{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:2px}
-.phase-body{font-size:13px;color:var(--blue);opacity:.8;line-height:1.5}
+/* Supplementary card */
+.supp-card{background:var(--card);border-radius:var(--r-card);padding:16px;margin-bottom:14px}
+.supp-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.topic-pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:var(--r-pill);background:var(--blue);color:#fff}
+.supp-title{font-size:17px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:8px}
+.supp-body{font-size:15px;color:var(--text);line-height:1.65;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical}
+.supp-body.collapsed{-webkit-line-clamp:3}
+.supp-body.expanded{-webkit-line-clamp:unset}
+.expand-btn{font-size:14px;color:var(--blue);background:none;border:none;padding:6px 0;cursor:pointer;font-family:inherit;display:block;margin-top:4px}
 
 /* Tab bar */
 .tab-bar{position:fixed;bottom:0;width:390px;height:68px;background:var(--bg);border-top:1px solid var(--border);display:flex;align-items:flex-start;padding-top:8px;z-index:50}
@@ -90,39 +111,138 @@ body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;fon
     <!-- Phase indicator -->
     <div class="phase-card">
       <div class="phase-icon">🌱</div>
-      <div class="phase-text">
+      <div>
         <div class="phase-label">适应期 · 第 1–4 周饮食重点</div>
-        <div class="phase-body">以清淡低盐为主，建立稳定的饮食节律，减少加工食品摄入。</div>
+        <div class="phase-body">先从方法③开始——把家里的腌制品和调味品查一遍。</div>
       </div>
     </div>
 
-    <!-- Science card -->
-    <div class="section-label">本周饮食科普</div>
-    <div class="science-card">
-      <div class="science-card-meta">
-        <span class="topic-pill pill-green-solid">🥗 饮食科学</span>
-        <span style="font-size:13px;color:var(--sub)">每周更新</span>
+    <!-- 三个判断方法 -->
+    <div class="section-label">三个判断方法</div>
+    <p class="section-intro">遇到不确定的食物，问自己这三个问题。就算没见过，也能大致判断。</p>
+
+    <!-- 方法① -->
+    <div class="method-card">
+      <div class="method-header" onclick="toggleMethod(1)">
+        <span class="method-badge" style="background:var(--orange)">方法①</span>
+        <div class="method-title-wrap">
+          <div class="method-q">这顿饭，碳水占多少？</div>
+          <div class="method-q2">有没有够的蛋白质？</div>
+        </div>
+        <span class="method-chevron" id="chevron-1">∨</span>
       </div>
-      <div class="science-title">地中海饮食如何护心？五个关键点</div>
-      <div class="science-body collapsed" id="scienceBody">
-        地中海饮食是目前有最强循证支持的心脏保护饮食模式。其核心不是某种单一食物，而是整体饮食结构的改变。
-
-五个关键要素：① 以橄榄油替代动物油脂（主要脂肪来源）；② 每天蔬菜 ≥ 400g，深色蔬菜优先；③ 每周鱼类 2 次以上，尤其是深海鱼（富含 Omega-3）；④ 豆类、坚果替代部分红肉；⑤ 全谷物替代精制主食。
-
-一项针对 7447 名高心血管风险人群的 PREDIMED 研究显示，坚持地中海饮食 5 年，主要心血管事件（心肌梗死、卒中、心血管死亡）风险降低约 30%。
-
-这不意味着你要完全照搬地中海国家的饮食，下面的「替换指南」会帮你找到适合中国家庭厨房的等价替代。
-      </div>
-      <button class="expand-btn" id="expandBtn" onclick="toggleExpand()">展开全文 ↓</button>
-      <div class="key-points">
-        <span class="key-chip">↓ 心血管事件 30%</span>
-        <span class="key-chip">PREDIMED 研究</span>
-        <span class="key-chip">Omega-3 优先</span>
-        <span class="key-chip">全谷物替代</span>
+      <div class="method-preview" id="preview-1">警惕"清淡陷阱"：白粥+咸菜看着清素，实则高碳水、零蛋白质——对心脏康复其实不利。</div>
+      <div class="method-body" id="body-1" style="display:none">
+        <p class="method-why">心脏康复需要蛋白质来维持肌肉、支持身体修复。但很多患者把"清淡"理解成只吃粥和咸菜，这是碳水极高、蛋白质严重不足的组合。精制碳水吃多了还会直接升高甘油三酯——不只是"油腻食物"的问题。</p>
+        <p class="examples-label">扫一眼自己的餐盘</p>
+        <div class="method-examples">
+          <div class="ex-item">
+            <span class="ex-bad">陷阱版：</span>白粥＋腐乳＋榨菜 → 碳水极高，蛋白≈0<br>
+            <span class="ex-good">→ 换成：</span>燕麦粥＋水煮蛋＋清炒时蔬
+          </div>
+          <div class="ex-item">
+            <span class="ex-bad">外出吃面：</span>一大碗阳春面 → 几乎全是精制碳水<br>
+            <span class="ex-good">→ 换成：</span>加蛋或加肉，杂粮面，少喝汤
+          </div>
+        </div>
+        <div class="method-chips">
+          <span class="method-chip">管血糖</span>
+          <span class="method-chip">管甘油三酯</span>
+          <span class="method-chip">管饱腹感</span>
+        </div>
+        <a href="assistant-index.html" class="ask-link">这道菜怎么判断？问助手 ›</a>
       </div>
     </div>
 
-    <!-- Tips strip -->
+    <!-- 方法② -->
+    <div class="method-card">
+      <div class="method-header" onclick="toggleMethod(2)">
+        <span class="method-badge" style="background:var(--green)">方法②</span>
+        <div class="method-title-wrap">
+          <div class="method-q">这东西的脂肪，从哪儿来的？</div>
+        </div>
+        <span class="method-chevron" id="chevron-2">∨</span>
+      </div>
+      <div class="method-preview" id="preview-2">不是"脂肪=坏"，关键是来源。鱼、坚果、植物油里的脂肪护心；油炸、起酥、肥肉里的脂肪伤心。</div>
+      <div class="method-body" id="body-2" style="display:none">
+        <p class="method-why">鱼、坚果、橄榄油里的不饱和脂肪酸有助于降低"坏"胆固醇（LDL-C）；而起酥点心、油炸食品、肥肉里的饱和脂肪和反式脂肪会升高 LDL-C，加速动脉斑块形成。买包装食品时查配料表是最直接的方法。</p>
+        <p class="examples-label">识别快捷方式</p>
+        <div class="method-examples">
+          <div class="ex-item">
+            配料表出现 <strong>"氢化植物油""起酥油""植脂末"</strong> → 含反式脂肪，直接避开
+          </div>
+          <div class="ex-item">
+            <span class="ex-bad">同时有高尿酸？</span>优选低嘌呤鱼（鲈鱼、草鱼、鲫鱼），避免沙丁鱼/秋刀鱼，少喝鱼汤火锅底
+          </div>
+        </div>
+        <div class="method-chips">
+          <span class="method-chip">管胆固醇</span>
+          <span class="method-chip">管炎症</span>
+        </div>
+        <a href="assistant-index.html" class="ask-link">这道菜怎么判断？问助手 ›</a>
+      </div>
+    </div>
+
+    <!-- 方法③ -->
+    <div class="method-card">
+      <div class="method-header" onclick="toggleMethod(3)">
+        <span class="method-badge" style="background:var(--blue)">方法③</span>
+        <div class="method-title-wrap">
+          <div class="method-q">"清淡" ≠ "低钠"</div>
+          <div class="method-q2">这东西藏了多少盐、多少隐形糖？</div>
+        </div>
+        <span class="method-chevron" id="chevron-3">∨</span>
+      </div>
+      <div class="method-preview" id="preview-3">1 勺生抽 ≈ 1000mg 钠。腐乳、榨菜、外卖——尝起来不咸，却是隐性盐的主要来源。</div>
+      <div class="method-body" id="body-3" style="display:none">
+        <p class="method-why">"清淡饮食"在很多患者心里等于少吃大鱼大肉，但隐性盐藏在每顿饭的调味里。酱油、腌制品、加工肉、外卖汤底是最常被低估的钠来源。含糖饮料里的果糖则同时升高血糖和尿酸——"鲜榨果汁=天然健康"是需要打破的误区。</p>
+        <p class="examples-label">常见陷阱（实际钠含量）</p>
+        <div class="method-examples">
+          <div class="ex-item">腐乳 1 块 ≈ 450mg &nbsp;·&nbsp; 榨菜 1 小包 ≈ 600mg &nbsp;·&nbsp; 生抽 1 勺 ≈ 1000mg</div>
+          <div class="ex-item">
+            <span class="ex-bad">鲜榨果汁 200ml：</span>果糖 20g+，同时升血糖和尿酸，不是"天然无害"
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--sub);margin-bottom:12px;line-height:1.55">预包装食品看营养成分表"钠"那行：每 100g 超过 600mg 算高，超 1000mg 很高。</p>
+        <div class="method-chips">
+          <span class="method-chip">管血压</span>
+          <span class="method-chip">管血糖</span>
+          <span class="method-chip">管尿酸</span>
+        </div>
+        <a href="assistant-index.html" class="ask-link">这道菜怎么判断？问助手 ›</a>
+      </div>
+    </div>
+
+    <!-- Behavior card -->
+    <div class="behavior-card">
+      <div class="behavior-title">🥢 控血糖小习惯（方法①延伸）</div>
+      <div class="behavior-body">同一顿饭，改变进食顺序就能降低餐后血糖峰值：<br><strong>先蔬菜 → 再肉 → 最后才吃主食</strong></div>
+      <div class="behavior-note">合并糖尿病或血糖偏高时特别有效。不改变吃什么，只改变吃的顺序。</div>
+    </div>
+
+    <!-- 实战练习场 -->
+    <div class="section-label" style="margin-top:4px">实战练习场</div>
+    <p class="section-intro">每个例子都在演示上面三条方法——边逛边练，比读一遍更有效。</p>
+
+    <a href="nutrition-shopping.html" class="entry-card">
+      <div class="entry-icon-wrap" style="background:var(--green-light)">🛒</div>
+      <div class="entry-text">
+        <div class="entry-name">超市选购指南</div>
+        <div class="entry-desc">每类食物都标注了背后用的是哪条方法</div>
+      </div>
+      <div class="entry-arrow">›</div>
+    </a>
+
+    <a href="nutrition-swap.html" class="entry-card">
+      <div class="entry-icon-wrap" style="background:var(--orange-light)">🔄</div>
+      <div class="entry-text">
+        <div class="entry-name">中式食材替换表</div>
+        <div class="entry-desc">看方法在真实场景里如何起作用</div>
+      </div>
+      <div class="entry-arrow">›</div>
+    </a>
+
+    <!-- Phase tips -->
     <div class="tips-strip">
       <div class="tips-title">⚠ 本阶段需特别注意</div>
       <ul class="tips-list">
@@ -132,40 +252,18 @@ body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;fon
       </ul>
     </div>
 
-    <!-- Entry cards -->
-    <div class="section-label">实用工具</div>
-
-    <a href="nutrition-shopping.html" class="entry-card">
-      <div class="entry-icon-wrap" style="background:var(--green-light)">🛒</div>
-      <div class="entry-text">
-        <div class="entry-name">超市选购指南</div>
-        <div class="entry-desc">按食物类别告诉你买哪些、少买哪些</div>
+    <!-- Supplementary -->
+    <div class="section-label">延伸阅读</div>
+    <div class="supp-card">
+      <div class="supp-meta">
+        <span class="topic-pill">💧 饮水习惯</span>
+        <span style="font-size:13px;color:var(--sub)">参考</span>
       </div>
-      <div class="entry-arrow">›</div>
-    </a>
-
-    <a href="nutrition-swap.html" class="entry-card">
-      <div class="entry-icon-wrap" style="background:var(--orange-light)">🔄</div>
-      <div class="entry-text">
-        <div class="entry-name">中式食材替换表</div>
-        <div class="entry-desc">用家常食材实现营养升级，适合中餐场景</div>
+      <div class="supp-title">心脏病患者的正确饮水方式</div>
+      <div class="supp-body collapsed" id="waterBody">
+        心衰或有液体潴留的患者，过量饮水会加重心脏负担；但过少饮水会导致血液黏稠，增加血栓风险。一般建议：每日饮水 1500–2000ml，分 6–8 次少量饮用，晨起一杯温水（约 200ml），睡前不宜大量饮水。如正在服用利尿剂，请遵医嘱调整饮水量。
       </div>
-      <div class="entry-arrow">›</div>
-    </a>
-
-    <!-- Second science card -->
-    <div class="section-label" style="margin-top:4px">延伸阅读</div>
-    <div class="science-card">
-      <div class="science-card-meta">
-        <span class="topic-pill pill-blue-solid">💧 饮水习惯</span>
-        <span style="font-size:13px;color:var(--sub)">3 天前</span>
-      </div>
-      <div class="science-title">心脏病患者的正确饮水方式</div>
-      <div class="science-body collapsed" id="scienceBody2">
-        心衰或有液体潴留的患者，过量饮水会加重心脏负担。但过少饮水会导致血液黏稠，增加血栓风险。
-        一般建议：每日饮水 1500–2000ml，分 6–8 次少量饮用，晨起一杯温水（约 200ml），睡前不宜大量饮水。如正在服用利尿剂，请遵医嘱调整饮水量。
-      </div>
-      <button class="expand-btn" id="expandBtn2" onclick="toggleExpand2()">展开全文 ↓</button>
+      <button class="expand-btn" id="waterBtn" onclick="toggleWater()">展开全文 ↓</button>
     </div>
 
   </div>
@@ -180,16 +278,20 @@ body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;fon
   </div>
 </div>
 <script>
-  let expanded = false, expanded2 = false;
-  function toggleExpand() {
-    expanded = !expanded;
-    document.getElementById('scienceBody').className = 'science-body ' + (expanded ? 'expanded' : 'collapsed');
-    document.getElementById('expandBtn').textContent = expanded ? '收起 ↑' : '展开全文 ↓';
+  function toggleMethod(n) {
+    const body = document.getElementById('body-' + n)
+    const chevron = document.getElementById('chevron-' + n)
+    const preview = document.getElementById('preview-' + n)
+    const isOpen = body.style.display !== 'none'
+    body.style.display = isOpen ? 'none' : 'block'
+    preview.style.display = isOpen ? 'block' : 'none'
+    chevron.classList.toggle('open', !isOpen)
   }
-  function toggleExpand2() {
-    expanded2 = !expanded2;
-    document.getElementById('scienceBody2').className = 'science-body ' + (expanded2 ? 'expanded' : 'collapsed');
-    document.getElementById('expandBtn2').textContent = expanded2 ? '收起 ↑' : '展开全文 ↓';
+  let waterOpen = false
+  function toggleWater() {
+    waterOpen = !waterOpen
+    document.getElementById('waterBody').className = 'supp-body ' + (waterOpen ? 'expanded' : 'collapsed')
+    document.getElementById('waterBtn').textContent = waterOpen ? '收起 ↑' : '展开全文 ↓'
   }
 </script>
 </body>

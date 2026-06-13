@@ -1,8 +1,25 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
+
+const DIAGNOSIS_LABELS: Record<string, string> = {
+  pci: 'PCI 术后',
+  cabg: 'CABG 术后',
+  mi_recovery: '心梗恢复期',
+  stable_angina: '稳定型心绞痛',
+  chd_no_surgery: '冠心病（无手术史）',
+}
+
+const MONTHS_LABELS: Record<string, string> = {
+  '1': '1 个月以内',
+  '3': '1–3 个月',
+  '6': '3–6 个月',
+  '12': '6–12 个月',
+  '18': '12–24 个月',
+  '999': '24 个月以上',
+}
 
 export default function UpdateAssessmentPage() {
   const router = useRouter()
@@ -10,22 +27,51 @@ export default function UpdateAssessmentPage() {
   const [weight, setWeight] = useState('')
   const [waist, setWaist] = useState('')
   const [smoking, setSmoking] = useState('')
+  const [lockedFields, setLockedFields] = useState<Array<{ label: string; field: string; group: number; value: string }>>([])
   const [confirmModal, setConfirmModal] = useState<{ field: string; group: number } | null>(null)
   const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    try {
+      const data = JSON.parse(localStorage.getItem('assessment_answers') || '{}')
+      if (data.height) setHeight(String(data.height))
+      if (data.weight) setWeight(String(data.weight))
+      if (data.waist) setWaist(String(data.waist))
+      if (data.smoking_status) setSmoking(data.smoking_status)
+
+      const diagLabel = DIAGNOSIS_LABELS[data.diagnosis_type as string] || '未填写'
+      const isChdNoSurgery = data.diagnosis_type === 'chd_no_surgery'
+      const monthsLabel = isChdNoSurgery ? '' : (MONTHS_LABELS[String(data.months_since_surgery)] || '')
+      const diagValue = isChdNoSurgery ? diagLabel : monthsLabel ? `${diagLabel} · ${monthsLabel}` : diagLabel
+
+      const lvefValue = data.lvef_weak === true
+        ? (typeof data.lvef === 'number' ? `泵血偏弱 · EF ${data.lvef}%` : '泵血偏弱（数值未填）')
+        : (data.high_risk_q1 || data.high_risk_q2 || data.high_risk_q3 ? '有高危信号' : '已填写')
+
+      const vsaqValue = data.vsaq_score ? `${data.vsaq_score} MET` : '未填写'
+
+      setLockedFields([
+        { label: '诊断类型 / 手术距今月数', field: 'diagnosis', group: 1, value: diagValue || '未填写' },
+        { label: 'LVEF / 高危三问', field: 'lvef', group: 2, value: lvefValue },
+        { label: 'VSAQ 功能储备', field: 'vsaq', group: 4, value: vsaqValue },
+      ])
+    } catch {}
+  }, [])
 
   const hasChanges = height || weight || waist || smoking
 
   const handleSave = () => {
-    // In production: update DB
+    try {
+      const data = JSON.parse(localStorage.getItem('assessment_answers') || '{}')
+      if (height) data.height = parseFloat(height)
+      if (weight) data.weight = parseFloat(weight)
+      if (waist) data.waist = parseFloat(waist)
+      if (smoking) data.smoking_status = smoking
+      localStorage.setItem('assessment_answers', JSON.stringify(data))
+    } catch {}
     setSaved(true)
     setTimeout(() => router.push('/profile'), 1200)
   }
-
-  const LOCKED_FIELDS = [
-    { label: '诊断类型 / 手术距今月数', field: 'diagnosis', group: 1, value: 'PCI 术后 · 约 6 个月' },
-    { label: 'LVEF / 高危三问', field: 'lvef', group: 2, value: '已填写' },
-    { label: 'VSAQ 功能储备', field: 'vsaq', group: 4, value: '5 MET' },
-  ]
 
   return (
     <div className="flex flex-col h-full bg-bg">
@@ -47,9 +93,9 @@ export default function UpdateAssessmentPage() {
           <p className="text-xs font-semibold text-text-sub uppercase tracking-wider mb-3">可直接修改</p>
           <div className="bg-card rounded-card p-4 space-y-4">
             {[
-              { label: '身高', state: height, setState: setHeight, unit: 'cm', min: 100, max: 220 },
-              { label: '体重', state: weight, setState: setWeight, unit: 'kg', min: 30, max: 200 },
-              { label: '腰围', state: waist, setState: setWaist, unit: 'cm', min: 40, max: 180 },
+              { label: '身高', state: height, setState: setHeight, unit: 'cm' },
+              { label: '体重', state: weight, setState: setWeight, unit: 'kg' },
+              { label: '腰围', state: waist, setState: setWaist, unit: 'cm' },
             ].map(f => (
               <div key={f.label}>
                 <p className="text-sm text-text-sub mb-1">{f.label}</p>
@@ -87,32 +133,34 @@ export default function UpdateAssessmentPage() {
         </div>
 
         {/* Locked section */}
-        <div>
-          <p className="text-xs font-semibold text-text-sub uppercase tracking-wider mb-3">
-            修改以下项目需重新填写相关问题
-          </p>
-          <div className="bg-card rounded-card divide-y divide-border">
-            {LOCKED_FIELDS.map(f => (
-              <div key={f.field} className="flex items-center px-4 py-3">
-                <div className="flex-1">
-                  <p className="text-base text-text">{f.label}</p>
-                  <p className="text-sm text-text-sub">{f.value}</p>
+        {lockedFields.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-text-sub uppercase tracking-wider mb-3">
+              修改以下项目需重新填写相关问题
+            </p>
+            <div className="bg-card rounded-card divide-y divide-border">
+              {lockedFields.map(f => (
+                <div key={f.field} className="flex items-center px-4 py-3">
+                  <div className="flex-1">
+                    <p className="text-base text-text">{f.label}</p>
+                    <p className="text-sm text-text-sub">{f.value}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmModal({ field: f.label, group: f.group })}
+                    className="min-h-[44px] flex items-center gap-1 text-sm text-text-sub"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <rect x="3" y="11" width="18" height="11" rx="2" stroke="#888780" strokeWidth="1.8" />
+                      <path d="M7 11V7C7 5 9 3 12 3C15 3 17 5 17 7V11" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" />
+                    </svg>
+                    修改
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setConfirmModal({ field: f.label, group: f.group })}
-                  className="min-h-[44px] flex items-center gap-1 text-sm text-text-sub"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="#888780" strokeWidth="1.8" />
-                    <path d="M7 11V7C7 5 9 3 12 3C15 3 17 5 17 7V11" stroke="#888780" strokeWidth="1.8" strokeLinecap="round" />
-                  </svg>
-                  修改
-                </button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="flex-shrink-0 bg-bg border-t border-border px-4 pt-3 pb-6">
@@ -127,7 +175,6 @@ export default function UpdateAssessmentPage() {
         )}
       </div>
 
-      {/* Confirm modal */}
       {confirmModal && (
         <div className="absolute inset-0 bg-black/50 flex items-end justify-center z-50">
           <div className="bg-bg rounded-t-2xl px-6 pt-6 pb-8 w-full max-w-[390px]">

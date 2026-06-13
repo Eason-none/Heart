@@ -1,16 +1,16 @@
 'use client'
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import { calculateRiskLevel } from '@/lib/exercise/risk'
 import { generateInitialPrescription } from '@/lib/exercise/prescription'
+import type { DiagnosisType } from '@/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Answers = Record<string, unknown>
 
-// ─── VSAQ items (simplified) ──────────────────────────────────────────────────
+// ─── VSAQ items ───────────────────────────────────────────────────────────────
 
 const VSAQ_ITEMS = [
   { score: 1, label: '只能做轻度家务（如扫地、洗碗）' },
@@ -47,12 +47,17 @@ export default function AssessmentPage() {
   const [showIntro, setShowIntro] = useState(true)
   const [answers, setAnswers] = useState<Answers>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [highRiskModal, setHighRiskModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const set = useCallback((key: string, value: unknown) => {
     setAnswers(prev => ({ ...prev, [key]: value }))
     setErrors(prev => { const n = { ...prev }; delete n[key]; return n })
+  }, [])
+
+  const touch = useCallback((key: string) => {
+    setTouched(prev => ({ ...prev, [key]: true }))
   }, [])
 
   const toggleComorbidity = (val: string) => {
@@ -75,8 +80,14 @@ export default function AssessmentPage() {
 
   const confirmHighRisk = () => {
     setHighRiskModal(false)
-    // Store partial answers with high risk flag and navigate to summary
-    const data = { ...answers, is_high_risk: true, risk_level: 'high' }
+    const data = {
+      ...answers,
+      months_since_surgery: answers.months_since_surgery != null ? Number(answers.months_since_surgery) : undefined,
+      icd_months_ago: answers.icd_months_ago != null ? Number(answers.icd_months_ago) : undefined,
+      is_high_risk: true,
+      risk_level: 'high',
+      completed_at: new Date().toISOString(),
+    }
     localStorage.setItem('assessment_answers', JSON.stringify(data))
     router.push('/assessment/summary?risk=high')
   }
@@ -90,7 +101,11 @@ export default function AssessmentPage() {
       if (!answers.weight) errs.weight = '此项必填'
       if (!answers.waist) errs.waist = '此项必填'
       if (!answers.diagnosis_type) errs.diagnosis_type = '此项必填'
-      if (!answers.months_since_surgery && answers.months_since_surgery !== 0) errs.months_since_surgery = '此项必填'
+      if (
+        !answers.months_since_surgery &&
+        answers.months_since_surgery !== 0 &&
+        answers.diagnosis_type !== 'chd_no_surgery'
+      ) errs.months_since_surgery = '此项必填'
     }
     if (group === 3) {
       if (!answers.comorbidities || (answers.comorbidities as string[]).length === 0)
@@ -114,7 +129,6 @@ export default function AssessmentPage() {
   const handleNext = () => {
     if (showIntro) { setShowIntro(false); return }
     if (!validateGroup()) return
-    // Check high risk at end of group 2
     if (group === 2) {
       const q1 = answers.high_risk_q1 === true
       const q2 = answers.high_risk_q2 === true
@@ -129,7 +143,6 @@ export default function AssessmentPage() {
   const handleBack = () => {
     if (showIntro && group > 1) { setGroup(g => g - 1); return }
     if (showIntro) { router.push('/consent'); return }
-    // If on first Q of group, cross-group back would need confirmation (handled inline)
     setShowIntro(true)
   }
 
@@ -143,23 +156,48 @@ export default function AssessmentPage() {
       high_risk_q3: answers.high_risk_q3 === true,
       phq2_score: phq2,
       gad2_score: gad2,
-      lvef: answers.lvef as number | undefined,
+      lvef: typeof answers.lvef === 'number' ? answers.lvef : undefined,
+      lvef_weak: answers.lvef_weak === true,
       vsaq_score: (answers.vsaq_score as number) || 5,
     }
     const risk_level = calculateRiskLevel(riskInput)
     if (risk_level === 'high') {
-      const data = { ...answers, risk_level, phq2_score: phq2, gad2_score: gad2 }
+      const data = {
+        ...answers,
+        months_since_surgery: answers.months_since_surgery != null ? Number(answers.months_since_surgery) : undefined,
+        icd_months_ago: answers.icd_months_ago != null ? Number(answers.icd_months_ago) : undefined,
+        risk_level,
+        phq2_score: phq2,
+        gad2_score: gad2,
+        completed_at: new Date().toISOString(),
+      }
       localStorage.setItem('assessment_answers', JSON.stringify(data))
       router.push('/assessment/summary?risk=high')
       return
     }
+    const diagnosisForPrescription: DiagnosisType =
+      answers.diagnosis_type === 'chd_no_surgery'
+        ? 'stable_angina'
+        : ((answers.diagnosis_type as DiagnosisType) || 'pci')
     const prescription = generateInitialPrescription({
       vsaq_score: (answers.vsaq_score as number) || 5,
-      months_since_surgery: (answers.months_since_surgery as number) || 12,
-      diagnosis_type: (answers.diagnosis_type as 'pci') || 'pci',
+      months_since_surgery:
+        answers.diagnosis_type === 'chd_no_surgery'
+          ? 999
+          : (answers.months_since_surgery as number) || 12,
+      diagnosis_type: diagnosisForPrescription,
       risk_level,
     })
-    const data = { ...answers, risk_level, phq2_score: phq2, gad2_score: gad2, prescription }
+    const data = {
+      ...answers,
+      months_since_surgery: answers.months_since_surgery != null ? Number(answers.months_since_surgery) : undefined,
+      icd_months_ago: answers.icd_months_ago != null ? Number(answers.icd_months_ago) : undefined,
+      risk_level,
+      phq2_score: phq2,
+      gad2_score: gad2,
+      prescription,
+      completed_at: new Date().toISOString(),
+    }
     localStorage.setItem('assessment_answers', JSON.stringify(data))
     router.push(`/assessment/summary?risk=${risk_level}`)
   }
@@ -191,9 +229,10 @@ export default function AssessmentPage() {
   function NumberInput({ qKey, label, unit, min, max, skippable }: {
     qKey: string; label?: string; unit: string; min: number; max: number; skippable?: boolean
   }) {
-    const val = answers[qKey] as string | undefined
-    const num = val ? parseFloat(val) : NaN
-    const outOfRange = !isNaN(num) && (num < min || num > max)
+    const val = answers[qKey]
+    const displayVal = val !== undefined ? String(val) : ''
+    const num = displayVal !== '' ? parseFloat(displayVal) : NaN
+    const outOfRange = touched[qKey] === true && !isNaN(num) && (num < min || num > max)
     return (
       <div>
         {label && <p className="text-base text-text mb-2">{label}</p>}
@@ -201,8 +240,9 @@ export default function AssessmentPage() {
           <input
             type="number"
             inputMode="numeric"
-            value={val || ''}
-            onChange={e => set(qKey, e.target.value ? parseFloat(e.target.value) : undefined)}
+            value={displayVal}
+            onChange={e => set(qKey, e.target.value !== '' ? parseFloat(e.target.value) : undefined)}
+            onBlur={() => touch(qKey)}
             placeholder="请输入"
             className={`flex-1 h-12 px-4 rounded-btn border bg-white text-base text-text outline-none focus:border-blue transition-colors ${
               outOfRange ? 'border-red' : 'border-border'
@@ -298,19 +338,22 @@ export default function AssessmentPage() {
               { value: 'pci', label: 'PCI（支架）术后' },
               { value: 'cabg', label: 'CABG（搭桥）术后' },
               { value: 'mi_recovery', label: '心梗恢复期' },
+              { value: 'chd_no_surgery', label: '已确诊冠心病但无手术史' },
             ]} />
           </div>
-          <div>
-            <p className="text-base font-medium text-text mb-2">手术/确诊距今大约多久？</p>
-            <SingleSelect qKey="months_since_surgery" options={[
-              { value: '1', label: '1 个月以内' },
-              { value: '3', label: '1–3 个月' },
-              { value: '6', label: '3–6 个月' },
-              { value: '12', label: '6–12 个月' },
-              { value: '18', label: '12–24 个月' },
-              { value: '0', label: '24 个月以上' },
-            ]} />
-          </div>
+          {answers.diagnosis_type !== 'chd_no_surgery' && (
+            <div>
+              <p className="text-base font-medium text-text mb-2">手术/确诊距今大约多久？</p>
+              <SingleSelect qKey="months_since_surgery" options={[
+                { value: '1', label: '1 个月以内' },
+                { value: '3', label: '1–3 个月' },
+                { value: '6', label: '3–6 个月' },
+                { value: '12', label: '6–12 个月' },
+                { value: '18', label: '12–24 个月' },
+                { value: '999', label: '24 个月以上' },
+              ]} />
+            </div>
+          )}
         </div>
       )
 
@@ -346,6 +389,11 @@ export default function AssessmentPage() {
                     等我问医生
                   </button>
                 </div>
+                {(answers.lvef === undefined || answers.lvef === 'unknown') && (
+                  <p className="text-xs text-orange mt-2 leading-relaxed">
+                    未填写具体数值时，系统会按较保守的方式评估你的康复起点。
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -363,6 +411,21 @@ export default function AssessmentPage() {
           <div>
             <p className="text-base font-medium text-text mb-2">③ 是否被诊断过心力衰竭或严重心律失常？</p>
             <YesNo qKey="high_risk_q3" onYes={handleHighRiskTrigger} />
+          </div>
+          <div>
+            <p className="text-base font-medium text-text mb-1">是否安装了心脏起搏器或 ICD（体内除颤器）？</p>
+            <p className="text-sm text-text-sub mb-2">影响部分水中运动的安全窗口期，可跳过</p>
+            <YesNo qKey="has_icd" />
+            {answers.has_icd === true && (
+              <div className="mt-3">
+                <p className="text-sm text-text-sub mb-2">大约是什么时候安装的？</p>
+                <SingleSelect qKey="icd_months_ago" options={[
+                  { value: '1', label: '6 周以内' },
+                  { value: '2', label: '6 周到 3 个月' },
+                  { value: '12', label: '3 个月以上' },
+                ]} />
+              </div>
+            )}
           </div>
         </div>
       )
@@ -405,6 +468,13 @@ export default function AssessmentPage() {
               { value: 'false', label: '没有' },
               { value: 'unknown', label: '不确定' },
             ]} />
+            {answers.has_beta_blocker === 'unknown' && (
+              <div className="mt-2 bg-orange-light rounded-card p-3">
+                <p className="text-sm text-orange leading-relaxed">
+                  β 受体阻滞剂会压制运动时的心率上升，影响强度计算准确性。建议在下次就诊时向医生确认是否服用。
+                </p>
+              </div>
+            )}
           </div>
           <div>
             <p className="text-base font-medium text-text mb-2">吸烟状况</p>
@@ -463,13 +533,11 @@ export default function AssessmentPage() {
 
   return (
     <div className="phone-shell">
-      {/* Status bar */}
       <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
         <span className="text-[15px] font-semibold text-text">9:41</span>
         <div className="flex gap-1.5 text-xs text-text"><span>●●● WiFi 🔋</span></div>
       </div>
 
-      {/* Progress */}
       <div className="flex-shrink-0 px-4 pt-2 bg-bg" style={{ zIndex: 10 }}>
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm text-text-sub">首次评估</span>
@@ -480,15 +548,11 @@ export default function AssessmentPage() {
         </div>
         <div className="flex gap-1.5 mb-3">
           {[1,2,3,4,5].map(g => (
-            <div
-              key={g}
-              className={`flex-1 h-0.5 rounded-full ${g <= group ? 'bg-blue' : 'bg-border'}`}
-            />
+            <div key={g} className={`flex-1 h-0.5 rounded-full ${g <= group ? 'bg-blue' : 'bg-border'}`} />
           ))}
         </div>
       </div>
 
-      {/* Content */}
       <div className="scroll-area px-4 pt-3 pb-36">
         {showIntro ? (
           <div className="flex flex-col gap-4">
@@ -505,7 +569,6 @@ export default function AssessmentPage() {
         )}
       </div>
 
-      {/* Nav buttons */}
       <div className="flex-shrink-0 bg-bg border-t border-border px-4 pt-3 pb-6 flex gap-3">
         <button
           type="button"
@@ -516,16 +579,11 @@ export default function AssessmentPage() {
             <path d="M15 19L8 12L15 5" stroke="#2C2A26" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <Button
-          onClick={handleNext}
-          disabled={submitting}
-          className="flex-1"
-        >
+        <Button onClick={handleNext} disabled={submitting} className="flex-1">
           {submitting ? '生成计划中…' : showIntro ? '开始' : group === 5 ? '提交评估' : '下一部分'}
         </Button>
       </div>
 
-      {/* High Risk Modal */}
       {highRiskModal && (
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <div className="bg-bg rounded-card p-6 w-full max-w-sm">

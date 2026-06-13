@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
@@ -13,6 +13,15 @@ export default function FollowupPage() {
   const [followupType] = useState<FollowupType>('weekly')
   const [answers, setAnswers] = useState<Record<string, unknown>>({})
   const [submitted, setSubmitted] = useState(false)
+  const [smokingRelevant, setSmokingRelevant] = useState(false)
+
+  useEffect(() => {
+    try {
+      const data = JSON.parse(localStorage.getItem('assessment_answers') || '{}')
+      const s = data.smoking_status
+      setSmokingRelevant(s === 'smoker' || s === 'quit')
+    } catch {}
+  }, [])
 
   const set = (key: string, value: unknown) =>
     setAnswers(prev => ({ ...prev, [key]: value }))
@@ -52,8 +61,16 @@ export default function FollowupPage() {
   }
 
   const handleSubmit = () => {
+    try {
+      const record = {
+        ...answers,
+        followup_type: followupType,
+        followup_date: new Date().toISOString(),
+      }
+      const existing = JSON.parse(localStorage.getItem('followup_records') || '[]')
+      localStorage.setItem('followup_records', JSON.stringify([...existing, record]))
+    } catch {}
     setSubmitted(true)
-    // In production: POST to API
   }
 
   if (submitted) {
@@ -171,6 +188,39 @@ export default function FollowupPage() {
             { value: 'notable', label: '比较明显' },
           ]} />
         </div>
+
+        {/* W6 */}
+        <div>
+          <p className="text-base font-medium text-text mb-3">本周收缩压（高压）最高是多少？</p>
+          <SingleSelect qKey="bp_reading" options={[
+            { value: 'not_measured', label: '没有测' },
+            { value: 'normal', label: '低于 130（良好）' },
+            { value: 'elevated', label: '130–139（需注意）' },
+            { value: 'high', label: '140 及以上（请联系医生）' },
+          ]} />
+        </div>
+
+        {/* W7 */}
+        <div>
+          <p className="text-base font-medium text-text mb-3">本周体重有没有明显变化？</p>
+          <SingleSelect qKey="weight_change" options={[
+            { value: 'stable', label: '稳定（±1 kg 内）' },
+            { value: 'gained', label: '增加超过 1 kg' },
+            { value: 'lost', label: '减轻超过 1 kg' },
+          ]} />
+        </div>
+
+        {/* W8 — only for users with smoking history (current or quit) */}
+        {smokingRelevant && (
+          <div>
+            <p className="text-base font-medium text-text mb-3">本周有没有吸烟？</p>
+            <SingleSelect qKey="smoking_check" options={[
+              { value: 'none', label: '没有' },
+              { value: 'few', label: '吸了（1–2 支）' },
+              { value: 'more', label: '吸了（较多）' },
+            ]} />
+          </div>
+        )}
       </div>
 
       <div className="flex-shrink-0 bg-bg border-t border-border px-4 pt-3 pb-6">
@@ -181,7 +231,10 @@ export default function FollowupPage() {
             !answers.exercise_symptoms ||
             !answers.sleep_quality ||
             !answers.mood ||
-            !answers.constipation
+            !answers.constipation ||
+            !answers.bp_reading ||
+            !answers.weight_change ||
+            (smokingRelevant && !answers.smoking_check)
           }
         >
           提交随访

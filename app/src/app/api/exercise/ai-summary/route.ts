@@ -1,4 +1,8 @@
 import { NextRequest } from 'next/server'
+
+const SUMMARY_MAX_TOKENS = 150
+const SUMMARY_TEMPERATURE = 0.7
+
 import { RPE_LABELS } from '@/lib/exercise/intensity'
 import { getExerciseTypeLabel } from '@/lib/exercise/prescription'
 import type { RPELevel, ExerciseType } from '@/types'
@@ -44,8 +48,8 @@ export async function POST(req: NextRequest) {
         model: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
         messages: [{ role: 'user', content: prompt }],
         stream: true,
-        max_tokens: 150,
-        temperature: 0.7,
+        max_tokens: SUMMARY_MAX_TOKENS,
+        temperature: SUMMARY_TEMPERATURE,
       }),
     })
 

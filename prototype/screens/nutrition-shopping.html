@@ -89,6 +89,11 @@ body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;fon
       <button class="cat-tab" onclick="showCat('snack',this)">🍎 零食饮料</button>
     </div>
 
+    <!-- Intro -->
+    <div style="background:var(--blue-light);border-radius:var(--r-card);padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--blue);line-height:1.6;border:1px solid #B8D4EE">
+      这里的每一条选购建议，背后都在用营养页讲的三个方法——看到"方法①②③"的标注，就知道是哪条方法在起作用。
+    </div>
+
     <!-- Legend -->
     <div class="legend-row">
       <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>推荐优先选</div>
@@ -99,8 +104,8 @@ body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;fon
     <!-- 主食 -->
     <div id="cat-grain">
       <div class="tip-card">
-        <div class="tip-card-title">💡 主食选购原则</div>
-        <div class="tip-card-body">选全谷物、杂粮优先，精制米面血糖指数高，长期大量食用不利于体重和血糖管理。</div>
+        <div class="tip-card-title">💡 主食选购原则 &nbsp;<span style="font-size:11px;font-weight:700;background:var(--orange);color:#fff;padding:2px 7px;border-radius:8px">方法①</span></div>
+        <div class="tip-card-body">碳水来源的质量直接影响血糖和甘油三酯。全谷物比精制米面 GI 低、纤维多。</div>
       </div>
       <div class="food-list">
         <div class="food-item good"><span class="food-emoji">🌾</span><div class="food-text"><div class="food-name">燕麦（整粒 / 钢切）</div><div class="food-reason">β-葡聚糖降低 LDL 胆固醇，饱腹感强，GI 低</div></div><span class="food-badge badge-good">优选</span></div>
@@ -115,8 +120,8 @@ body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;fon
     <!-- 蛋白质 -->
     <div id="cat-protein" style="display:none">
       <div class="tip-card">
-        <div class="tip-card-title">💡 蛋白质选购原则</div>
-        <div class="tip-card-body">优选鱼类和豆类；禽肉去皮；红肉每周不超过 500g；加工肉制品尽量少买。</div>
+        <div class="tip-card-title">💡 蛋白质选购原则 &nbsp;<span style="font-size:11px;font-weight:700;background:var(--orange);color:#fff;padding:2px 7px;border-radius:8px">方法①</span><span style="font-size:11px;font-weight:700;background:var(--green);color:#fff;padding:2px 7px;border-radius:8px;margin-left:4px">方法②</span></div>
+        <div class="tip-card-body">方法①：确保每餐有蛋白质来源；方法②：优先选脂肪来源好的（鱼类、豆类），减少加工肉制品（高钠高饱和脂肪）。</div>
       </div>
       <div class="food-list">
         <div class="food-item good"><span class="food-emoji">🐟</span><div class="food-text"><div class="food-name">三文鱼 / 鲈鱼 / 带鱼</div><div class="food-reason">富含 Omega-3 脂肪酸，可降低甘油三酯，保护心脏</div></div><span class="food-badge badge-good">每周≥2次</span></div>
@@ -131,8 +136,8 @@ body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;fon
     <!-- 蔬菜 -->
     <div id="cat-veg" style="display:none">
       <div class="tip-card">
-        <div class="tip-card-title">💡 蔬菜选购原则</div>
-        <div class="tip-card-body">每天 ≥ 400g 蔬菜，深色蔬菜（绿/橙/红）占一半以上。品种多样优于大量单一品种。</div>
+        <div class="tip-card-title">💡 蔬菜选购原则 &nbsp;<span style="font-size:11px;font-weight:700;background:var(--orange);color:#fff;padding:2px 7px;border-radius:8px">方法①</span></div>
+        <div class="tip-card-body">蔬菜是方法①里"植物打底"的核心——每天 ≥ 400g，深色（绿/橙/红）占一半以上，种类多样。</div>
       </div>
       <div class="food-list">
         <div class="food-item good"><span class="food-emoji">🥦</span><div class="food-text"><div class="food-name">西蓝花 / 菠菜 / 空心菜</div><div class="food-reason">富含叶酸、维生素 K、抗氧化素；注意服华法林者控量</div></div><span class="food-badge badge-good">深色优先</span></div>
@@ -146,8 +151,8 @@ body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;fon
     <!-- 油脂 -->
     <div id="cat-fat" style="display:none">
       <div class="tip-card">
-        <div class="tip-card-title">💡 油脂选购原则</div>
-        <div class="tip-card-body">选不饱和脂肪酸为主的植物油；控制总用量（每天 25–30g）；坚果是优质脂肪来源。</div>
+        <div class="tip-card-title">💡 油脂选购原则 &nbsp;<span style="font-size:11px;font-weight:700;background:var(--green);color:#fff;padding:2px 7px;border-radius:8px">方法②</span></div>
+        <div class="tip-card-body">方法②的核心区域。脂肪来源决定好坏：植物油/坚果/鱼 → 护心；起酥油/猪油/氢化植物油 → 伤心。</div>
       </div>
       <div class="food-list">
         <div class="food-item good"><span class="food-emoji">🫒</span><div class="food-text"><div class="food-name">橄榄油（初榨）</div><div class="food-reason">单不饱和脂肪酸最丰富，抗氧化，地中海饮食核心</div></div><span class="food-badge badge-good">优选</span></div>
@@ -162,8 +167,8 @@ body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;fon
     <!-- 乳制品 -->
     <div id="cat-dairy" style="display:none">
       <div class="tip-card">
-        <div class="tip-card-title">💡 乳制品选购原则</div>
-        <div class="tip-card-body">低脂或脱脂优先；原味无添加；每天 250–500ml 奶或等量乳制品。</div>
+        <div class="tip-card-title">💡 乳制品选购原则 &nbsp;<span style="font-size:11px;font-weight:700;background:var(--green);color:#fff;padding:2px 7px;border-radius:8px">方法②</span><span style="font-size:11px;font-weight:700;background:var(--blue);color:#fff;padding:2px 7px;border-radius:8px;margin-left:4px">方法③</span></div>
+        <div class="tip-card-body">方法②：选低脂减少饱和脂肪；方法③：注意奶酪的钠含量、调味奶的隐形糖。原味无添加最省心。</div>
       </div>
       <div class="food-list">
         <div class="food-item good"><span class="food-emoji">🥛</span><div class="food-text"><div class="food-name">低脂纯牛奶 / 脱脂奶</div><div class="food-reason">钙质丰富，低脂版本饱和脂肪少，性价比高</div></div><span class="food-badge badge-good">每日 250ml</span></div>
@@ -176,8 +181,8 @@ body{background:#E8E4DE;display:flex;justify-content:center;min-height:100vh;fon
     <!-- 零食饮料 -->
     <div id="cat-snack" style="display:none">
       <div class="tip-card">
-        <div class="tip-card-title">💡 零食 &amp; 饮料选购原则</div>
-        <div class="tip-card-body">尽量选天然食物；看营养成分表，关注钠、糖和脂肪含量；含糖饮料是最容易被忽视的心血管危险因素之一。</div>
+        <div class="tip-card-title">💡 零食 &amp; 饮料选购原则 &nbsp;<span style="font-size:11px;font-weight:700;background:var(--blue);color:#fff;padding:2px 7px;border-radius:8px">方法③</span></div>
+        <div class="tip-card-body">方法③的重灾区：含糖饮料的隐形糖、薯片饼干的隐性盐，都是"感觉不明显"但实际摄入很高的来源。</div>
       </div>
       <div class="food-list">
         <div class="food-item good"><span class="food-emoji">🍎</span><div class="food-text"><div class="food-name">新鲜水果（低糖品种）</div><div class="food-reason">蓝莓、苹果、橙子富含黄酮和膳食纤维，优先整果</div></div><span class="food-badge badge-good">整果优先</span></div>

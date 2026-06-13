@@ -32,32 +32,30 @@ export function generateInitialPrescription(params: {
   }
 }
 
-/** Weekly plan: assign types across next 7 days */
+/** Weekly plan: 7 days starting from start_date (defaults to today), anchored to real calendar dates */
 export function generateWeeklyPlan(params: {
   aerobic_freq: number
   resistance_freq: number
   diagnosis_type: DiagnosisType
   months_since_surgery: number
-  start_day?: number // 0 = Sunday
-}): Array<{ day: number; exercise_type: ExerciseType; is_rest: boolean }> {
+  start_date?: Date
+}): Array<{ date: string; exercise_type: ExerciseType; is_rest: boolean }> {
   const { aerobic_freq, resistance_freq, diagnosis_type, months_since_surgery } = params
-  const plan: Array<{ day: number; exercise_type: ExerciseType; is_rest: boolean }> = []
+  const start = params.start_date ?? new Date()
 
-  // Simple distribution: Mon/Wed/Fri = aerobic, Tue/Thu = resistance (non-consecutive)
-  const aerobicDays = [1, 3, 5].slice(0, aerobic_freq) // Mon, Wed, Fri
+  const aerobicDow = [1, 3, 5].slice(0, aerobic_freq) // Mon, Wed, Fri
   const canDoResistance = !(diagnosis_type === 'cabg' && months_since_surgery < 3)
-  const resistanceDays = canDoResistance ? [2, 4].slice(0, resistance_freq) : []
+  const resistanceDow = canDoResistance ? [2, 4].slice(0, resistance_freq) : []
 
-  for (let d = 0; d < 7; d++) {
-    if (aerobicDays.includes(d)) {
-      plan.push({ day: d, exercise_type: 'walking', is_rest: false })
-    } else if (resistanceDays.includes(d)) {
-      plan.push({ day: d, exercise_type: 'resistance', is_rest: false })
-    } else {
-      plan.push({ day: d, exercise_type: 'walking', is_rest: true })
-    }
-  }
-  return plan
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(start)
+    d.setDate(d.getDate() + i)
+    const dow = d.getDay()
+    const date = d.toISOString().slice(0, 10)
+    if (aerobicDow.includes(dow)) return { date, exercise_type: 'walking' as ExerciseType, is_rest: false }
+    if (resistanceDow.includes(dow)) return { date, exercise_type: 'resistance' as ExerciseType, is_rest: false }
+    return { date, exercise_type: 'walking' as ExerciseType, is_rest: true }
+  })
 }
 
 export function getExerciseTypeLabel(type: ExerciseType): string {

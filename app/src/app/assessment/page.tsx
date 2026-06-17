@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import { calculateRiskLevel } from '@/lib/exercise/risk'
 import { generateInitialPrescription } from '@/lib/exercise/prescription'
+import { syncToCloud } from '@/lib/sync'
 import type { DiagnosisType } from '@/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -38,6 +39,47 @@ const GROUP_INTROS = [
   '这部分评估你目前的运动能力，是制定处方的核心依据。',
   '最后几题关注你的心理状态，这对康复同样重要。',
 ]
+
+// ─── NumberInput (standalone — outside page component to keep React type stable) ─
+
+function NumberInput({ qKey, label, unit, min, max, skippable, hint, externalValue, onChange, onBlur, isTouched, error }: {
+  qKey: string; label?: string; unit: string; min: number; max: number
+  skippable?: boolean; hint?: string; externalValue: unknown
+  onChange: (k: string, v: number | undefined) => void
+  onBlur: (k: string) => void; isTouched: boolean; error?: string
+}) {
+  const [display, setDisplay] = useState(externalValue !== undefined ? String(externalValue) : '')
+  const num = display !== '' ? parseFloat(display) : NaN
+  const outOfRange = isTouched && !isNaN(num) && (num < min || num > max)
+  return (
+    <div>
+      {label && <p className="text-base text-text mb-2">{label}</p>}
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          inputMode="numeric"
+          value={display}
+          onChange={e => {
+            const raw = e.target.value
+            if (raw !== '' && !/^\d*\.?\d*$/.test(raw)) return
+            setDisplay(raw)
+            const n = parseFloat(raw)
+            onChange(qKey, raw === '' ? undefined : isNaN(n) ? undefined : n)
+          }}
+          onBlur={() => onBlur(qKey)}
+          placeholder="请输入"
+          className={`flex-1 h-12 px-4 rounded-btn border bg-white text-base text-text outline-none focus:border-blue transition-colors ${
+            outOfRange ? 'border-red' : 'border-border'
+          }`}
+        />
+        <span className="text-text-sub text-base w-10">{unit}</span>
+      </div>
+      {outOfRange && <p className="text-sm text-red mt-1">{hint ?? `请输入 ${min}–${max} 之间的数值`}</p>}
+      {error && !outOfRange && <p className="text-sm text-red mt-1">{error}</p>}
+      {skippable && <p className="text-sm text-text-sub mt-1">可跳过</p>}
+    </div>
+  )
+}
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
@@ -89,6 +131,7 @@ export default function AssessmentPage() {
       completed_at: new Date().toISOString(),
     }
     localStorage.setItem('assessment_answers', JSON.stringify(data))
+    syncToCloud()
     router.push('/assessment/summary?risk=high')
   }
 
@@ -184,7 +227,7 @@ export default function AssessmentPage() {
       months_since_surgery:
         answers.diagnosis_type === 'chd_no_surgery'
           ? 999
-          : (answers.months_since_surgery as number) || 12,
+          : Number(answers.months_since_surgery) || 12,
       diagnosis_type: diagnosisForPrescription,
       risk_level,
     })
@@ -199,6 +242,7 @@ export default function AssessmentPage() {
       completed_at: new Date().toISOString(),
     }
     localStorage.setItem('assessment_answers', JSON.stringify(data))
+    syncToCloud()
     router.push(`/assessment/summary?risk=${risk_level}`)
   }
 
@@ -222,37 +266,6 @@ export default function AssessmentPage() {
           </button>
         ))}
         {errors[qKey] && <p className="text-sm text-red">{errors[qKey]}</p>}
-      </div>
-    )
-  }
-
-  function NumberInput({ qKey, label, unit, min, max, skippable }: {
-    qKey: string; label?: string; unit: string; min: number; max: number; skippable?: boolean
-  }) {
-    const val = answers[qKey]
-    const displayVal = val !== undefined ? String(val) : ''
-    const num = displayVal !== '' ? parseFloat(displayVal) : NaN
-    const outOfRange = touched[qKey] === true && !isNaN(num) && (num < min || num > max)
-    return (
-      <div>
-        {label && <p className="text-base text-text mb-2">{label}</p>}
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            inputMode="numeric"
-            value={displayVal}
-            onChange={e => set(qKey, e.target.value !== '' ? parseFloat(e.target.value) : undefined)}
-            onBlur={() => touch(qKey)}
-            placeholder="请输入"
-            className={`flex-1 h-12 px-4 rounded-btn border bg-white text-base text-text outline-none focus:border-blue transition-colors ${
-              outOfRange ? 'border-red' : 'border-border'
-            }`}
-          />
-          <span className="text-text-sub text-base w-10">{unit}</span>
-        </div>
-        {outOfRange && <p className="text-sm text-red mt-1">请输入合理数值（{min}–{max}）</p>}
-        {errors[qKey] && !outOfRange && <p className="text-sm text-red mt-1">{errors[qKey]}</p>}
-        {skippable && <p className="text-sm text-text-sub mt-1">可跳过</p>}
       </div>
     )
   }
@@ -317,7 +330,9 @@ export default function AssessmentPage() {
         <div className="flex flex-col gap-5">
           <div>
             <p className="text-base font-medium text-text mb-2">年龄</p>
-            <NumberInput qKey="age" unit="岁" min={18} max={99} />
+            <NumberInput qKey="age" unit="岁" min={18} max={99}
+              externalValue={answers.age} onChange={set} onBlur={touch}
+              isTouched={!!touched.age} error={errors.age} />
           </div>
           <div>
             <p className="text-base font-medium text-text mb-2">性别</p>
@@ -326,9 +341,18 @@ export default function AssessmentPage() {
           <div>
             <p className="text-base font-medium text-text mb-2">身高 / 体重 / 腰围</p>
             <div className="flex flex-col gap-2">
-              <NumberInput qKey="height" label="身高" unit="cm" min={100} max={220} />
-              <NumberInput qKey="weight" label="体重" unit="kg" min={30} max={200} />
-              <NumberInput qKey="waist" label="腰围" unit="cm" min={40} max={180} />
+              <NumberInput qKey="height" label="身高" unit="cm" min={100} max={220}
+                hint="单位是厘米（cm）——如身高 170 cm 请填 170，不要填 1.70"
+                externalValue={answers.height} onChange={set} onBlur={touch}
+                isTouched={!!touched.height} error={errors.height} />
+              <NumberInput qKey="weight" label="体重" unit="kg" min={30} max={200}
+                hint="单位是千克（kg）——如习惯用斤，请将数值除以 2（如 140 斤 = 70 kg）"
+                externalValue={answers.weight} onChange={set} onBlur={touch}
+                isTouched={!!touched.weight} error={errors.weight} />
+              <NumberInput qKey="waist" label="腰围" unit="cm" min={40} max={180}
+                hint="请在肚脐上方约 1 cm 处水平绕一圈测量，单位是厘米（cm），请勿填成英寸"
+                externalValue={answers.waist} onChange={set} onBlur={touch}
+                isTouched={!!touched.waist} error={errors.waist} />
             </div>
           </div>
           <div>
@@ -361,14 +385,23 @@ export default function AssessmentPage() {
         <div className="flex flex-col gap-5">
           <div>
             <p className="text-base font-medium text-text mb-1">静息心率（可跳过）</p>
-            <NumberInput qKey="resting_hr" unit="次/分" min={30} max={200} skippable />
+            <NumberInput qKey="resting_hr" unit="次/分" min={30} max={200} skippable
+              hint="安静时每分钟心跳次数，通常 50–100 次"
+              externalValue={answers.resting_hr} onChange={set} onBlur={touch}
+              isTouched={!!touched.resting_hr} error={errors.resting_hr} />
           </div>
           <div>
             <p className="text-base font-medium text-text mb-1">血压（可跳过）</p>
             <div className="flex gap-2 items-center">
-              <NumberInput qKey="systolic_bp" label="收缩压" unit="mmHg" min={60} max={250} skippable />
+              <NumberInput qKey="systolic_bp" label="收缩压" unit="mmHg" min={60} max={250} skippable
+                hint="血压高压，通常 90–140 mmHg"
+                externalValue={answers.systolic_bp} onChange={set} onBlur={touch}
+                isTouched={!!touched.systolic_bp} error={errors.systolic_bp} />
               <span className="text-text-sub mt-6">/</span>
-              <NumberInput qKey="diastolic_bp" label="舒张压" unit="mmHg" min={40} max={150} skippable />
+              <NumberInput qKey="diastolic_bp" label="舒张压" unit="mmHg" min={40} max={150} skippable
+                hint="血压低压，通常 60–90 mmHg"
+                externalValue={answers.diastolic_bp} onChange={set} onBlur={touch}
+                isTouched={!!touched.diastolic_bp} error={errors.diastolic_bp} />
             </div>
           </div>
           <div>
@@ -378,7 +411,10 @@ export default function AssessmentPage() {
               <div className="mt-3">
                 <p className="text-sm text-text-sub mb-2">如果知道具体数值（射血分数 EF 值），可以填写：</p>
                 <div className="flex items-center gap-3">
-                  <NumberInput qKey="lvef" unit="%" min={10} max={80} skippable />
+                  <NumberInput qKey="lvef" unit="%" min={10} max={80} skippable
+                    hint="见心脏超声（超声心动图）报告，50–70% 为正常范围，低于 40% 需特别关注"
+                    externalValue={answers.lvef} onChange={set} onBlur={touch}
+                    isTouched={!!touched.lvef} error={errors.lvef} />
                   <button
                     type="button"
                     onClick={() => set('lvef', 'unknown')}
@@ -397,7 +433,7 @@ export default function AssessmentPage() {
               </div>
             )}
           </div>
-          <div className="bg-orange-light border-l-4 border-orange rounded-card p-3">
+          <div className="bg-orange-light rounded-card p-3">
             <p className="text-sm text-orange font-medium mb-1">以下三个问题很重要，请如实回答</p>
           </div>
           <div>
@@ -458,7 +494,7 @@ export default function AssessmentPage() {
           </div>
           <div>
             <p className="text-base font-medium text-text mb-2">
-              是否服用 β 受体阻滞剂（如美托洛尔、比索洛尔、阿替洛尔等）？
+              是否服用 β 受体阻滞剂（如美托洛尔/倍他乐克、比索洛尔/博苏、阿替洛尔等）？
             </p>
             <div className="bg-card rounded-card p-3 mb-2">
               <p className="text-sm text-text-sub">这类药物会影响心率反应，关系到运动强度计算方式。</p>
@@ -494,6 +530,9 @@ export default function AssessmentPage() {
               请选择你目前<strong>能持续完成</strong>的最高强度活动。这将用于制定你的初始运动处方。
             </p>
           </div>
+          <p className="text-sm text-text-sub leading-relaxed -mt-1">
+            刚手术后 1–3 个月的患者，通常在第 3–6 项；能走路、上下楼梯无明显不适，可选第 6 项以上。不确定就偏低选，处方会随随访数据动态调整。
+          </p>
           {VSAQ_ITEMS.map(item => (
             <button
               key={item.score}
@@ -533,10 +572,6 @@ export default function AssessmentPage() {
 
   return (
     <div className="phone-shell">
-      <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-        <span className="text-[15px] font-semibold text-text">9:41</span>
-        <div className="flex gap-1.5 text-xs text-text"><span>●●● WiFi 🔋</span></div>
-      </div>
 
       <div className="flex-shrink-0 px-4 pt-2 bg-bg" style={{ zIndex: 10 }}>
         <div className="flex justify-between items-center mb-2">
@@ -596,7 +631,14 @@ export default function AssessmentPage() {
             <p className="text-base text-text leading-relaxed text-center mb-6">
               根据你的回答，我们建议在获得医生明确许可前，先使用营养、助手和科普等功能，暂缓开始运动康复。
             </p>
-            <Button onClick={confirmHighRisk}>我明白了，继续</Button>
+            <Button onClick={confirmHighRisk}>好的，先去看看其他功能</Button>
+            <button
+              type="button"
+              onClick={() => setHighRiskModal(false)}
+              className="w-full min-h-[44px] text-sm text-text-sub mt-2"
+            >
+              我选错了，返回重选
+            </button>
           </div>
         </div>
       )}

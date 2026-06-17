@@ -219,6 +219,7 @@ export interface Layer2Window {
     had_discomfort: boolean
     date: string
     day_state?: DayState
+    next_day_hr?: 'slower' | 'same' | 'faster'
   }>
   last_adjustment_date?: string
 }

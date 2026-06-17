@@ -126,9 +126,6 @@ function MethodCard({ data }: { data: MethodData }) {
 export default function NutritionPage() {
   return (
     <div className="flex flex-col h-full bg-bg">
-      <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-        <span className="text-[15px] font-semibold text-text">9:41</span>
-      </div>
       <div className="flex-shrink-0 h-12 flex items-center px-4 border-b border-border">
         <h1 className="text-lg font-semibold text-text">营养</h1>
       </div>
@@ -139,19 +136,20 @@ export default function NutritionPage() {
         <div className="flex items-center gap-2.5 bg-blue-light rounded-card px-4 py-3 mb-3.5">
           <span className="text-2xl flex-shrink-0">🌱</span>
           <div>
-            <p className="text-[13px] font-semibold text-blue mb-0.5">适应期 · 第 1–4 周饮食重点</p>
+            <p className="text-[13px] font-semibold text-blue mb-0">适应期 · 第 1–4 周饮食重点</p>
+            <p className="text-[11px] text-blue opacity-60 mb-0.5">根据你的评估阶段生成</p>
             <p className="text-[13px] text-blue opacity-80 leading-snug">先从方法③开始——把家里的腌制品和调味品查一遍。</p>
           </div>
         </div>
 
         {/* 三个判断方法 */}
-        <p className="text-[11px] font-semibold text-text-sub uppercase tracking-widest mb-1.5">三个判断方法</p>
+        <p className="text-sm font-semibold text-text-sub mb-1.5">三个判断方法</p>
         <p className="text-sm text-text-sub leading-relaxed mb-3">遇到不确定的食物，问自己这三个问题。就算没见过，也能大致判断。</p>
 
         {METHODS.map(m => <MethodCard key={m.badge} data={m} />)}
 
         {/* Behavior card */}
-        <div className="bg-green-light rounded-card px-4 py-3.5 mb-3.5 border-l-4 border-green">
+        <div className="bg-green-light rounded-card px-4 py-3.5 mb-3.5">
           <p className="text-sm font-bold text-green-dark mb-1.5">🥢 控血糖小习惯（方法①延伸）</p>
           <p className="text-sm text-green-dark leading-relaxed mb-1">
             同一顿饭，改变进食顺序就能降低餐后血糖峰值：
@@ -162,7 +160,7 @@ export default function NutritionPage() {
         </div>
 
         {/* 实战练习场 */}
-        <p className="text-[11px] font-semibold text-text-sub uppercase tracking-widest mb-1.5 mt-0.5">实战练习场</p>
+        <p className="text-sm font-semibold text-text-sub mb-1.5 mt-0.5">实战练习场</p>
         <p className="text-sm text-text-sub leading-relaxed mb-3">每个例子都在演示上面三条方法——边逛边练，比读一遍更有效。</p>
 
         <Link
@@ -190,7 +188,7 @@ export default function NutritionPage() {
         </Link>
 
         {/* Tips */}
-        <div className="bg-orange-light rounded-card px-4 py-3.5 border-l-4 border-orange">
+        <div className="bg-orange-light rounded-card px-4 py-3.5">
           <p className="text-sm font-bold text-orange mb-1.5">⚠ 本阶段需特别注意</p>
           <ul className="flex flex-col gap-1.5">
             {TIPS.map(tip => (

@@ -128,10 +128,6 @@ export default function AssistantPage() {
 
   return (
     <div className="flex flex-col h-full bg-bg">
-      <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-        <span className="text-[15px] font-semibold text-text">9:41</span>
-        <div className="flex gap-1.5 text-xs text-text"><span>●●● WiFi 🔋</span></div>
-      </div>
 
       <div className="flex-shrink-0 bg-orange-light border-b border-orange/30 px-4 py-2.5">
         <p className="text-sm text-orange leading-relaxed">
@@ -159,10 +155,9 @@ export default function AssistantPage() {
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 space-y-3">
         {messages.length === 0 && (
           <div className="space-y-4 pt-2">
-            <p className="text-base font-semibold text-text">你好，我是你的心脏康复助手</p>
+            <p className="text-base font-semibold text-text">你好，我是你的心脏康复 AI 助手</p>
             <p className="text-sm text-text-sub leading-relaxed">
-              我基于《冠心病患者心脏康复健康教育处方护理专家共识》提供健康教育和知识科普。
-              我不做诊断，也不提供具体处方数字。
+              内容参考心脏康复临床指南，提供健康教育和知识科普。我不做诊断，也不提供具体处方数字。
             </p>
             {cardContext ? (
               <div className="bg-card rounded-card px-4 py-3 border border-blue/30">
@@ -219,7 +214,7 @@ export default function AssistantPage() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={cardContext ? `关于「${cardContext.title}」，有什么想问的？` : '向助手提问…'}
+            placeholder={cardContext ? `关于「${cardContext.title}」，有什么想问的？` : '向 AI 助手提问…'}
             rows={1}
             className="flex-1 min-h-[44px] max-h-28 px-4 py-3 bg-card rounded-btn border border-border text-base text-text resize-none outline-none focus:border-blue transition-colors leading-relaxed"
             style={{ fieldSizing: 'content' } as React.CSSProperties}

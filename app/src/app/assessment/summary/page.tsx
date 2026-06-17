@@ -12,19 +12,16 @@ function SummaryContent() {
   const risk = params.get('risk') || 'low'
   const isHigh = risk === 'high'
 
-  // Read partial data from localStorage for prescription display
-  let vsaq = 5
+  // Read prescription from localStorage
   let rx: { exercise_type: ExerciseType; duration_minutes: number; rpe_target: RPELevel } = { exercise_type: 'walking', duration_minutes: 25, rpe_target: 2 }
   if (typeof window !== 'undefined') {
     try {
       const data = JSON.parse(localStorage.getItem('assessment_answers') || '{}')
-      vsaq = data.vsaq_score || 5
-      const rpeVal = vsaqToInitialRPE(vsaq)
-      rx = {
-        exercise_type: 'walking',
-        duration_minutes: vsaqToInitialDuration(vsaq),
-        rpe_target: rpeVal,
-      }
+      const vsaq = data.vsaq_score || 5
+      const storedPx = data.prescription
+      rx = storedPx
+        ? { exercise_type: storedPx.exercise_type ?? 'walking', duration_minutes: storedPx.duration_minutes, rpe_target: storedPx.rpe_target }
+        : { exercise_type: 'walking', duration_minutes: vsaqToInitialDuration(vsaq), rpe_target: vsaqToInitialRPE(vsaq) }
     } catch {}
   }
 
@@ -33,9 +30,6 @@ function SummaryContent() {
   if (isHigh) {
     return (
       <div className="phone-shell">
-        <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-          <span className="text-[15px] font-semibold text-text">9:41</span>
-        </div>
         <div className="scroll-area px-4 pt-6 pb-8">
           <div className="flex flex-col items-center gap-3 mb-6">
             <div className="w-16 h-16 rounded-full bg-orange-light flex items-center justify-center">
@@ -86,9 +80,6 @@ function SummaryContent() {
 
   return (
     <div className="phone-shell">
-      <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-        <span className="text-[15px] font-semibold text-text">9:41</span>
-      </div>
       <div className="scroll-area px-4 pt-6 pb-8">
         <div className="flex flex-col items-center gap-3 mb-6">
           <div className="w-16 h-16 rounded-full bg-green-light flex items-center justify-center">

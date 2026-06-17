@@ -3,11 +3,32 @@ import { NextRequest } from 'next/server'
 const SUMMARY_MAX_TOKENS = 150
 const SUMMARY_TEMPERATURE = 0.7
 
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT = 30
+const RATE_WINDOW_MS = 60_000
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS })
+    return true
+  }
+  if (entry.count >= RATE_LIMIT) return false
+  entry.count++
+  return true
+}
+
 import { RPE_LABELS } from '@/lib/exercise/intensity'
 import { getExerciseTypeLabel } from '@/lib/exercise/prescription'
 import type { RPELevel, ExerciseType } from '@/types'
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? req.headers.get('x-real-ip') ?? 'unknown'
+  if (!checkRateLimit(ip)) {
+    return new Response('今日运动记录已保存。', { headers: { 'Content-Type': 'text/plain; charset=utf-8' } })
+  }
+
   const { exercise_type, duration, rpe_actual, day_state, total_sessions } = await req.json()
 
   const rpeLabel = rpe_actual ? RPE_LABELS[rpe_actual as RPELevel].label : '适中'

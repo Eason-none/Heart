@@ -79,9 +79,6 @@ const SWAPS: Array<{
 export default function NutritionSwapPage() {
   return (
     <div className="flex flex-col h-full bg-bg">
-      <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-        <span className="text-[15px] font-semibold text-text">9:41</span>
-      </div>
       <div className="flex-shrink-0 h-12 flex items-center gap-3 px-4 border-b border-border">
         <Link href="/nutrition" className="flex items-center min-h-[44px] min-w-[44px] -ml-2">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">

@@ -13,6 +13,7 @@ interface DisplaySession {
   duration: number
   rpe: RPELevel | null
   isAerobic: boolean
+  sessionCount?: number
 }
 
 const RPE_COLORS: Record<RPELevel, string> = { 1: '#1D9E75', 2: '#185FA5', 3: '#BA7517', 4: '#A32D2D' }
@@ -95,17 +96,45 @@ export default function ExerciseDataPage() {
         duration: number
         rpe_actual: RPELevel | null
         is_aerobic_count: boolean
+        can_split?: boolean
       }> = JSON.parse(localStorage.getItem('exercise_sessions') || '[]')
 
-      const mapped: DisplaySession[] = raw.map(s => ({
-        date: s.date.slice(0, 10),
-        type: getExerciseTypeLabel(s.exercise_type),
-        duration: s.duration,
-        rpe: s.rpe_actual,
-        isAerobic: s.is_aerobic_count,
-      }))
-      mapped.sort((a, b) => b.date.localeCompare(a.date))
-      setAllSessions(mapped)
+      const result: DisplaySession[] = []
+      const splitGroups = new Map<string, DisplaySession>()
+
+      for (const s of raw) {
+        const date = s.date.slice(0, 10)
+        if (s.can_split) {
+          const key = `${date}|${s.exercise_type}`
+          if (splitGroups.has(key)) {
+            const g = splitGroups.get(key)!
+            g.duration += s.duration
+            g.rpe = s.rpe_actual
+            g.sessionCount = (g.sessionCount ?? 1) + 1
+          } else {
+            const entry: DisplaySession = {
+              date,
+              type: getExerciseTypeLabel(s.exercise_type),
+              duration: s.duration,
+              rpe: s.rpe_actual,
+              isAerobic: s.is_aerobic_count,
+              sessionCount: 1,
+            }
+            splitGroups.set(key, entry)
+            result.push(entry)
+          }
+        } else {
+          result.push({
+            date,
+            type: getExerciseTypeLabel(s.exercise_type),
+            duration: s.duration,
+            rpe: s.rpe_actual,
+            isAerobic: s.is_aerobic_count,
+          })
+        }
+      }
+      result.sort((a, b) => b.date.localeCompare(a.date))
+      setAllSessions(result)
     } catch {}
   }, [])
 
@@ -125,9 +154,6 @@ export default function ExerciseDataPage() {
 
   const header = (
     <>
-      <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-        <span className="text-[15px] font-semibold text-text">9:41</span>
-      </div>
       <div className="flex-shrink-0 h-12 flex items-center px-4 border-b border-border gap-3">
         <Link href="/exercise" className="flex items-center min-h-[44px] min-w-[44px] -ml-2">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -220,7 +246,12 @@ export default function ExerciseDataPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-text-sub">{s.date.slice(5)}</p>
-                      <p className="text-base font-medium text-text">{s.type} · {s.duration} 分钟</p>
+                      <p className="text-base font-medium text-text">
+                        {s.type} · {s.duration} 分钟
+                        {s.sessionCount && s.sessionCount > 1 && (
+                          <span className="text-xs text-text-sub font-normal ml-1">（{s.sessionCount} 次累计）</span>
+                        )}
+                      </p>
                     </div>
                     <span className="text-sm font-medium" style={{ color: s.rpe ? RPE_COLORS[s.rpe] : '#C8C5BE' }}>
                       {s.rpe ? RPE_LABELS[s.rpe].label : '—'}

@@ -11,15 +11,6 @@ const PRESCRIPTIONS = [
 export default function WelcomePage() {
   return (
     <div className="phone-shell">
-      {/* Status bar */}
-      <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-        <span className="text-[15px] font-semibold text-text">9:41</span>
-        <div className="flex gap-1.5 items-center text-xs text-text">
-          <span>●●●</span>
-          <span>WiFi</span>
-          <span>🔋</span>
-        </div>
-      </div>
 
       {/* Scroll content */}
       <div className="scroll-area px-4 pb-8">
@@ -62,21 +53,14 @@ export default function WelcomePage() {
           </p>
         </div>
 
-        {/* Entry buttons */}
-        <div className="flex flex-col gap-3">
-          <Link
-            href="/consent"
-            className="w-full min-h-[56px] bg-blue text-white rounded-btn flex items-center justify-center font-medium text-base"
-          >
-            我已确诊冠心病 · 开始康复
-          </Link>
-          <Link
-            href="/consent?family=1"
-            className="w-full min-h-[56px] bg-card text-text border border-border rounded-btn flex items-center justify-center font-medium text-base"
-          >
-            我在帮家人了解
-          </Link>
-        </div>
+        {/* Entry button */}
+        <Link
+          href="/consent"
+          className="w-full min-h-[56px] bg-blue text-white rounded-btn flex items-center justify-center font-medium text-base"
+        >
+          开始使用
+        </Link>
+        <p className="text-xs text-text-sub text-center mt-2">家属代为操作也可直接点击</p>
       </div>
     </div>
   )

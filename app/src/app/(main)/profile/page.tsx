@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { getRiskDisplayLabel } from '@/lib/exercise/risk'
+import { getOrCreateDeviceId, restoreFromCloud } from '@/lib/sync'
 import type { ContentTopic } from '@/types'
 
 // ─── Milestone card ────────────────────────────────────────────────────────────
@@ -40,6 +41,14 @@ const DIAGNOSIS_LABELS: Record<string, string> = {
   mi_recovery: '心梗恢复期',
   stable_angina: '稳定型心绞痛',
   chd_no_surgery: '已确诊冠心病（无手术史）',
+}
+
+const DIAGNOSIS_SHORT: Record<string, string> = {
+  pci: 'PCI 术后康复',
+  cabg: 'CABG 术后康复',
+  mi_recovery: '心梗康复期',
+  stable_angina: '稳定型心绞痛康复',
+  chd_no_surgery: '冠心病居家康复',
 }
 
 const DIAGNOSIS_NOTES: Record<string, string> = {
@@ -128,6 +137,12 @@ export default function ProfilePage() {
   const [latestRiskData, setLatestRiskData] = useState<{
     bp_reading?: string; weight_change?: string; smoking_check?: string; date?: string
   } | null>(null)
+  const [deviceId, setDeviceId] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle')
+  const [showRestore, setShowRestore] = useState(false)
+  const [restoreInput, setRestoreInput] = useState('')
+  const [restoreStatus, setRestoreStatus] = useState<'idle' | 'loading' | 'ok' | 'not_found' | 'error'>('idle')
 
   useEffect(() => {
     try {
@@ -169,12 +184,13 @@ export default function ProfilePage() {
       const topics: ContentTopic[] = JSON.parse(localStorage.getItem('content_preferred_topics') || '[]')
       setPreferredTopics(topics)
     } catch {}
+    setDeviceId(getOrCreateDeviceId())
   }, [])
 
   const milestones = [
     { count: 12, label: '适应期·里程碑', unlocked: totalSessions >= 12 },
     { count: 18, label: '改善期·里程碑', unlocked: totalSessions >= 18 },
-    { count: 90, label: '维持期·结业', unlocked: false, special: true },
+    { count: 90, label: '维持期·满 90 天', unlocked: false, special: true },
   ]
 
   const smokingStatus = assessmentData.smoking_status as string
@@ -186,6 +202,33 @@ export default function ProfilePage() {
       : [...preferredTopics, topic]
     setPreferredTopics(next)
     try { localStorage.setItem('content_preferred_topics', JSON.stringify(next)) } catch {}
+  }
+
+  const handleCopyId = async () => {
+    try { await navigator.clipboard.writeText(deviceId) } catch { /* fallback not needed */ }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleManualSync = async () => {
+    setSyncStatus('syncing')
+    try {
+      const { syncToCloud } = await import('@/lib/sync')
+      await syncToCloud()
+      setSyncStatus('ok')
+    } catch {
+      setSyncStatus('error')
+    }
+    setTimeout(() => setSyncStatus('idle'), 3000)
+  }
+
+  const handleRestore = async () => {
+    setRestoreStatus('loading')
+    const result = await restoreFromCloud(restoreInput)
+    setRestoreStatus(result)
+    if (result === 'ok') {
+      setTimeout(() => window.location.reload(), 800)
+    }
   }
 
   const hasAssessment = !!assessmentData.risk_level
@@ -376,9 +419,6 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col h-full bg-bg">
-      <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-        <span className="text-[15px] font-semibold text-text">9:41</span>
-      </div>
       <div className="flex-shrink-0 h-12 flex items-center px-4 border-b border-border">
         <h1 className="text-lg font-semibold text-text">我</h1>
       </div>
@@ -393,7 +433,9 @@ export default function ProfilePage() {
             </svg>
           </div>
           <div className="flex-1">
-            <p className="text-base font-semibold text-text">康复用户</p>
+            <p className="text-base font-semibold text-text">
+              {DIAGNOSIS_SHORT[assessmentData.diagnosis_type as string] ?? '我的康复计划'}
+            </p>
             {riskLevel ? (
               <span className={`text-xs px-2 py-0.5 rounded-pill font-medium ${
                 riskLevel === 'high' ? 'bg-orange-light text-orange' : 'bg-green-light text-green-dark'
@@ -494,6 +536,85 @@ export default function ProfilePage() {
           </div>
         )}
 
+        {/* 数据备份 */}
+        <div className="bg-card rounded-card p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-text">数据备份</p>
+            <button
+              type="button"
+              onClick={handleManualSync}
+              disabled={syncStatus === 'syncing'}
+              className="text-xs text-blue disabled:text-text-sub"
+            >
+              {syncStatus === 'syncing' ? '同步中…' : syncStatus === 'ok' ? '✓ 已同步' : syncStatus === 'error' ? '同步失败' : '立即同步'}
+            </button>
+          </div>
+          <p className="text-sm text-text-sub leading-relaxed">数据自动同步至云端，换设备时凭设备 ID 恢复。</p>
+          {deviceId && (
+            <div className="flex items-center gap-2">
+              <span className="flex-1 text-xs font-mono text-text-sub bg-bg rounded px-2 py-1.5 truncate select-all">
+                {deviceId}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyId}
+                className="flex-shrink-0 min-h-[36px] px-3 rounded-btn border border-border text-sm text-blue"
+              >
+                {copied ? '已复制' : '复制'}
+              </button>
+            </div>
+          )}
+          {!showRestore ? (
+            <button
+              type="button"
+              onClick={() => setShowRestore(true)}
+              className="text-sm text-text-sub underline underline-offset-2"
+            >
+              换设备了？输入原设备 ID 恢复数据
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={restoreInput}
+                onChange={e => { setRestoreInput(e.target.value); setRestoreStatus('idle') }}
+                placeholder="粘贴原设备 ID（36位）"
+                className="w-full h-11 px-3 rounded-btn border border-border bg-white text-sm text-text font-mono outline-none focus:border-blue"
+              />
+              {restoreStatus === 'not_found' && (
+                <p className="text-xs text-red">未找到该 ID 的数据，请确认 ID 是否正确</p>
+              )}
+              {restoreStatus === 'error' && (
+                <p className="text-xs text-red">恢复失败，请检查网络后重试</p>
+              )}
+              {restoreStatus === 'ok' && (
+                <p className="text-xs text-green-dark">恢复成功，正在刷新页面…</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleRestore}
+                  disabled={restoreStatus === 'loading' || restoreInput.length < 36}
+                  className={`flex-1 min-h-[40px] rounded-btn text-sm font-medium transition-all ${
+                    restoreStatus === 'loading' || restoreInput.length < 36
+                      ? 'bg-border text-text-sub'
+                      : 'bg-blue text-white'
+                  }`}
+                >
+                  {restoreStatus === 'loading' ? '恢复中…' : '恢复数据'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowRestore(false); setRestoreInput(''); setRestoreStatus('idle') }}
+                  className="min-h-[40px] px-4 rounded-btn border border-border text-sm text-text-sub"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Settings */}
         <div className="bg-card rounded-card divide-y divide-border">
           <Link
@@ -516,7 +637,7 @@ export default function ProfilePage() {
             </svg>
           </button>
           <Link
-            href="#"
+            href="/privacy"
             className="flex items-center justify-between min-h-[52px] px-4"
           >
             <span className="text-base text-text">隐私说明</span>

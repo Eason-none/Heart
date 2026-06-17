@@ -24,6 +24,9 @@ article/image.png
 .claude/
 .codegraph/
 
+# Impeccable tool workspace
+.impeccable/
+
 # OS
 .DS_Store
 Thumbs.db

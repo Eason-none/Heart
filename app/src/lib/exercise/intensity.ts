@@ -28,9 +28,7 @@ export const RPE_LABELS: Record<RPELevel, { label: string; aerobic: string; resi
 /** Map VSAQ score (1-13 METs) to initial RPE target */
 export function vsaqToInitialRPE(vsaq: number): RPELevel {
   if (vsaq <= 3) return 1
-  if (vsaq <= 6) return 2
-  if (vsaq <= 9) return 3
-  return 2 // high capacity → still start at moderate
+  return 2
 }
 
 /** Map VSAQ to initial duration (minutes) */
@@ -91,27 +89,35 @@ export function evalLayer2Signal(
   // 连续3次须在14天内完成
   if (daysBetween(last3[0].date, last3[2].date) > 14) return 'maintain'
 
-  // ─── Down triggers (any one is enough) ───
-  const highRPECount = last3.filter(s => s.rpe >= 3).length
-  if (highRPECount >= 2) return 'down'
+  // ─── Down triggers (7-day cooldown between adjustments) ─────────────────
+  const sevenDayCooldown =
+    !!window.last_adjustment_date &&
+    daysBetween(last3[2].date, window.last_adjustment_date) < 7
 
-  const hadDiscomfort = last3.some(s => s.had_discomfort)
-  if (hadDiscomfort) return 'down'
+  if (!sevenDayCooldown) {
+    const highRPECount = last3.filter(s => s.rpe >= 3).length
+    if (highRPECount >= 2) return 'down'
 
-  if (!hasBetaBlocker) {
-    const badHR = last3.filter(s => isHRRecoveryBad(s.hr_recovery)).length
-    if (badHR >= 2) return 'down'
+    const hadDiscomfort = last3.some(s => s.had_discomfort)
+    if (hadDiscomfort) return 'down'
+
+    if (!hasBetaBlocker) {
+      const badHR = last3.filter(s => isHRRecoveryBad(s.hr_recovery)).length
+      if (badHR >= 2) return 'down'
+      const badNextDayHR = last3.filter(s => s.next_day_hr === 'faster').length
+      if (badNextDayHR >= 2) return 'down'
+    }
   }
 
   // ─── Up triggers (all four required) ─────
-  const allLowRPE = last3.every(s => s.rpe === 1) // Borg ≤11 → level 1 only
+  const allLowRPE = last3.every(s => s.rpe === 1)
   const noDiscomfort = last3.every(s => !s.had_discomfort)
   const allGoodHR = hasBetaBlocker
     ? true
     : last3.every(s => !isHRRecoveryBad(s.hr_recovery))
   const twoWeeksSinceLastAdj =
     !window.last_adjustment_date ||
-    daysBetween(qualifying[qualifying.length - 1].date, window.last_adjustment_date) >= 14
+    daysBetween(last3[2].date, window.last_adjustment_date) >= 14
 
   if (allLowRPE && noDiscomfort && allGoodHR && twoWeeksSinceLastAdj) return 'up'
 

@@ -23,7 +23,7 @@ const STATEMENTS = [
   {
     icon: '🔒',
     title: '数据声明',
-    body: '您的健康数据仅用于生成个人康复计划，加密存储，不对外共享，不用于任何商业分析。您可随时删除账号及全部数据。',
+    body: '您的健康数据仅用于生成个人康复计划，加密存储，不对外共享，不用于任何商业分析。您可随时卸载 App 清除本机数据，或联系我们删除云端备份。',
   },
 ]
 
@@ -34,10 +34,6 @@ export default function ConsentPage() {
   return (
     <div className="phone-shell">
       {/* Header */}
-      <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-        <span className="text-[15px] font-semibold text-text">9:41</span>
-        <div className="flex gap-1.5 text-xs text-text"><span>●●● WiFi 🔋</span></div>
-      </div>
       <div className="flex-shrink-0 h-12 flex items-center px-4 border-b border-border bg-bg" style={{ zIndex: 20 }}>
         <Link href="/welcome" className="flex items-center min-h-[44px] min-w-[44px] -ml-2">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">

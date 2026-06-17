@@ -71,10 +71,6 @@ export default function SectionPage() {
 
   return (
     <div className="flex flex-col h-full bg-bg">
-      <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-        <span className="text-[15px] font-semibold text-text">9:41</span>
-        <div className="flex gap-1.5 text-xs text-text"><span>●●● WiFi 🔋</span></div>
-      </div>
 
       <div className="flex-shrink-0 px-4 pt-3 pb-3 flex items-center gap-3">
         <button

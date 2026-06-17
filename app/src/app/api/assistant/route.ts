@@ -3,6 +3,23 @@ import { createClient } from '@supabase/supabase-js'
 
 type Intent = 'general' | 'personalized' | 'symptom' | 'prescription_specific' | 'nutrition' | 'out_of_scope'
 
+// ─── 限流（每 IP 每分钟最多 20 次）──────────────────────────────────────────────
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT = 20
+const RATE_WINDOW_MS = 60_000
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS })
+    return true
+  }
+  if (entry.count >= RATE_LIMIT) return false
+  entry.count++
+  return true
+}
+
 // ─── AI 参数常量 ───────────────────────────────────────────────────────────────
 
 const ASSISTANT_MAX_TOKENS = 700
@@ -162,13 +179,25 @@ function buildSystemPrompt(context: string, riskLevel?: string, comorbidities?: 
 // ─── 主处理函数 ────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
-  const { message, history, riskLevel, comorbidities, cardContext } = await req.json() as {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? req.headers.get('x-real-ip') ?? 'unknown'
+  if (!checkRateLimit(ip)) {
+    return new Response('请求过于频繁，请稍后再试。', { status: 429, headers: { 'Content-Type': 'text/plain; charset=utf-8' } })
+  }
+
+  const body = await req.json() as {
     message: string
     history: Array<{ role: string; content: string }>
     riskLevel?: string
     comorbidities?: string[]
     cardContext?: string
   }
+
+  const message = typeof body.message === 'string' ? body.message.slice(0, 500) : ''
+  if (!message.trim()) {
+    return new Response('', { status: 400 })
+  }
+  const history = Array.isArray(body.history) ? body.history.slice(-HISTORY_WINDOW) : []
+  const { riskLevel, comorbidities, cardContext } = body
 
   const intent = classifyIntent(message)
 

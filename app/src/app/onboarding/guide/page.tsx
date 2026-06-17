@@ -70,9 +70,6 @@ export default function GuidePage() {
 
   return (
     <div className="phone-shell">
-      <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-        <span className="text-[15px] font-semibold text-text">9:41</span>
-      </div>
 
       <div className="flex-1 flex flex-col px-4 pt-4 pb-8">
         {/* Dots */}

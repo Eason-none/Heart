@@ -51,8 +51,10 @@ export interface ExerciseItem {
   modifications: ExerciseModification[]
   steps: string[]
   safety_notes: string[]
+  can_split?: boolean
   video_guided?: boolean
   video_note?: string
+  video_embed_bvid?: string
   phases: RehabPhase[]
 }
 
@@ -73,47 +75,11 @@ const walkingBasic: ExerciseItem = {
     '主运动：以目标 RPE 强度匀速步行，保持能正常说话',
     '冷身：减速步行 3–5 分钟，待心率逐步降低',
   ],
+  can_split: true,
   safety_notes: ['穿有支撑性的运动鞋', '感到胸闷、心慌、头晕立即停止'],
   phases: ['adaptation', 'improvement', 'maintenance'],
 }
 
-const nordicWalking: ExerciseItem = {
-  id: 'nordic_walking',
-  name: '北欧式健走',
-  category: 'walking',
-  equipment: 'nordic_poles',
-  duration_range: [30, 60],
-  rpe_range: [1, 2],
-  freq_range: [2, 3],
-  surgery_windows: [
-    {
-      diagnoses: ['cabg'],
-      min_weeks: 8,
-      reason: '胸骨未愈合前禁止上肢推杖发力',
-    },
-  ],
-  contra_flags: ['high_risk_any', 'uncontrolled_bp'],
-  modifications: [
-    {
-      condition: { type: 'cabg_weeks_lt', weeks: 12 },
-      when_display: 'CABG 术后 8–12 周',
-      instruction: '手杖仅辅助平衡，不做向后推杖发力动作',
-    },
-  ],
-  steps: [
-    '热身：不持杖慢速步行 3–5 分钟',
-    '右脚迈出时左臂前推手杖（对侧节奏），将杖尖植于右脚前方 30–45 cm 处',
-    '手掌向后推压手杖，感受核心和背部协同发力',
-    '步幅略大于普通步行，保持抬头、收腹、肩膀放松',
-    '冷身：减速步行 3–5 分钟',
-  ],
-  safety_notes: [
-    '手杖高度：握杖时前臂与地面呈 90°（肘部成直角）',
-    '使用专用手套式固定带，非普通腕带',
-    '雨后湿滑路面换金属尖头并降低速度',
-  ],
-  phases: ['adaptation', 'improvement', 'maintenance'],
-}
 
 const homeMarch: ExerciseItem = {
   id: 'home_march',
@@ -130,50 +96,11 @@ const homeMarch: ExerciseItem = {
     '速度保持在能正常说话的程度（中等 RPE）',
     '进阶：加大手臂摆幅或加快节奏提升强度',
   ],
+  can_split: true,
   safety_notes: ['平衡不稳时扶椅背', '感到头晕立即停止并坐下'],
   phases: ['adaptation', 'improvement', 'maintenance'],
 }
 
-const swimming: ExerciseItem = {
-  id: 'swimming',
-  name: '游泳 / 水中运动',
-  category: 'swimming',
-  equipment: 'pool',
-  duration_range: [20, 30],
-  rpe_range: [1, 2],
-  freq_range: [3, 3],
-  surgery_windows: [
-    {
-      diagnoses: ['pci', 'mi_recovery'],
-      min_weeks: 6,
-      reason: '心梗/支架术后伤口需充分愈合',
-    },
-    {
-      diagnoses: ['cabg'],
-      min_weeks: 12,
-      reason: '胸骨及手术切口未完全愈合',
-    },
-  ],
-  contra_flags: [
-    'cannot_swim', 'icd_lt_6w', 'open_wound',
-    'high_risk_any', 'uncontrolled_bp',
-  ],
-  modifications: [],
-  steps: [
-    '陆上热身 5–10 分钟（关节活动、慢走）',
-    '逐步入水：先浸入手脚，再缓慢进入腰部深度（勿跳入）',
-    '蛙泳或自由泳，保持中等速度（能正常说话）',
-    '替代方案：在胸腰深度水中步行，利用水阻',
-    '出水前在浅水区站立休息 2–3 分钟',
-    '立即擦干，及时保暖',
-  ],
-  safety_notes: [
-    '水温确认 33–34°C；< 26°C 或 > 38°C 不入水',
-    '出水后缓慢站起，防止直立性低血压',
-    '须有人陪同，不单独游泳',
-  ],
-  phases: ['improvement', 'maintenance'],
-}
 
 // ─── Resistance ───────────────────────────────────────────────────────────────
 
@@ -187,6 +114,8 @@ const seatedLegRaise: ExerciseItem = {
   surgery_windows: [],
   contra_flags: ['lvef_lt_40', 'uncontrolled_bp', 'high_risk_any'],
   modifications: [],
+  can_split: true,
+  video_embed_bvid: 'BV1tdQ4BnEQ4',
   steps: [
     '坐椅边，背部挺直，双脚自然踩地',
     '呼气，缓慢伸直膝关节将腿抬至水平（2 秒）',
@@ -224,6 +153,7 @@ const wallSquat: ExerciseItem = {
     '吸气，缓慢沿墙还原至站立',
     '8–12 次/组，1–3 组',
   ],
+  can_split: true,
   safety_notes: [
     '膝盖不超过脚尖',
     '全程不屏气',
@@ -248,6 +178,7 @@ const sitToStand: ExerciseItem = {
     '稳定 1 秒后，吸气，缓慢控制坐回（3–4 秒，不要落坐）',
     '10–15 次/组，1–3 组',
   ],
+  can_split: true,
   safety_notes: [
     '全程控制速度，不猛然站起或落坐',
     '如需要可双手扶椅背辅助',
@@ -272,6 +203,8 @@ const resistanceBandRow: ExerciseItem = {
   ],
   contra_flags: ['lvef_lt_40', 'uncontrolled_bp', 'high_risk_any'],
   modifications: [],
+  can_split: true,
+  video_embed_bvid: 'BV1wp4y1a7Gd',
   steps: [
     '将弹力带固定于与腰等高的稳固物（如门把手）',
     '坐位或站位，背部挺直，双手握带两端',
@@ -304,6 +237,8 @@ const dumbbellBicepCurl: ExerciseItem = {
   ],
   contra_flags: ['lvef_lt_40', 'uncontrolled_bp', 'high_risk_any'],
   modifications: [],
+  can_split: true,
+  video_embed_bvid: 'BV1X54y1a71n',
   steps: [
     '坐位，背部挺直，双手各持哑铃，掌心向上，肘部贴近躯干',
     '呼气，缓慢弯肘将哑铃举至肩部（2 秒）',
@@ -336,6 +271,8 @@ const staticStretchRoutine: ExerciseItem = {
       instruction: '跳过胸部扩胸拉伸（第 5 步），避免双臂向后大幅展开',
     },
   ],
+  can_split: true,
+  video_embed_bvid: 'BV1gf4y1p78A',
   steps: [
     '小腿：弓步站立，后腿伸直脚跟踩地，感受小腿拉伸，保持 30 秒，左右各 1 次',
     '大腿前侧：站立单手扶椅，屈膝后拉脚踝至臀部，保持 30 秒，左右各 1 次',
@@ -375,6 +312,7 @@ const taiChiVideo: ExerciseItem = {
   ],
   video_guided: true,
   video_note: '搜索"杨式 24 式简化太极拳 教学"，推荐国家体育总局官方推广版本（动作平稳，强度约 3–4 METs）',
+  video_embed_bvid: 'BV1hV411F7Z2',
   phases: ['adaptation', 'improvement', 'maintenance'],
 }
 
@@ -408,6 +346,7 @@ const baduanjinVideo: ExerciseItem = {
   safety_notes: ['每节做 8 个呼吸循环', '动作缓慢连贯，全程不屏气'],
   video_guided: true,
   video_note: '搜索"八段锦 国家体育总局 2003 标准版"，按视频逐节跟练，每节 8 次呼吸循环',
+  video_embed_bvid: 'BV1gT4y1m7ec',
   phases: ['adaptation', 'improvement', 'maintenance'],
 }
 
@@ -440,6 +379,7 @@ const yogaBasicVideo: ExerciseItem = {
   ],
   video_guided: true,
   video_note: '搜索"哈他瑜伽 初学者"或"阴瑜伽 放松"，避免选择热瑜伽、流瑜伽（Vinyasa）课程',
+  video_embed_bvid: 'BV1fT4y1j7f2',
   phases: ['adaptation', 'improvement', 'maintenance'],
 }
 
@@ -455,6 +395,8 @@ const breathingPldb: ExerciseItem = {
   surgery_windows: [],
   contra_flags: [],
   modifications: [],
+  can_split: true,
+  video_embed_bvid: 'BV1Xz421f7nk',
   steps: [
     '坐位或仰卧，肩膀放松，将一手轻放腹部感受运动',
     '经鼻缓慢吸气 2–3 秒，感受腹部隆起（膈肌下沉）',
@@ -474,9 +416,7 @@ const breathingPldb: ExerciseItem = {
 export const EXERCISE_LIBRARY: ExerciseItem[] = [
   // Aerobic
   walkingBasic,
-  nordicWalking,
   homeMarch,
-  swimming,
   // Resistance
   seatedLegRaise,
   wallSquat,

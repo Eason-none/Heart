@@ -1,6 +1,5 @@
 'use client'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 const TABS = [
   {
@@ -81,6 +80,17 @@ const TABS = [
 
 export default function BottomNav({ followupDot = false }: { followupDot?: boolean }) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleNav = (href: string) => {
+    if (pathname.startsWith(href)) return
+    if (localStorage.getItem('exercise_in_progress')) {
+      const ok = window.confirm('运动正在进行中，离开将丢失本次计时，确定离开吗？')
+      if (!ok) return
+      localStorage.removeItem('exercise_in_progress')
+    }
+    router.push(href)
+  }
 
   return (
     <nav
@@ -91,9 +101,10 @@ export default function BottomNav({ followupDot = false }: { followupDot?: boole
         {TABS.map(tab => {
           const active = pathname.startsWith(tab.href)
           return (
-            <Link
+            <button
               key={tab.href}
-              href={tab.href}
+              type="button"
+              onClick={() => handleNav(tab.href)}
               className="flex-1 flex flex-col items-center gap-1 py-2 relative"
             >
               <div className="relative">
@@ -108,7 +119,7 @@ export default function BottomNav({ followupDot = false }: { followupDot?: boole
               >
                 {tab.label}
               </span>
-            </Link>
+            </button>
           )
         })}
       </div>

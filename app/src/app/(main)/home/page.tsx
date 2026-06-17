@@ -38,7 +38,7 @@ function KnowledgeCardWidget({ card }: { card: KnowledgeCard }) {
       <h2 className="text-lg font-bold text-text mb-2 leading-tight">{card.title}</h2>
       <div
         className="text-base text-text leading-relaxed"
-        style={expanded ? {} : { display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as React.CSSProperties}
+        style={expanded ? {} : { display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden', maxHeight: '6rem' } as React.CSSProperties}
       >
         {card.body}
       </div>
@@ -56,7 +56,7 @@ function KnowledgeCardWidget({ card }: { card: KnowledgeCard }) {
           onClick={handleAskAssistant}
           className="text-sm text-blue"
         >
-          有疑问？问助手 →
+          有疑问？问 AI 助手 →
         </button>
         <Link href="/learn" className="text-sm text-text-sub">
           查看全部内容 →
@@ -78,14 +78,18 @@ interface TodayPlan {
 export default function HomePage() {
   const [assessmentDone, setAssessmentDone] = useState(false)
   const [followupOverdue, setFollowupOverdue] = useState(false)
+  const [exercisePaused, setExercisePaused] = useState(false)
   const [card, setCard] = useState<KnowledgeCard>(KNOWLEDGE_CARDS[0])
   const [todayExerciseDone, setTodayExerciseDone] = useState(false)
   const [todayPlan, setTodayPlan] = useState<TodayPlan | null>(null)
+  const [sessionCount, setSessionCount] = useState(0)
 
   useEffect(() => {
     try {
       const data = JSON.parse(localStorage.getItem('assessment_answers') || '{}')
       setAssessmentDone(!!data.risk_level)
+      const pauseData = JSON.parse(localStorage.getItem('exercise_pause') || 'null')
+      setExercisePaused(!!pauseData && data.risk_level !== 'high')
 
       // Sequential card push: phase + audience aware, daily rotation
       const phase: ContentPhase = (data.rehab_phase as ContentPhase) || 'adaptation'
@@ -163,22 +167,26 @@ export default function HomePage() {
       const sessions = JSON.parse(localStorage.getItem('exercise_sessions') || '[]')
       const todayStr = new Date().toISOString().slice(0, 10)
       setTodayExerciseDone(sessions.some((s: { date: string }) => s.date.startsWith(todayStr)))
+      setSessionCount(sessions.length)
     } catch {}
   }, [])
 
+  const nextMilestone = sessionCount < 12 ? 12 : sessionCount < 18 ? 18 : null
+  const progressLabel = sessionCount > 0
+    ? nextMilestone
+      ? `累计 ${sessionCount} 次 · 距第${nextMilestone}次里程碑还差 ${nextMilestone - sessionCount} 次`
+      : `累计 ${sessionCount} 次运动`
+    : null
+
   return (
     <div className="flex flex-col h-full bg-bg">
-      <div className="flex-shrink-0 h-11 flex items-center justify-between px-5">
-        <span className="text-[15px] font-semibold text-text">9:41</span>
-        <div className="flex gap-1.5 text-xs text-text"><span>●●● WiFi 🔋</span></div>
-      </div>
-
       {!assessmentDone && (
         <Link
           href="/assessment"
-          className="flex-shrink-0 h-11 flex items-center px-4 bg-orange-light border-l-4 border-orange text-sm font-medium text-orange"
+          className="flex-shrink-0 min-h-[44px] flex items-center gap-2 px-4 bg-orange-light text-sm font-medium text-orange"
         >
-          首次评估未完成 · 点击继续填写 →
+          <span aria-hidden="true" className="flex-shrink-0">⚠</span>
+          <span>首次评估未完成 · 点击继续填写 →</span>
         </Link>
       )}
 
@@ -186,12 +194,17 @@ export default function HomePage() {
         <KnowledgeCardWidget card={card} />
 
         {!assessmentDone ? (
-          <Link href="/assessment" className="flex flex-col bg-card rounded-card p-4 gap-1">
-            <p className="text-sm text-text-sub">运动方案</p>
-            <p className="text-base font-semibold text-text">完成评估，解锁专属运动处方</p>
-            <p className="text-sm text-text-sub mt-0.5">根据你的身体状况生成个性化运动计划</p>
-            <span className="text-sm text-blue mt-2">立即评估 →</span>
-          </Link>
+          <>
+            <Link href="/assessment" className="flex flex-col bg-card rounded-card p-4 gap-1">
+              <p className="text-sm text-text-sub">运动方案</p>
+              <p className="text-base font-semibold text-text">完成评估，解锁专属运动处方</p>
+              <p className="text-sm text-text-sub mt-0.5">根据你的身体状况生成个性化运动计划</p>
+              <span className="text-sm text-blue mt-2">立即评估 →</span>
+            </Link>
+            <Link href="/profile" className="text-xs text-text-sub text-center">
+              已在其他设备使用过？前往「我」页恢复数据 →
+            </Link>
+          </>
         ) : todayExerciseDone ? (
           <div className="bg-card rounded-card p-4">
             <p className="text-sm text-text-sub mb-1">今日运动</p>
@@ -209,6 +222,7 @@ export default function HomePage() {
                 查看记录
               </Link>
             </div>
+            {progressLabel && <p className="text-sm text-text-sub mt-2">{progressLabel}</p>}
           </div>
         ) : todayPlan && !todayPlan.isRest ? (
           <div className="bg-card rounded-card p-4">
@@ -225,6 +239,7 @@ export default function HomePage() {
                 去运动 →
               </Link>
             </div>
+            {progressLabel && <p className="text-sm text-text-sub mt-2">{progressLabel}</p>}
           </div>
         ) : (
           <div className="bg-card rounded-card p-4">
@@ -239,20 +254,36 @@ export default function HomePage() {
             ) : (
               <p className="text-base text-text-sub">今天休息，保持日常活动量即可。</p>
             )}
+            <div className="mt-3 pt-3 border-t border-border">
+              <Link href="/learn" className="text-sm text-blue min-h-[44px] flex items-center">
+                了解恢复日注意事项 →
+              </Link>
+            </div>
           </div>
         )}
 
-        {followupOverdue && (
+        {exercisePaused && (
           <Link
             href="/followup"
-            className="flex items-center min-h-[56px] px-4 bg-orange-light border-l-4 border-orange rounded-card"
+            className="flex items-center gap-3 min-h-[56px] px-4 bg-red-light rounded-card"
           >
-            <span className="text-base text-text flex-1">本周随访未完成，点击开始 →</span>
+            <span className="text-red text-lg flex-shrink-0" aria-hidden="true">🔒</span>
+            <span className="text-base text-text flex-1">运动功能已暂停 · 完成健康记录可解锁 →</span>
+          </Link>
+        )}
+
+        {followupOverdue && !exercisePaused && (
+          <Link
+            href="/followup"
+            className="flex items-center gap-3 min-h-[56px] px-4 bg-orange-light rounded-card"
+          >
+            <span className="text-orange text-lg flex-shrink-0" aria-hidden="true">⚠</span>
+            <span className="text-base text-text flex-1">本周健康记录未完成，点击开始 →</span>
           </Link>
         )}
 
         <div className="px-1 pb-2">
-          <p className="text-sm text-text-sub leading-relaxed">
+          <p className="text-base text-text-sub leading-relaxed">
             如出现胸痛、胸闷、心慌、头晕等不适，请立即停止活动并就医
           </p>
         </div>

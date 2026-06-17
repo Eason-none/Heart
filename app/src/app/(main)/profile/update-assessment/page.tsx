@@ -238,7 +238,7 @@ export default function UpdateAssessmentPage() {
               </button>
               <button
                 type="button"
-                onClick={() => { setConfirmModal(null); router.push('/assessment') }}
+                onClick={() => { setConfirmModal(null); router.push('/assessment?from=update') }}
                 className="flex-1 min-h-[52px] bg-blue rounded-btn text-base font-medium text-white"
               >
                 继续

@@ -1,6 +1,6 @@
 'use client'
-import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useCallback, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import { calculateRiskLevel } from '@/lib/exercise/risk'
 import { generateInitialPrescription } from '@/lib/exercise/prescription'
@@ -84,7 +84,17 @@ function NumberInput({ qKey, label, unit, min, max, skippable, hint, externalVal
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function AssessmentPage() {
+  return (
+    <Suspense fallback={<div className="phone-shell flex items-center justify-center"><p className="text-text-sub">加载中…</p></div>}>
+      <AssessmentContent />
+    </Suspense>
+  )
+}
+
+function AssessmentContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const fromUpdate = searchParams.get('from') === 'update'
   const [group, setGroup] = useState(1)
   const [showIntro, setShowIntro] = useState(true)
   const [answers, setAnswers] = useState<Answers>({})
@@ -185,7 +195,10 @@ export default function AssessmentPage() {
 
   const handleBack = () => {
     if (showIntro && group > 1) { setGroup(g => g - 1); return }
-    if (showIntro) { router.push('/consent'); return }
+    if (showIntro) {
+      router.push(fromUpdate ? '/profile/update-assessment' : '/consent')
+      return
+    }
     setShowIntro(true)
   }
 
